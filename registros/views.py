@@ -1,12 +1,13 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Trabajo
-from .forms import TrabajoForm
+from .forms import TrabajoForm, UserRegistrationForm
 from .filters import TrabajoFilter
 from django.utils import timezone
 from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
+from django.contrib.auth.models import User
 
 
 def home(request):
@@ -97,3 +98,24 @@ def export_historial_xlsx(request):
 
     workbook.save(response)
     return response
+
+
+@login_required
+def register_user(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'registros/register_user.html', {'form': form})
+
+
+@login_required
+def listar_usuarios(request):
+    if request.user.is_superuser:  # Solo los superusuarios pueden ver esta lista
+        usuarios = User.objects.all()
+        return render(request, 'registros/listar_usuarios.html', {'usuarios': usuarios})
+    else:
+        return redirect('home')

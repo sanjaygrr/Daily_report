@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .models import Trabajo
 import datetime
+from django.contrib.auth.models import User, Group
 
 
 class TrabajoForm(forms.ModelForm):
@@ -41,3 +42,21 @@ class TrabajoForm(forms.ModelForm):
             cleaned_data['total_horas'] = horometro_final - horometro_inicial
 
         return cleaned_data
+
+
+class UserRegistrationForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name',
+                  'last_name', 'email', 'password', 'group']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+            user.groups.add(self.cleaned_data['group'])
+        return user

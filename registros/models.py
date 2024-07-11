@@ -1,8 +1,7 @@
-from django.contrib.auth.models import Group
-from django.dispatch import receiver
-from django.db.models.signals import post_save
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Trabajo(models.Model):
@@ -10,9 +9,10 @@ class Trabajo(models.Model):
     faena = models.CharField(max_length=100)
     maquina = models.CharField(max_length=100)
     trabajo = models.CharField(max_length=200)
-    horometro_inicial = models.IntegerField()
-    horometro_final = models.IntegerField()
-    total_horas = models.IntegerField()
+    horometro_inicial = models.DecimalField(max_digits=5, decimal_places=2)
+    horometro_final = models.DecimalField(max_digits=5, decimal_places=2)
+    total_horas = models.DecimalField(
+        max_digits=5, decimal_places=2, blank=True, null=True)
     petroleo_litros = models.FloatField()
     aceite_tipo_litros = models.CharField(max_length=200)
     observaciones = models.TextField()
