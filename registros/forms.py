@@ -17,10 +17,10 @@ class TrabajoForm(forms.ModelForm):
         ),
         initial=timezone.now().date()
     )
-    horometro_inicial = forms.DecimalField(max_digits=5, decimal_places=2)
-    horometro_final = forms.DecimalField(max_digits=5, decimal_places=2)
+    horometro_inicial = forms.DecimalField(max_digits=10, decimal_places=2)
+    horometro_final = forms.DecimalField(max_digits=10, decimal_places=2)
     total_horas = forms.DecimalField(
-        max_digits=5, decimal_places=2, required=False,
+        max_digits=12, decimal_places=2, required=False,
         widget=forms.NumberInput(attrs={'readonly': 'readonly'})
     )
 
@@ -28,6 +28,23 @@ class TrabajoForm(forms.ModelForm):
         model = Trabajo
         fields = ['fecha', 'faena', 'maquina', 'trabajo', 'horometro_inicial', 'horometro_final',
                   'total_horas', 'petroleo_litros', 'aceite_tipo_litros', 'observaciones', 'supervisor']
+
+    def clean_horometro_inicial(self):
+        horometro_inicial = self.cleaned_data.get('horometro_inicial')
+        return self.normalize_decimal(horometro_inicial)
+
+    def clean_horometro_final(self):
+        horometro_final = self.cleaned_data.get('horometro_final')
+        return self.normalize_decimal(horometro_final)
+
+    def clean_total_horas(self):
+        total_horas = self.cleaned_data.get('total_horas')
+        return self.normalize_decimal(total_horas)
+
+    def normalize_decimal(self, value):
+        if value is not None:
+            return round(value, 2)
+        return value
 
     def clean(self):
         cleaned_data = super().clean()
@@ -39,7 +56,8 @@ class TrabajoForm(forms.ModelForm):
                 raise ValidationError(
                     "El horómetro final no puede ser menor que el horómetro inicial.")
 
-            cleaned_data['total_horas'] = horometro_final - horometro_inicial
+            cleaned_data['total_horas'] = self.normalize_decimal(
+                horometro_final - horometro_inicial)
 
         return cleaned_data
 

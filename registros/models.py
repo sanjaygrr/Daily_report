@@ -9,10 +9,12 @@ class Trabajo(models.Model):
     faena = models.CharField(max_length=100)
     maquina = models.CharField(max_length=100)
     trabajo = models.CharField(max_length=200)
-    horometro_inicial = models.DecimalField(max_digits=5, decimal_places=2)
-    horometro_final = models.DecimalField(max_digits=5, decimal_places=2)
+    horometro_inicial = models.DecimalField(
+        max_digits=10, decimal_places=2)  # Permite hasta 99999999.99
+    horometro_final = models.DecimalField(
+        max_digits=10, decimal_places=2)  # Permite hasta 99999999.99
     total_horas = models.DecimalField(
-        max_digits=5, decimal_places=2, blank=True, null=True)
+        max_digits=12, decimal_places=2, blank=True, null=True)  # Permite hasta 9999999999.99
     petroleo_litros = models.FloatField()
     aceite_tipo_litros = models.CharField(max_length=200)
     observaciones = models.TextField()
@@ -28,6 +30,6 @@ class Trabajo(models.Model):
 
 @receiver(post_save, sender=User)
 def add_user_to_default_group(sender, instance, created, **kwargs):
-    if created:
-        group = Group.objects.get(name='Trabajador')
+    if created and not instance.is_superuser:
+        group, created = Group.objects.get_or_create(name='Trabajador')
         instance.groups.add(group)
