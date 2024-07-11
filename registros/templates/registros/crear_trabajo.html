@@ -1,0 +1,14 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Crear Trabajo{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4">Registrar Trabajo</h1>
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-warning">Guardar</button>
+    </form>
+</div>
+{% endblock %}
