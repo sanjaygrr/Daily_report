@@ -23,8 +23,7 @@ def crear_trabajo(request):
             trabajo.save()
             return redirect('historial')
     else:
-        form = TrabajoForm(
-            initial={'trabajador': request.user, 'fecha': timezone.now()})
+        form = TrabajoForm(initial={'fecha': timezone.now().date()})
     return render(request, 'registros/crear_trabajo.html', {'form': form})
 
 
