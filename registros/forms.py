@@ -23,6 +23,9 @@ class TrabajoForm(forms.ModelForm):
         max_digits=12, decimal_places=2, required=False,
         widget=forms.NumberInput(attrs={'readonly': 'readonly'})
     )
+    supervisor = forms.ModelChoiceField(
+        queryset=User.objects.filter(groups__name='Supervisor')
+    )
 
     class Meta:
         model = Trabajo
