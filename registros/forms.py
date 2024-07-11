@@ -16,16 +16,28 @@ class TrabajoForm(forms.ModelForm):
         ),
         initial=timezone.now().date()
     )
+    horometro_inicial = forms.DecimalField(max_digits=5, decimal_places=2)
+    horometro_final = forms.DecimalField(max_digits=5, decimal_places=2)
+    total_horas = forms.DecimalField(
+        max_digits=5, decimal_places=2, required=False,
+        widget=forms.NumberInput(attrs={'readonly': 'readonly'})
+    )
 
     class Meta:
         model = Trabajo
         fields = ['fecha', 'faena', 'maquina', 'trabajo', 'horometro_inicial', 'horometro_final',
                   'total_horas', 'petroleo_litros', 'aceite_tipo_litros', 'observaciones', 'supervisor']
 
-    def clean_fecha(self):
-        fecha = self.cleaned_data['fecha']
-        if fecha > timezone.now().date():
-            raise ValidationError("La fecha no puede ser futura.")
-        if fecha < (timezone.now() - datetime.timedelta(days=30)).date():
-            raise ValidationError("La fecha no puede ser anterior a un mes.")
-        return fecha
+    def clean(self):
+        cleaned_data = super().clean()
+        horometro_inicial = cleaned_data.get('horometro_inicial')
+        horometro_final = cleaned_data.get('horometro_final')
+
+        if horometro_inicial is not None and horometro_final is not None:
+            if horometro_final < horometro_inicial:
+                raise ValidationError(
+                    "El horómetro final no puede ser menor que el horómetro inicial.")
+
+            cleaned_data['total_horas'] = horometro_final - horometro_inicial
+
+        return cleaned_data

@@ -11,4 +11,26 @@
         <button type="submit" class="btn btn-warning">Guardar</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const horometroInicialInput = document.getElementById('id_horometro_inicial');
+        const horometroFinalInput = document.getElementById('id_horometro_final');
+        const totalHorasInput = document.getElementById('id_total_horas');
+
+        function calculateTotalHours() {
+            const horometroInicial = parseFloat(horometroInicialInput.value) || 0;
+            const horometroFinal = parseFloat(horometroFinalInput.value) || 0;
+
+            if (horometroFinal >= horometroInicial) {
+                totalHorasInput.value = (horometroFinal - horometroInicial).toFixed(2);
+            } else {
+                totalHorasInput.value = '';
+            }
+        }
+
+        horometroInicialInput.addEventListener('input', calculateTotalHours);
+        horometroFinalInput.addEventListener('input', calculateTotalHours);
+    });
+</script>
 {% endblock %}
