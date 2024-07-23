@@ -7,7 +7,62 @@
     <h1 class="mb-4">Registrar Trabajo</h1>
     <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="id_fecha">Fecha</label>
+                {{ form.fecha }}
+            </div>
+            <div class="form-group col-md-4">
+                <label for="id_faena">Faena</label>
+                {{ form.faena }}
+            </div>
+            <div class="form-group col-md-4">
+                <label for="id_maquina">Máquina</label>
+                {{ form.maquina }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="id_trabajo">Trabajo</label>
+                {{ form.trabajo }}
+            </div>
+            <div class="form-group col-md-6">
+                <label for="id_tipo_medida">Tipo de Medida</label>
+                {{ form.tipo_medida }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="id_horometro_inicial">Horómetro/Kilometraje Inicial</label>
+                {{ form.horometro_inicial }}
+            </div>
+            <div class="form-group col-md-4">
+                <label for="id_horometro_final">Horómetro/Kilometraje Final</label>
+                {{ form.horometro_final }}
+            </div>
+            <div class="form-group col-md-4">
+                <label for="id_total_horas">Total Horas</label>
+                {{ form.total_horas }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="id_petroleo_litros">Petróleo (litros)</label>
+                {{ form.petroleo_litros }}
+            </div>
+            <div class="form-group col-md-6">
+                <label for="id_aceite_tipo_litros">Aceite (tipo y litros)</label>
+                {{ form.aceite_tipo_litros }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="id_observaciones">Observaciones</label>
+            {{ form.observaciones }}
+        </div>
+        <div class="form-group">
+            <label for="id_supervisor">Supervisor</label>
+            {{ form.supervisor }}
+        </div>
         <button type="submit" class="btn btn-warning">Guardar</button>
     </form>
 </div>

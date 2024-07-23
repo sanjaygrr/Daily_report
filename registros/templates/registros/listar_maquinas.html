@@ -1,0 +1,14 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Lista de Máquinas{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4">Máquinas</h1>
+    <ul>
+        {% for maquina in maquinas %}
+            <li>{{ maquina.nombre }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

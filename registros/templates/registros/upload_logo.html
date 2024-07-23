@@ -1,0 +1,14 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Subir Logo{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4">Subir Logo</h1>
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-warning">Subir</button>
+    </form>
+</div>
+{% endblock %}

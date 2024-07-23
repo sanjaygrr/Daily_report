@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Registro de Trabajos{% endblock %}</title>
     {% load static %}
+    {% load custom_filters %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -46,12 +47,12 @@
             color: white;
             padding: 0.5rem 1rem;
             text-decoration: none;
-            cursor: pointer;
+            cursor: pointer.
         }
         .logout-form button:hover {
             background-color: #0056b3;
             color: #fff !important;
-            border-radius: 5px;
+            border-radius: 5px.
         }
     </style>
 </head>
@@ -70,10 +71,16 @@
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'crear_trabajo' %}">Crear Trabajo</a></li>
                         <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'historial' %}">Historial</a></li>
+                        {% if user|user_is_in_group:"Supervisor" or user.is_superuser or user|user_is_in_group:"Admin" %}
                         <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'pendientes' %}">Pendientes</a></li>
-                        {% if user.is_superuser %}
+                        {% endif %}
+                        {% if user.is_superuser or user|user_is_in_group:"Admin" %}
                         <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'register_user' %}">Registrar Usuario</a></li>
                         <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'listar_usuarios' %}">Lista de Usuarios</a></li>
+                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'crear_maquina' %}">Crear Máquina</a></li>
+                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'listar_maquinas' %}">Lista de Máquinas</a></li>
+                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'crear_faena' %}">Crear Faena</a></li>
+                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'listar_faenas' %}">Lista de Faenas</a></li>
                         {% endif %}
                         <li class="nav-item">
                             <form method="post" action="{% url 'logout' %}" class="logout-form">

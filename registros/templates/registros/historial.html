@@ -5,11 +5,28 @@
 {% block content %}
 <div class="card p-4">
     <h1 class="mb-4">Historial</h1>
-    <form method="get" class="needs-validation" novalidate>
-        {{ filter.form.as_p }}
-        <button type="submit" class="btn btn-warning">Filtrar</button>
+    <form method="get" class="form-inline needs-validation" novalidate>
+        <div class="form-group mr-2">
+            {{ filter.form.fecha.label_tag }} {{ filter.form.fecha }}
+        </div>
+        <div class="form-group mr-2">
+            {{ filter.form.faena.label_tag }} {{ filter.form.faena }}
+        </div>
+        <div class="form-group mr-2">
+            {{ filter.form.maquina.label_tag }} {{ filter.form.maquina }}
+        </div>
+        <div class="form-group mr-2">
+            {{ filter.form.trabajador.label_tag }} {{ filter.form.trabajador }}
+        </div>
+        <div class="form-group mr-2">
+            {{ filter.form.supervisor.label_tag }} {{ filter.form.supervisor }}
+        </div>
+        <div class="form-group mr-2">
+            {{ filter.form.aprobado.label_tag }} {{ filter.form.aprobado }}
+        </div>
+        <button type="submit" class="btn btn-warning btn-sm">Filtrar</button>
     </form>
-    <a href="{% url 'export_historial_xlsx' %}" class="btn btn-success mt-4">Descargar XLSX</a>
+    <a href="{% url 'export_historial_xlsx' %}" class="btn btn-success btn-sm mt-4">Descargar XLSX</a>
     <div class="table-responsive mt-4">
         <table class="table table-striped table-bordered">
             <thead class="thead-dark">
@@ -18,6 +35,7 @@
                     <th>Faena</th>
                     <th>Máquina</th>
                     <th>Trabajo</th>
+                    <th>Tipo de Medida</th>
                     <th>Horómetro Inicial</th>
                     <th>Horómetro Final</th>
                     <th>Total de Horas</th>
@@ -27,24 +45,33 @@
                     <th>Supervisor</th>
                     <th>Trabajador</th>
                     <th>Aprobado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for trabajo in filter.qs %}
                 <tr>
                     <td>{{ trabajo.fecha }}</td>
-                    <td>{{ trabajo.faena }}</td>
-                    <td>{{ trabajo.maquina }}</td>
+                    <td>{{ trabajo.faena.nombre }}</td>
+                    <td>{{ trabajo.maquina.nombre }}</td>
                     <td>{{ trabajo.trabajo }}</td>
+                    <td>{{ trabajo.tipo_medida }}</td>
                     <td>{{ trabajo.horometro_inicial }}</td>
                     <td>{{ trabajo.horometro_final }}</td>
                     <td>{{ trabajo.total_horas }}</td>
-                    <td>{{ trabajo.petroleo }}</td>
-                    <td>{{ trabajo.aceite }}</td>
+                    <td>{{ trabajo.petroleo_litros }}</td>
+                    <td>{{ trabajo.aceite_tipo_litros }}</td>
                     <td>{{ trabajo.observaciones }}</td>
-                    <td>{{ trabajo.supervisor }}</td>
-                    <td>{{ trabajo.trabajador }}</td>
+                    <td>{{ trabajo.supervisor.username }}</td>
+                    <td>{{ trabajo.trabajador.username }}</td>
                     <td>{{ trabajo.aprobado }}</td>
+                    <td>
+                        <form method="post" enctype="multipart/form-data" action="{% url 'generar_pdf_trabajo' trabajo.pk %}">
+                            {% csrf_token %}
+                            <input type="file" name="logo" required>
+                            <button type="submit" class="btn btn-primary btn-sm mt-2">Descargar PDF</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
