@@ -11,4 +11,11 @@ urlpatterns = [
          name='export_historial_xlsx'),
     path('register_user/', views.register_user, name='register_user'),
     path('listar_usuarios/', views.listar_usuarios, name='listar_usuarios'),
+    path('crear_maquina/', views.crear_maquina, name='crear_maquina'),
+    path('listar_maquinas/', views.listar_maquinas, name='listar_maquinas'),
+    path('crear_faena/', views.crear_faena, name='crear_faena'),
+    path('listar_faenas/', views.listar_faenas, name='listar_faenas'),
+    path('generar_pdf_trabajo/<int:pk>/',
+         views.generar_pdf_trabajo, name='generar_pdf_trabajo'),
+    path('upload_logo/', views.upload_logo, name='upload_logo'),
 ]
