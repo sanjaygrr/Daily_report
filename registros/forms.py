@@ -1,9 +1,21 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Trabajo
+from .models import Trabajo, Maquina, Faena
 import datetime
 from django.contrib.auth.models import User, Group
+
+
+class MaquinaForm(forms.ModelForm):
+    class Meta:
+        model = Maquina
+        fields = ['nombre']
+
+
+class FaenaForm(forms.ModelForm):
+    class Meta:
+        model = Faena
+        fields = ['nombre']
 
 
 class TrabajoForm(forms.ModelForm):
@@ -26,11 +38,15 @@ class TrabajoForm(forms.ModelForm):
     supervisor = forms.ModelChoiceField(
         queryset=User.objects.filter(groups__name='Supervisor')
     )
+    tipo_medida = forms.ChoiceField(
+        choices=[('Horas', 'Horas'), ('Kilómetros', 'Kilómetros')],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
 
     class Meta:
         model = Trabajo
         fields = ['fecha', 'faena', 'maquina', 'trabajo', 'horometro_inicial', 'horometro_final',
-                  'total_horas', 'petroleo_litros', 'aceite_tipo_litros', 'observaciones', 'supervisor']
+                  'total_horas', 'petroleo_litros', 'aceite_tipo_litros', 'observaciones', 'supervisor', 'tipo_medida']
 
     def clean_horometro_inicial(self):
         horometro_inicial = self.cleaned_data.get('horometro_inicial')
@@ -81,3 +97,7 @@ class UserRegistrationForm(forms.ModelForm):
             user.save()
             user.groups.add(self.cleaned_data['group'])
         return user
+
+
+class LogoUploadForm(forms.Form):
+    logo = forms.ImageField()
