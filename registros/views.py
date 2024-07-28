@@ -17,9 +17,20 @@ from django.conf import settings
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 
+from django.http import HttpResponseForbidden
+from django.contrib.admin.views.decorators import staff_member_required
+
+
+@staff_member_required
+def admin_view(request):
+    return redirect('/admin/')
+
 
 def home(request):
-    return render(request, 'registros/home.html')
+    context = {}
+    if request.user.is_authenticated:
+        context['username'] = request.user.username
+    return render(request, 'registros/home.html', context)
 
 
 @login_required
