@@ -5,7 +5,7 @@ from registros import views as registros_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('home/', registros_views.home, name='home'),
+    path('', registros_views.home, name='home'),
     path('registros/', include('registros.urls')),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/',
