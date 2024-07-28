@@ -35,6 +35,8 @@
         }
         .navbar-brand img {
             margin-right: 10px;
+            width: 100px;
+            height: 100px;
         }
         .logout-form {
             display: inline-block;
@@ -47,53 +49,58 @@
             color: white;
             padding: 0.5rem 1rem;
             text-decoration: none;
-            cursor: pointer.
+            cursor: pointer;
+            background-color: #ffc107; /* Fondo amarillo */
+            color: #000; /* Texto negro */
+            border-radius: 5px;
         }
         .logout-form button:hover {
-            background-color: #0056b3;
+            background-color: #e0a800;
             color: #fff !important;
-            border-radius: 5px.
+            border-radius: 5px;
+        }
+        .navbar-nav {
+            width: 100%;
+            justify-content: space-between;
         }
     </style>
 </head>
 <body>
     <header class="bg-primary text-white p-3">
-        <div class="container">
-            <nav class="navbar navbar-expand-lg navbar-light">
-                <a class="navbar-brand" href="#">
-                    <img src="{% static 'images/logo.jpeg' %}" width="30" height="30" class="d-inline-block align-top" alt="Logo">
-                    Daily Report {{ user.username }}
-                </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'crear_trabajo' %}">Crear Trabajo</a></li>
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'historial' %}">Historial</a></li>
-                        {% if user|user_is_in_group:"Supervisor" or user.is_superuser or user|user_is_in_group:"Admin" %}
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'pendientes' %}">Pendientes</a></li>
-                        {% endif %}
-                        {% if user.is_superuser or user|user_is_in_group:"Admin" %}
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'register_user' %}">Registrar Usuario</a></li>
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'listar_usuarios' %}">Lista de Usuarios</a></li>
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'crear_maquina' %}">Crear Máquina</a></li>
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'listar_maquinas' %}">Lista de Máquinas</a></li>
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'crear_faena' %}">Crear Faena</a></li>
-                        <li class="nav-item"><a class="nav-link text-white mt-4" href="{% url 'listar_faenas' %}">Lista de Faenas</a></li>
-                        {% endif %}
-                        <li class="nav-item">
-                            <form method="post" action="{% url 'logout' %}" class="logout-form">
-                                {% csrf_token %}
-                                <button type="submit" class="nav-link btn-link mb-4">Cerrar Sesión</button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-        </div>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="{% static 'images/logo.jpeg' %}" alt="Logo">
+                Daily Report {{ user.username }}
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto w-100">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'crear_trabajo' %}">Crear Trabajo</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}">Historial</a></li>
+                    {% if user|user_is_in_group:"Supervisor" or user.is_superuser or user|user_is_in_group:"Admin" %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'pendientes' %}">Pendientes</a></li>
+                    {% endif %}
+                    {% if user.is_superuser or user|user_is_in_group:"Admin" %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'register_user' %}">Registrar Usuario</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_usuarios' %}">Lista de Usuarios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'crear_maquina' %}">Crear Máquina</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_maquinas' %}">Lista de Máquinas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'crear_faena' %}">Crear Faena</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_faenas' %}">Lista de Faenas</a></li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <form method="post" action="{% url 'logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link btn-link">Cerrar Sesión</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
     </header>
-    <main class="container mt-5 mb-5 content">
+    <main class="container-fluid mt-5 mb-5 content">
         {% block content %}{% endblock %}
     </main>
     <footer class="bg-dark text-white text-center p-3">

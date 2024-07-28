@@ -1,4 +1,77 @@
-/* static/css/styles.css */
+body,
+html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+.navbar-nav .nav-item .nav-link {
+    background-color: #003366;
+    color: #fff !important;
+    border-radius: 5px;
+    margin: 0 5px;
+    padding: 10px 15px;
+}
+
+.navbar-nav .nav-item .nav-link:hover {
+    background-color: #ffc107;
+    color: #000 !important;
+}
+
+.navbar-nav .nav-item {
+    margin-left: 15px;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    /* Tamaño del texto del nombre de usuario */
+}
+
+.navbar-brand img {
+    margin-right: 10px;
+    width: 30px;
+    /* Ajusta el tamaño del logo */
+    height: 30px;
+    /* Ajusta el tamaño del logo */
+}
+
+.logout-form {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.logout-form button {
+    border: none;
+    background: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #ffc107;
+    /* Fondo amarillo */
+    color: #000;
+    /* Texto negro */
+    border-radius: 5px;
+}
+
+.logout-form button:hover {
+    background-color: #e0a800;
+    color: #fff !important;
+    border-radius: 5px;
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f7f9fc;
@@ -42,6 +115,17 @@ form button:hover {
     /* Amarillo más oscuro */
 }
 
+.table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-responsive {
+    width: 100%;
+    min-width: 1500px;
+    /* Ajustar el ancho mínimo */
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -78,10 +162,27 @@ a {
 }
 
 a:hover {
-    color: #0056b3;
+    color: #ffffff;
     /* Azul más oscuro */
 }
 
-.table-responsive {
-    margin: 0 auto;
+.container-fluid {
+    width: 100%;
+    padding: 0 1rem;
+    /* Ajustar el padding para reducir el espacio en el lado izquierdo */
+}
+
+header {
+    width: 100%;
+    padding: 0;
+}
+
+.table-container {
+    margin-left: -20px;
+    /* Ajustar el margen izquierdo de la tabla */
+}
+
+.container-fluid .table-responsive-wrapper {
+    margin-left: 0;
+    /* Asegurar que la tabla comience más a la izquierda */
 }
