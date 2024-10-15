@@ -4,11 +4,70 @@
 
 {% block content %}
 <div class="card p-4">
-    <h1 class="mb-4">Máquinas</h1>
-    <ul>
+    <h1 class="mb-4 text-center">Máquinas</h1>
+    <div class="list-group">
         {% for maquina in maquinas %}
-            <li>{{ maquina.nombre }}</li>
+            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                <span>{{ maquina.nombre }}</span>
+                <div class="mt-2 mt-md-0">
+                    <!-- Botón para abrir el modal de edición -->
+                    <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarModal{{ maquina.pk }}">Editar</button>
+                    <!-- Botón para abrir el modal de eliminación -->
+                    <button class="btn btn-sm btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ maquina.pk }}">Eliminar</button>
+                </div>
+            </div>
+
+            <!-- Modal para editar la máquina -->
+            <div class="modal fade" id="editarModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="editarModalLabel{{ maquina.pk }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editarModalLabel{{ maquina.pk }}">Editar {{ maquina.nombre }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <form method="post" action="{% url 'listar_maquinas' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="maquina_id" value="{{ maquina.pk }}">
+                            <div class="modal-body">
+                                <!-- Campo de entrada para el nombre de la máquina -->
+                                <div class="mb-3">
+                                    <label for="id_nombre_{{ maquina.pk }}" class="form-label">Nombre de la Máquina</label>
+                                    <input type="text" class="form-control" id="id_nombre_{{ maquina.pk }}" name="nombre" value="{{ maquina.nombre }}" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para confirmar la eliminación -->
+            <div class="modal fade" id="eliminarModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="eliminarModalLabel{{ maquina.pk }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="eliminarModalLabel{{ maquina.pk }}">Eliminar Máquina</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>¿Estás seguro de que deseas eliminar la máquina "{{ maquina.nombre }}"?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{% url 'eliminar_maquina' maquina.pk %}">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-center">No hay máquinas disponibles.</p>
         {% endfor %}
-    </ul>
+    </div>
 </div>
 {% endblock %}

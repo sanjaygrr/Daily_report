@@ -154,7 +154,32 @@ def crear_maquina(request):
 @login_required
 def listar_maquinas(request):
     maquinas = Maquina.objects.all()
-    return render(request, 'registros/listar_maquinas.html', {'maquinas': maquinas})
+    # Crear un formulario para cada máquina
+    forms = {maquina.pk: MaquinaForm(instance=maquina) for maquina in maquinas}
+
+    if request.method == 'POST':
+        maquina_id = request.POST.get('maquina_id')
+        if maquina_id:
+            maquina = get_object_or_404(Maquina, pk=maquina_id)
+            form = MaquinaForm(request.POST, instance=maquina)
+            if form.is_valid():
+                form.save()
+                # Redirigir para evitar reenviar el formulario
+                return redirect('listar_maquinas')
+            else:
+                # Reemplazar con el formulario que tiene errores
+                forms[int(maquina_id)] = form
+
+    return render(request, 'registros/listar_maquinas.html', {'maquinas': maquinas, 'forms': forms})
+
+
+@login_required
+def eliminar_maquina(request, pk):
+    maquina = get_object_or_404(Maquina, pk=pk)
+    if request.method == 'POST':
+        maquina.delete()
+        return redirect('listar_maquinas')
+    return render(request, 'registros/eliminar_maquina.html', {'maquina': maquina})
 
 
 @login_required
