@@ -170,9 +170,47 @@ def crear_faena(request):
 
 
 @login_required
+def editar_faena(request, pk):
+    faena = get_object_or_404(Faena, pk=pk)
+    if request.method == 'POST':
+        form = FaenaForm(request.POST, instance=faena)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_faenas')
+    else:
+        form = FaenaForm(instance=faena)
+    return render(request, 'registros/editar_faena.html', {'form': form, 'faena': faena})
+
+
+@login_required
+def eliminar_faena(request, pk):
+    faena = get_object_or_404(Faena, pk=pk)
+    if request.method == 'POST':
+        faena.delete()
+        return redirect('listar_faenas')
+    return render(request, 'registros/eliminar_faena.html', {'faena': faena})
+
+
+@login_required
 def listar_faenas(request):
     faenas = Faena.objects.all()
-    return render(request, 'registros/listar_faenas.html', {'faenas': faenas})
+    # Crear un formulario para cada faena
+    forms = {faena.pk: FaenaForm(instance=faena) for faena in faenas}
+
+    if request.method == 'POST':
+        faena_id = request.POST.get('faena_id')
+        if faena_id:
+            faena = get_object_or_404(Faena, pk=faena_id)
+            form = FaenaForm(request.POST, instance=faena)
+            if form.is_valid():
+                form.save()
+                # Redirigir para evitar reenviar el formulario
+                return redirect('listar_faenas')
+            else:
+                # Reemplazar con el formulario que tiene errores
+                forms[int(faena_id)] = form
+
+    return render(request, 'registros/listar_faenas.html', {'faenas': faenas, 'forms': forms})
 
 
 @login_required

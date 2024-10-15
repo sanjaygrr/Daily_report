@@ -18,4 +18,6 @@ urlpatterns = [
     path('generar_pdf_trabajo/<int:pk>/',
          views.generar_pdf_trabajo, name='generar_pdf_trabajo'),
     path('upload_logo/', views.upload_logo, name='upload_logo'),
+    path('faenas/editar/<int:pk>/', views.editar_faena, name='editar_faena'),
+    path('faenas/eliminar/<int:pk>/', views.eliminar_faena, name='eliminar_faena'),
 ]
