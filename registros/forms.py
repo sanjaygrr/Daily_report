@@ -6,6 +6,28 @@ import datetime
 from django.contrib.auth.models import User, Group
 
 
+class UserEditForm(forms.ModelForm):
+    group = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        required=True,
+        label="Rol",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'group']
+
+    def __init__(self, *args, **kwargs):
+        user_instance = kwargs.get('instance')
+        super(UserEditForm, self).__init__(*args, **kwargs)
+        if user_instance:
+            # Asignar el grupo actual del usuario en el formulario si existe
+            user_groups = user_instance.groups.all()
+            if user_groups.exists():
+                self.fields['group'].initial = user_groups.first().id
+
+
 class MaquinaForm(forms.ModelForm):
     class Meta:
         model = Maquina

@@ -24,4 +24,9 @@ urlpatterns = [
          views.listar_maquinas, name='listar_maquinas'),
     path('maquinas/eliminar/<int:pk>/',
          views.eliminar_maquina, name='eliminar_maquina'),
+    path('usuarios/eliminar/<int:pk>/',
+         views.eliminar_usuario, name='eliminar_usuario'),
+    path('guardar_cambios_usuarios/', views.guardar_cambios_usuarios,
+         name='guardar_cambios_usuarios'),
+
 ]

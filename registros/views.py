@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Trabajo, Maquina, Faena
-from .forms import TrabajoForm, MaquinaForm, FaenaForm, UserRegistrationForm
+from .forms import TrabajoForm, MaquinaForm, FaenaForm, UserRegistrationForm, UserEditForm
 from .filters import TrabajoFilter
 from django.utils import timezone
 from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import os
@@ -16,7 +16,7 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from reportlab.lib.units import inch
 from reportlab.lib import colors
-
+from django.contrib.auth.forms import UserChangeForm
 from django.http import HttpResponseForbidden
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -136,7 +136,97 @@ def register_user(request):
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
 def listar_usuarios(request):
     usuarios = User.objects.all()
-    return render(request, 'registros/listar_usuarios.html', {'usuarios': usuarios})
+    groups = Group.objects.all()  # Obtener todos los grupos para el dropdown
+
+    # Crear un formulario para cada usuario y verificar si se están creando correctamente
+    forms = {}
+    for usuario in usuarios:
+        form = UserEditForm(instance=usuario)
+        forms[usuario.pk] = form
+
+    if request.method == 'POST':
+        usuario_id = request.POST.get('usuario_id')
+        print(f"Solicitud POST recibida para el usuario con ID: {usuario_id}")
+        if usuario_id:
+            usuario = get_object_or_404(User, pk=usuario_id)
+            form = UserEditForm(request.POST, instance=usuario)
+            if form.is_valid():
+                form.save()
+                # Redirigir para evitar reenviar el formulario
+                return redirect('listar_usuarios')
+            else:
+                # Reemplazar con el formulario que tiene errores
+                forms[int(usuario_id)] = form
+
+    # Verificar si los formularios están siendo pasados al contexto correctamente
+    return render(request, 'registros/listar_usuarios.html', {'usuarios': usuarios, 'forms': forms, 'groups': groups})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
+def guardar_cambios_usuarios(request):
+    if request.method == 'POST':
+        print("Solicitud POST recibida para guardar cambios en los usuarios.")
+        print(f"Datos POST: {request.POST}")
+
+        # Iteramos sobre los usuarios para identificar cuál ha sido editado
+        for usuario in User.objects.all():
+            print(f"Procesando usuario ID: {usuario.id}")
+
+            # Verificamos si el formulario para este usuario fue enviado
+            if f'username_{usuario.pk}' in request.POST:
+                print(
+                    f"Formulario encontrado para el usuario {usuario.username}")
+
+                # Extraemos los nuevos valores del formulario
+                username = request.POST.get(f'username_{usuario.pk}')
+                first_name = request.POST.get(f'first_name_{usuario.pk}')
+                last_name = request.POST.get(f'last_name_{usuario.pk}')
+                email = request.POST.get(f'email_{usuario.pk}')
+                nuevo_grupo_id = request.POST.get(f'group_{usuario.pk}')
+
+                print(
+                    f"Datos recibidos para usuario {usuario.pk}: Username={username}, First Name={first_name}, Last Name={last_name}, Email={email}, Grupo={nuevo_grupo_id}")
+
+                # Verificamos que se hayan enviado todos los datos requeridos
+                if username and email:
+                    # Actualizamos los campos del usuario
+                    usuario.username = username
+                    usuario.first_name = first_name
+                    usuario.last_name = last_name
+                    usuario.email = email
+
+                    # Actualizamos el grupo del usuario si se seleccionó uno
+                    if nuevo_grupo_id:
+                        nuevo_grupo = Group.objects.get(pk=nuevo_grupo_id)
+                        usuario.groups.clear()
+                        usuario.groups.add(nuevo_grupo)
+                        print(
+                            f"Grupo actualizado a {nuevo_grupo.name} para el usuario {usuario.username}")
+
+                    # Guardamos los cambios
+                    usuario.save()
+                    print(
+                        f"Cambios guardados para el usuario {usuario.username}")
+                else:
+                    print(
+                        f"Datos faltantes para el usuario {usuario.username}. No se guardarán los cambios.")
+
+        # Redirigimos nuevamente a la lista de usuarios
+        return redirect('listar_usuarios')
+    else:
+        print("No se recibió una solicitud POST.")
+        return redirect('listar_usuarios')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
+def eliminar_usuario(request, pk):
+    usuario = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        usuario.delete()
+        return redirect('listar_usuarios')
+    return render(request, 'registros/eliminar_usuario.html', {'usuario': usuario})
 
 
 @login_required

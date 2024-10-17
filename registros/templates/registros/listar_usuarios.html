@@ -5,29 +5,83 @@
 {% block content %}
 <div class="card p-4">
     <h1 class="mb-4">Lista de Usuarios</h1>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Email</th>
-                <th>Groups</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for usuario in usuarios %}
-            <tr>
-                <td>{{ usuario.id }}</td>
-                <td>{{ usuario.username }}</td>
-                <td>{{ usuario.first_name }}</td>
-                <td>{{ usuario.last_name }}</td>
-                <td>{{ usuario.email }}</td>
-                <td>{% for group in usuario.groups.all %}{{ group.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <form method="post" action="{% url 'guardar_cambios_usuarios' %}">
+        {% csrf_token %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Groups</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr id="fila-{{ usuario.pk }}">
+                    <td>{{ usuario.id }}</td>
+                    <td>
+                        <span class="usuario-valor-{{ usuario.pk }}">{{ usuario.username }}</span>
+                        <input type="text" name="username_{{ usuario.pk }}" value="{{ usuario.username }}" class="form-control d-none usuario-input-{{ usuario.pk }}" required disabled>
+                    </td>
+                    <td>
+                        <span class="usuario-valor-{{ usuario.pk }}">{{ usuario.first_name }}</span>
+                        <input type="text" name="first_name_{{ usuario.pk }}" value="{{ usuario.first_name }}" class="form-control d-none usuario-input-{{ usuario.pk }}" disabled>
+                    </td>
+                    <td>
+                        <span class="usuario-valor-{{ usuario.pk }}">{{ usuario.last_name }}</span>
+                        <input type="text" name="last_name_{{ usuario.pk }}" value="{{ usuario.last_name }}" class="form-control d-none usuario-input-{{ usuario.pk }}" disabled>
+                    </td>
+                    <td>
+                        <span class="usuario-valor-{{ usuario.pk }}">{{ usuario.email }}</span>
+                        <input type="email" name="email_{{ usuario.pk }}" value="{{ usuario.email }}" class="form-control d-none usuario-input-{{ usuario.pk }}" required disabled>
+                    </td>
+                    <td>
+                        <span class="usuario-valor-{{ usuario.pk }}">
+                            {% for group in usuario.groups.all %}
+                                {{ group.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </span>
+                        <select name="group_{{ usuario.pk }}" class="form-select d-none usuario-input-{{ usuario.pk }}" required disabled>
+                            <option value="">---------</option>
+                            {% for group in groups %}
+                                <option value="{{ group.id }}" {% if group in usuario.groups.all %}selected{% endif %}>{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-warning" onclick="editarFila({{ usuario.pk }})">Editar</button>
+                        <button type="submit" name="guardar_usuario" value="{{ usuario.pk }}" class="btn btn-sm btn-primary d-none usuario-input-{{ usuario.pk }}">Guardar</button>
+                        <a href="{% url 'eliminar_usuario' usuario.pk %}" class="btn btn-sm btn-danger usuario-valor-{{ usuario.pk }}">Eliminar</a>
+                        <button type="button" class="btn btn-sm btn-secondary d-none usuario-input-{{ usuario.pk }}" onclick="cancelarEdicion({{ usuario.pk }})">Cancelar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
 </div>
+
+<script>
+    function editarFila(pk) {
+        // Mostrar los inputs y habilitarlos para que sean editables
+        document.querySelectorAll('.usuario-valor-' + pk).forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.usuario-input-' + pk).forEach(el => {
+            el.classList.remove('d-none');
+            el.disabled = false; // Habilitar los campos de input
+        });
+    }
+
+    function cancelarEdicion(pk) {
+        // Restaurar los spans y deshabilitar los inputs
+        document.querySelectorAll('.usuario-valor-' + pk).forEach(el => el.classList.remove('d-none'));
+        document.querySelectorAll('.usuario-input-' + pk).forEach(el => {
+            el.classList.add('d-none');
+            el.disabled = true; // Deshabilitar los campos de input
+        });
+    }
+</script>
 {% endblock %}
