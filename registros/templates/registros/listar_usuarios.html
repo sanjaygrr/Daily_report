@@ -16,6 +16,9 @@
                     <th>Last Name</th>
                     <th>Email</th>
                     <th>Groups</th>
+                    {% if user.is_superuser %}
+                    <th>Empresa</th>
+                    {% endif %}
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -52,10 +55,24 @@
                             {% endfor %}
                         </select>
                     </td>
+                    {% if user.is_superuser %}
+                    <td>
+                        <span class="usuario-valor-{{ usuario.pk }}">{{ usuario.profile.empresa.nombre }}</span>
+                        <select name="empresa_{{ usuario.pk }}" class="form-select d-none usuario-input-{{ usuario.pk }}" required disabled>
+                            <option value="">---------</option>
+                            {% for empresa in empresas %}
+                                <option value="{{ empresa.id }}" {% if empresa == usuario.profile.empresa %}selected{% endif %}>{{ empresa.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    {% endif %}
                     <td>
                         <button type="button" class="btn btn-sm btn-warning" onclick="editarFila({{ usuario.pk }})">Editar</button>
                         <button type="submit" name="guardar_usuario" value="{{ usuario.pk }}" class="btn btn-sm btn-primary d-none usuario-input-{{ usuario.pk }}">Guardar</button>
-                        <a href="{% url 'eliminar_usuario' usuario.pk %}" class="btn btn-sm btn-danger usuario-valor-{{ usuario.pk }}">Eliminar</a>
+                        
+                        <!-- Botón que activa el modal de confirmación para eliminar -->
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#eliminarModal" onclick="setEliminarUsuario({{ usuario.pk }}, '{{ usuario.username }}')">Eliminar</button>
+
                         <button type="button" class="btn btn-sm btn-secondary d-none usuario-input-{{ usuario.pk }}" onclick="cancelarEdicion({{ usuario.pk }})">Cancelar</button>
                     </td>
                 </tr>
@@ -65,22 +82,49 @@
     </form>
 </div>
 
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="eliminarModal" tabindex="-1" aria-labelledby="eliminarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eliminarModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar al usuario <strong id="usuarioEliminarNombre"></strong>?
+            </div>
+            <div class="modal-footer">
+                <form id="eliminarForm" method="post">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Función para mostrar el modal de confirmación con los datos del usuario seleccionado
+    function setEliminarUsuario(pk, username) {
+        document.getElementById('usuarioEliminarNombre').innerText = username;
+        const form = document.getElementById('eliminarForm');
+        form.action = `/registros/usuarios/eliminar/${pk}/`;
+    }
+
     function editarFila(pk) {
-        // Mostrar los inputs y habilitarlos para que sean editables
         document.querySelectorAll('.usuario-valor-' + pk).forEach(el => el.classList.add('d-none'));
         document.querySelectorAll('.usuario-input-' + pk).forEach(el => {
             el.classList.remove('d-none');
-            el.disabled = false; // Habilitar los campos de input
+            el.disabled = false;
         });
     }
 
     function cancelarEdicion(pk) {
-        // Restaurar los spans y deshabilitar los inputs
         document.querySelectorAll('.usuario-valor-' + pk).forEach(el => el.classList.remove('d-none'));
         document.querySelectorAll('.usuario-input-' + pk).forEach(el => {
             el.classList.add('d-none');
-            el.disabled = true; // Deshabilitar los campos de input
+            el.disabled = true;
         });
     }
 </script>

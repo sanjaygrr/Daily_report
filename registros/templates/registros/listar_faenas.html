@@ -32,7 +32,7 @@
                                 <!-- Campo de entrada para el nombre de la faena -->
                                 <div class="mb-3">
                                     <label for="id_nombre_{{ faena.pk }}" class="form-label">Nombre de la Faena</label>
-                                    <input type="text" class="form-control" id="id_nombre_{{ faena.pk }}" name="nombre" value="{{ faena.nombre }}" required>
+                                    {{ forms.faena.pk.nombre }}
                                 </div>
                             </div>
                             <div class="modal-footer">

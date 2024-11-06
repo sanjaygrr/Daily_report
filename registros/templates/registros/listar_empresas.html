@@ -1,0 +1,41 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Listar Empresas{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Lista de Empresas</h1>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>RUT</th>
+                <th>Dirección</th>
+                <th>Logo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for empresa in empresas %}
+            <tr>
+                <td>{{ empresa.id }}</td>
+                <td>{{ empresa.nombre }}</td>
+                <td>{{ empresa.rut }}</td>
+                <td>{{ empresa.direccion }}</td>
+                <td>
+                    {% if empresa.logo %}
+                        <img src="{{ empresa.logo.url }}" alt="{{ empresa.nombre }}" width="50">
+                    {% else %}
+                        No hay logo
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No hay empresas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

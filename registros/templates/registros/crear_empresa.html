@@ -1,0 +1,75 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Crear Empresa{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4">Registrar Empresa</h1>
+
+    <!-- Verificar si hay mensajes de error -->
+    {% if messages %}
+        <div class="alert alert-danger" role="alert">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Formulario de creación de empresa -->
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <!-- Campo Nombre de la Empresa -->
+        <div class="mb-3">
+            <label for="id_nombre" class="form-label">Nombre de la Empresa</label>
+            {{ form.nombre }}
+        </div>
+
+        <!-- Campo RUT -->
+        <div class="mb-3">
+            <label for="id_rut" class="form-label">RUT</label>
+            {{ form.rut }}
+        </div>
+
+        <!-- Campo Dirección -->
+        <div class="mb-3">
+            <label for="id_direccion" class="form-label">Dirección</label>
+            {{ form.direccion }}
+        </div>
+
+        <!-- Campo Logo (opcional) -->
+        <div class="mb-3">
+            <label for="id_logo" class="form-label">Logo de la Empresa (opcional)</label>
+            {{ form.logo }}
+        </div>
+
+        <!-- Campo Límite de Faenas -->
+        <div class="mb-3">
+            <label for="id_limite_faenas" class="form-label">Límite de Faenas</label>
+            {{ form.limite_faenas }}
+        </div>
+
+        <!-- Campo Límite de Máquinas -->
+        <div class="mb-3">
+            <label for="id_limite_maquinas" class="form-label">Límite de Máquinas</label>
+            {{ form.limite_maquinas }}
+        </div>
+
+        <!-- Campo Límite de Usuarios -->
+        <div class="mb-3">
+            <label for="id_limite_usuarios" class="form-label">Límite de Usuarios</label>
+            {{ form.limite_usuarios }}
+        </div>
+
+        <!-- Botón de Enviar -->
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-block">Crear Empresa</button>
+        </div>
+    </form>
+
+    <!-- Botón de regreso -->
+    <div class="text-center mt-3">
+        <a href="{% url 'listar_empresas' %}" class="btn btn-secondary">Volver a la lista de empresas</a>
+    </div>
+</div>
+{% endblock %}

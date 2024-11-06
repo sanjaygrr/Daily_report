@@ -13,8 +13,9 @@ urlpatterns = [
     path('listar_usuarios/', views.listar_usuarios, name='listar_usuarios'),
     path('crear_maquina/', views.crear_maquina, name='crear_maquina'),
     path('listar_maquinas/', views.listar_maquinas, name='listar_maquinas'),
-    path('crear_faena/', views.crear_faena, name='crear_faena'),
-    path('listar_faenas/', views.listar_faenas, name='listar_faenas'),
+    path('faenas/<int:empresa_id>/', views.listar_faenas, name='listar_faenas'),
+    path('faenas/crear/<int:empresa_id>/',
+         views.crear_faena, name='crear_faena'),
     path('generar_pdf_trabajo/<int:pk>/',
          views.generar_pdf_trabajo, name='generar_pdf_trabajo'),
     path('upload_logo/', views.upload_logo, name='upload_logo'),
@@ -28,5 +29,10 @@ urlpatterns = [
          views.eliminar_usuario, name='eliminar_usuario'),
     path('guardar_cambios_usuarios/', views.guardar_cambios_usuarios,
          name='guardar_cambios_usuarios'),
-
+    path('empresas/crear/', views.crear_empresa, name='crear_empresa'),
+    path('empresas/listar_empresas/',
+         views.listar_empresas, name='listar_empresas'),
+    path('empresas/editar/<int:pk>/', views.editar_empresa, name='editar_empresa'),
+    path('empresas/eliminar/<int:pk>/',
+         views.eliminar_empresa, name='eliminar_empresa'),
 ]

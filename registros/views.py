@@ -1,40 +1,54 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Trabajo, Maquina, Faena
-from .forms import TrabajoForm, MaquinaForm, FaenaForm, UserRegistrationForm, UserEditForm
-from .filters import TrabajoFilter
-from django.utils import timezone
 from django.http import HttpResponse
-import openpyxl
+from django.utils import timezone
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
 from openpyxl.utils import get_column_letter
-from django.contrib.auth.models import User, Group
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import os
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from django.conf import settings
 from reportlab.lib.units import inch
 from reportlab.lib import colors
+
+# Importaciones de Django locales
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserChangeForm
 from django.http import HttpResponseForbidden
 from django.contrib.admin.views.decorators import staff_member_required
 
+# Importaciones de tu proyecto
+from .models import Trabajo, Maquina, Faena, Empresa, Profile
+from .forms import TrabajoForm, MaquinaForm, FaenaForm, UserRegistrationForm, EmpresaForm, LogoUploadForm
+from .filters import TrabajoFilter
+
 
 @staff_member_required
 def admin_view(request):
+    """Redirige a la página de administración."""
     return redirect('/admin/')
 
 
 def home(request):
-    context = {}
-    if request.user.is_authenticated:
-        context['username'] = request.user.username
+    """
+    Muestra la página principal de la empresa del usuario autenticado.
+    Si no tiene una empresa asignada, lo redirige a la página de crear empresa.
+    """
+    empresa = None
+    if request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.empresa:
+        empresa = request.user.profile.empresa
+    else:
+        return redirect('crear_empresa')
+
+    context = {
+        'empresa': empresa,
+    }
     return render(request, 'registros/home.html', context)
 
 
 @login_required
 def crear_trabajo(request):
+    """Permite a un trabajador crear un nuevo trabajo."""
     if request.method == 'POST':
         form = TrabajoForm(request.POST)
         if form.is_valid():
@@ -49,6 +63,7 @@ def crear_trabajo(request):
 
 @login_required
 def historial(request):
+    """Muestra el historial de trabajos realizados."""
     trabajos = Trabajo.objects.all()
     f = TrabajoFilter(request.GET, queryset=trabajos)
     return render(request, 'registros/historial.html', {'filter': f})
@@ -57,12 +72,14 @@ def historial(request):
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Supervisor').exists() or u.is_superuser or u.groups.filter(name='Admin').exists())
 def pendientes(request):
+    """Muestra los trabajos pendientes de aprobación por el supervisor."""
     trabajos = Trabajo.objects.filter(supervisor=request.user, aprobado=False)
     return render(request, 'registros/pendientes.html', {'trabajos': trabajos})
 
 
 @login_required
 def aprobar_trabajo(request, pk):
+    """Permite al supervisor aprobar un trabajo."""
     trabajo = get_object_or_404(Trabajo, pk=pk)
     if request.user == trabajo.supervisor:
         trabajo.aprobado = True
@@ -72,6 +89,7 @@ def aprobar_trabajo(request, pk):
 
 @login_required
 def export_historial_xlsx(request):
+    """Exporta el historial de trabajos a un archivo Excel."""
     trabajos = Trabajo.objects.all()
     filter_trabajos = TrabajoFilter(request.GET, queryset=trabajos)
     trabajos = filter_trabajos.qs
@@ -99,8 +117,8 @@ def export_historial_xlsx(request):
         row_num += 1
         row = [
             trabajo.fecha,
-            trabajo.faena.nombre,  # Convertir instancia a nombre
-            trabajo.maquina.nombre,  # Convertir instancia a nombre
+            trabajo.faena.nombre,
+            trabajo.maquina.nombre,
             trabajo.trabajo,
             trabajo.horometro_inicial,
             trabajo.horometro_final,
@@ -122,129 +140,129 @@ def export_historial_xlsx(request):
 
 @login_required
 def register_user(request):
+    """Permite a un administrador registrar nuevos usuarios."""
+    empresa = request.user.profile.empresa
+
+    if User.objects.filter(profile__empresa=empresa).count() >= empresa.limite_usuarios:
+        messages.error(
+            request, "Has alcanzado el límite de usuarios para esta empresa.")
+        return redirect('listar_usuarios')
+
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
+        form = UserRegistrationForm(request.POST, user=request.user)
         if form.is_valid():
-            form.save()
-            return redirect('home')
+            new_user = form.save(commit=False)
+            new_user.save()
+
+            Profile.objects.update_or_create(
+                user=new_user, defaults={'empresa': empresa}
+            )
+            new_user.groups.add(form.cleaned_data['group'])
+            return redirect('listar_usuarios')
     else:
-        form = UserRegistrationForm()
+        form = UserRegistrationForm(user=request.user)
+
     return render(request, 'registros/register_user.html', {'form': form})
 
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
 def listar_usuarios(request):
-    usuarios = User.objects.all()
-    groups = Group.objects.all()  # Obtener todos los grupos para el dropdown
+    """Lista a los usuarios asociados a una empresa."""
+    if request.user.is_superuser:
+        usuarios = User.objects.all()
+        empresas = Empresa.objects.all()
+    else:
+        admin_profile = Profile.objects.get(user=request.user)
+        admin_empresa = admin_profile.empresa
+        usuarios = User.objects.filter(profile__empresa=admin_empresa)
+        empresas = [admin_empresa]
 
-    # Crear un formulario para cada usuario y verificar si se están creando correctamente
-    forms = {}
-    for usuario in usuarios:
-        form = UserEditForm(instance=usuario)
-        forms[usuario.pk] = form
+    groups = Group.objects.all()
 
-    if request.method == 'POST':
-        usuario_id = request.POST.get('usuario_id')
-        print(f"Solicitud POST recibida para el usuario con ID: {usuario_id}")
-        if usuario_id:
-            usuario = get_object_or_404(User, pk=usuario_id)
-            form = UserEditForm(request.POST, instance=usuario)
-            if form.is_valid():
-                form.save()
-                # Redirigir para evitar reenviar el formulario
-                return redirect('listar_usuarios')
-            else:
-                # Reemplazar con el formulario que tiene errores
-                forms[int(usuario_id)] = form
-
-    # Verificar si los formularios están siendo pasados al contexto correctamente
-    return render(request, 'registros/listar_usuarios.html', {'usuarios': usuarios, 'forms': forms, 'groups': groups})
+    return render(request, 'registros/listar_usuarios.html', {
+        'usuarios': usuarios,
+        'groups': groups,
+        'empresas': empresas,
+        'admin_empresa': admin_empresa if not request.user.is_superuser else None
+    })
 
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
 def guardar_cambios_usuarios(request):
+    """Permite guardar los cambios en los usuarios listados."""
     if request.method == 'POST':
-        print("Solicitud POST recibida para guardar cambios en los usuarios.")
-        print(f"Datos POST: {request.POST}")
-
-        # Iteramos sobre los usuarios para identificar cuál ha sido editado
         for usuario in User.objects.all():
-            print(f"Procesando usuario ID: {usuario.id}")
-
-            # Verificamos si el formulario para este usuario fue enviado
             if f'username_{usuario.pk}' in request.POST:
-                print(
-                    f"Formulario encontrado para el usuario {usuario.username}")
-
-                # Extraemos los nuevos valores del formulario
                 username = request.POST.get(f'username_{usuario.pk}')
                 first_name = request.POST.get(f'first_name_{usuario.pk}')
                 last_name = request.POST.get(f'last_name_{usuario.pk}')
                 email = request.POST.get(f'email_{usuario.pk}')
                 nuevo_grupo_id = request.POST.get(f'group_{usuario.pk}')
+                nueva_empresa_id = request.POST.get(f'empresa_{usuario.pk}')
 
-                print(
-                    f"Datos recibidos para usuario {usuario.pk}: Username={username}, First Name={first_name}, Last Name={last_name}, Email={email}, Grupo={nuevo_grupo_id}")
-
-                # Verificamos que se hayan enviado todos los datos requeridos
                 if username and email:
-                    # Actualizamos los campos del usuario
                     usuario.username = username
                     usuario.first_name = first_name
                     usuario.last_name = last_name
                     usuario.email = email
 
-                    # Actualizamos el grupo del usuario si se seleccionó uno
                     if nuevo_grupo_id:
                         nuevo_grupo = Group.objects.get(pk=nuevo_grupo_id)
                         usuario.groups.clear()
                         usuario.groups.add(nuevo_grupo)
-                        print(
-                            f"Grupo actualizado a {nuevo_grupo.name} para el usuario {usuario.username}")
 
-                    # Guardamos los cambios
+                    if request.user.is_superuser and nueva_empresa_id:
+                        nueva_empresa = Empresa.objects.get(
+                            pk=nueva_empresa_id)
+                        profile = usuario.profile
+                        profile.empresa = nueva_empresa
+                        profile.save()
+
                     usuario.save()
-                    print(
-                        f"Cambios guardados para el usuario {usuario.username}")
-                else:
-                    print(
-                        f"Datos faltantes para el usuario {usuario.username}. No se guardarán los cambios.")
 
-        # Redirigimos nuevamente a la lista de usuarios
-        return redirect('listar_usuarios')
-    else:
-        print("No se recibió una solicitud POST.")
         return redirect('listar_usuarios')
 
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
 def eliminar_usuario(request, pk):
+    """Permite eliminar un usuario existente."""
     usuario = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
         usuario.delete()
         return redirect('listar_usuarios')
-    return render(request, 'registros/eliminar_usuario.html', {'usuario': usuario})
+    return redirect('listar_usuarios')
 
 
 @login_required
 def crear_maquina(request):
+    """Permite crear una nueva máquina."""
+    empresa = request.user.profile.empresa
+
+    if Maquina.objects.filter(empresa=empresa).count() >= empresa.limite_maquinas:
+        messages.error(
+            request, "Has alcanzado el límite de máquinas para esta empresa.")
+        return redirect('listar_maquinas')
+
     if request.method == 'POST':
         form = MaquinaForm(request.POST)
         if form.is_valid():
-            form.save()
+            maquina = form.save(commit=False)
+            maquina.empresa = empresa
+            maquina.save()
             return redirect('listar_maquinas')
     else:
         form = MaquinaForm()
+
     return render(request, 'registros/crear_maquina.html', {'form': form})
 
 
 @login_required
 def listar_maquinas(request):
+    """Lista las máquinas asociadas a la empresa."""
     maquinas = Maquina.objects.all()
-    # Crear un formulario para cada máquina
     forms = {maquina.pk: MaquinaForm(instance=maquina) for maquina in maquinas}
 
     if request.method == 'POST':
@@ -254,10 +272,8 @@ def listar_maquinas(request):
             form = MaquinaForm(request.POST, instance=maquina)
             if form.is_valid():
                 form.save()
-                # Redirigir para evitar reenviar el formulario
                 return redirect('listar_maquinas')
             else:
-                # Reemplazar con el formulario que tiene errores
                 forms[int(maquina_id)] = form
 
     return render(request, 'registros/listar_maquinas.html', {'maquinas': maquinas, 'forms': forms})
@@ -265,6 +281,7 @@ def listar_maquinas(request):
 
 @login_required
 def eliminar_maquina(request, pk):
+    """Permite eliminar una máquina existente."""
     maquina = get_object_or_404(Maquina, pk=pk)
     if request.method == 'POST':
         maquina.delete()
@@ -273,25 +290,53 @@ def eliminar_maquina(request, pk):
 
 
 @login_required
-def crear_faena(request):
+def crear_faena(request, empresa_id):
+    """Permite crear una nueva faena asociada a una empresa."""
+    empresa = get_object_or_404(Empresa, pk=empresa_id)
+
     if request.method == 'POST':
         form = FaenaForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('listar_faenas')
+            faena = form.save(commit=False)
+            faena.empresa = empresa
+            faena.save()
+            return redirect('listar_faenas', empresa_id=empresa.id)
     else:
         form = FaenaForm()
-    return render(request, 'registros/crear_faena.html', {'form': form})
+
+    return render(request, 'registros/crear_faena.html', {'form': form, 'empresa': empresa})
+
+
+@login_required
+def listar_faenas(request, empresa_id):
+    """Lista las faenas asociadas a una empresa."""
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    faenas = Faena.objects.filter(empresa=empresa)
+    forms = {faena.pk: FaenaForm(instance=faena) for faena in faenas}
+
+    if request.method == 'POST':
+        faena_id = request.POST.get('faena_id')
+        if faena_id:
+            faena = get_object_or_404(Faena, pk=faena_id, empresa=empresa)
+            form = FaenaForm(request.POST, instance=faena)
+            if form.is_valid():
+                form.save()
+                return redirect('listar_faenas', empresa_id=empresa.id)
+            else:
+                forms[int(faena_id)] = form
+
+    return render(request, 'registros/listar_faenas.html', {'faenas': faenas, 'forms': forms, 'empresa': empresa})
 
 
 @login_required
 def editar_faena(request, pk):
+    """Permite editar una faena existente."""
     faena = get_object_or_404(Faena, pk=pk)
     if request.method == 'POST':
         form = FaenaForm(request.POST, instance=faena)
         if form.is_valid():
             form.save()
-            return redirect('listar_faenas')
+            return redirect('listar_faenas', empresa_id=faena.empresa.id)
     else:
         form = FaenaForm(instance=faena)
     return render(request, 'registros/editar_faena.html', {'form': form, 'faena': faena})
@@ -299,37 +344,19 @@ def editar_faena(request, pk):
 
 @login_required
 def eliminar_faena(request, pk):
+    """Permite eliminar una faena existente."""
     faena = get_object_or_404(Faena, pk=pk)
+
     if request.method == 'POST':
         faena.delete()
-        return redirect('listar_faenas')
+        return redirect('listar_faenas', empresa_id=faena.empresa.id)
+
     return render(request, 'registros/eliminar_faena.html', {'faena': faena})
 
 
 @login_required
-def listar_faenas(request):
-    faenas = Faena.objects.all()
-    # Crear un formulario para cada faena
-    forms = {faena.pk: FaenaForm(instance=faena) for faena in faenas}
-
-    if request.method == 'POST':
-        faena_id = request.POST.get('faena_id')
-        if faena_id:
-            faena = get_object_or_404(Faena, pk=faena_id)
-            form = FaenaForm(request.POST, instance=faena)
-            if form.is_valid():
-                form.save()
-                # Redirigir para evitar reenviar el formulario
-                return redirect('listar_faenas')
-            else:
-                # Reemplazar con el formulario que tiene errores
-                forms[int(faena_id)] = form
-
-    return render(request, 'registros/listar_faenas.html', {'faenas': faenas, 'forms': forms})
-
-
-@login_required
 def generar_pdf_trabajo(request, pk):
+    """Genera un archivo PDF con los detalles de un trabajo."""
     trabajo = get_object_or_404(Trabajo, pk=pk)
 
     if request.method == 'POST' and request.FILES.get('logo'):
@@ -343,22 +370,16 @@ def generar_pdf_trabajo(request, pk):
         p = canvas.Canvas(response, pagesize=letter)
         width, height = letter
 
-        # Añadir el logo con más margen desde la parte superior
         if logo_path:
             p.drawImage(os.path.join(settings.MEDIA_ROOT, logo_path), width -
                         2 * inch, height - inch, width=1 * inch, height=0.75 * inch)
 
-        # Título con más espacio desde la parte superior
         p.setFont("Helvetica-Bold", 16)
         p.drawString(inch, height - 1.8 * inch, "Reporte de Trabajo")
-
-        # Líneas de separación
         p.setStrokeColor(colors.grey)
         p.setLineWidth(0.5)
         p.line(inch, height - 1.85 * inch, width - inch, height - 1.85 * inch)
 
-        # Datos del trabajo
-        p.setFont("Helvetica", 12)
         y = height - 2.5 * inch
         left_column_x = inch + 10
         right_column_x = width / 2 + 10
@@ -387,7 +408,7 @@ def generar_pdf_trabajo(request, pk):
                 p.drawString(right_column_x, y, f"{label}: {value}")
                 y -= line_height
             if label == "Observaciones":
-                y -= line_height  # Extra espacio después de observaciones
+                y -= line_height
 
         p.showPage()
         p.save()
@@ -399,6 +420,7 @@ def generar_pdf_trabajo(request, pk):
 
 @login_required
 def upload_logo(request):
+    """Permite subir un logo para la empresa."""
     if request.method == 'POST':
         form = LogoUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -410,3 +432,53 @@ def upload_logo(request):
     else:
         form = LogoUploadForm()
     return render(request, 'registros/upload_logo.html', {'form': form})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def crear_empresa(request):
+    """Permite crear una nueva empresa."""
+    if request.method == 'POST':
+        form = EmpresaForm(request.POST, request.FILES)
+        if form.is_valid():
+            empresa = form.save()
+            # Asigna el administrador aquí si es necesario
+            return redirect('listar_empresas')  # Redirige después de guardar
+    else:
+        form = EmpresaForm()
+
+    return render(request, 'registros/crear_empresa.html', {'form': form})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
+def listar_empresas(request):
+    """Lista todas las empresas en el sistema."""
+    empresas = Empresa.objects.all()
+    return render(request, 'registros/listar_empresas.html', {'empresas': empresas})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
+def editar_empresa(request, pk):
+    """Permite editar una empresa existente."""
+    empresa = get_object_or_404(Empresa, pk=pk)
+    if request.method == 'POST':
+        form = EmpresaForm(request.POST, request.FILES, instance=empresa)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_empresas')
+    else:
+        form = EmpresaForm(instance=empresa)
+    return render(request, 'registros/editar_empresa.html', {'form': form, 'empresa': empresa})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='Admin').exists())
+def eliminar_empresa(request, pk):
+    """Permite eliminar una empresa existente."""
+    empresa = get_object_or_404(Empresa, pk=pk)
+    if request.method == 'POST':
+        empresa.delete()
+        return redirect('listar_empresas')
+    return render(request, 'registros/eliminar_empresa.html', {'empresa': empresa})
