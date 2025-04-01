@@ -98,44 +98,51 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'pendientes' %}">Pendientes</a></li>
                     
                     <!-- Admin y Superusuario: Tienen acceso a todo -->
-                    {% elif user.is_superuser or user|user_is_in_group:"Admin" %}
+                    {% if user.is_superuser or user|user_is_in_group:"Admin" %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'crear_trabajo' %}">Crear Trabajo</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}">Historial</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'pendientes' %}">Pendientes</a></li>
 
-                    <!-- Dropdown Usuarios -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="dropdownUsuarios" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Usuarios
+                        Usuarios
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownUsuarios">
-                            <li><a class="dropdown-item" href="{% url 'register_user' %}">Registrar Usuario</a></li>
-                            <li><a class="dropdown-item" href="{% url 'listar_usuarios' %}">Lista de Usuarios</a></li>
-                        </ul>
-                    </li>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownUsuarios">
+                    <li><a class="dropdown-item" href="{% url 'register_user' %}">Registrar Usuario</a></li>
+                    <li><a class="dropdown-item" href="{% url 'listar_usuarios' %}">Lista de Usuarios</a></li>
+                    </ul>
+                </li>
 
-                    <!-- Dropdown Máquinas -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="dropdownMaquinas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Máquinas
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMaquinas">
-                            <li><a class="dropdown-item" href="{% url 'crear_maquina' %}">Crear Máquina</a></li>
-                            <li><a class="dropdown-item" href="{% url 'listar_maquinas' %}">Lista de Máquinas</a></li>
-                        </ul>
-                    </li>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMaquinas">
+                        <li><a class="dropdown-item" href="{% url 'crear_maquina' %}">Crear Máquina</a></li>
+                        <li><a class="dropdown-item" href="{% url 'listar_maquinas' %}">Lista de Máquinas</a></li>
+                    </ul>
+                </li>
 
-                    <!-- Dropdown Faenas -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="dropdownFaenas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Faenas
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownFaenas">
-                            <li><a class="dropdown-item" href="{% url 'crear_faena' %}">Crear Faena</a></li>
-                            <li><a class="dropdown-item" href="{% url 'listar_faenas' %}">Lista de Faenas</a></li>
-                        </ul>
+                <ul class="dropdown-menu" aria-labelledby="dropdownFaenas">
+                    <li><a class="dropdown-item" href="{% url 'crear_faena' %}">Crear Faena</a></li>
+                    <li><a class="dropdown-item" href="{% url 'listar_faenas' %}">Lista de Faenas</a></li>
+                </ul>
                     </li>
-                    {% endif %}
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="dropdownEmpresas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Empresas
+                        </a>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownEmpresas">
+                    <li><a class="dropdown-item" href="{% url 'crear_empresa' %}">Crear Empresa</a></li>
+                    <li><a class="dropdown-item" href="{% url 'listar_empresas' %}">Lista de Empresas</a></li>
+                    </ul>
+                    </li>
+                        {% endif %}
 
                     <li class="nav-item">
                         <form method="post" action="{% url 'logout' %}" class="logout-form">

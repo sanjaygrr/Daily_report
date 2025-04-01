@@ -13,6 +13,7 @@ from reportlab.pdfgen import canvas
 import os
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from .forms import EmpresaForm
 from django.conf import settings
 from reportlab.lib.units import inch
 from reportlab.lib import colors

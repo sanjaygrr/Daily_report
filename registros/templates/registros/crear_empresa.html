@@ -1,0 +1,66 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Crear Empresa{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4">Registrar Empresa</h1>
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                Por favor, corrige los siguientes errores:
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    <li>{{ form.non_field_errors }}</li>
+                </ul>
+            </div>
+        {% endif %}
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="{{ form.nombre.id_for_label }}">Nombre</label>
+                {{ form.nombre }}
+            </div>
+            <div class="form-group col-md-6">
+                <label for="{{ form.rut.id_for_label }}">RUT</label>
+                {{ form.rut }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.direccion.id_for_label }}">Dirección</label>
+            {{ form.direccion }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.logo.id_for_label }}">Logo</label>
+            {{ form.logo }}
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="{{ form.correo_electronico.id_for_label }}">Correo Electrónico</label>
+                {{ form.correo_electronico }}
+            </div>
+            <div class="form-group col-md-6">
+                <label for="{{ form.numero_telefono.id_for_label }}">Número de Teléfono</label>
+                {{ form.numero_telefono }}
+            </div>
+        </div>
+        <hr class="my-4">
+        <h3>Datos del Administrador</h3>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="{{ form.administrador_username.id_for_label }}">Nombre de Usuario</label>
+                {{ form.administrador_username }}
+            </div>
+            <div class="form-group col-md-6">
+                <label for="{{ form.administrador_password.id_for_label }}">Contraseña</label>
+                {{ form.administrador_password }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-warning">Guardar Empresa</button>
+    </form>
+</div>
+{% endblock %}

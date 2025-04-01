@@ -17,6 +17,22 @@ class Faena(models.Model):
     def __str__(self):
         return self.nombre
 
+class Empresa(models.Model):
+    nombre = models.CharField(max_length=255, unique=True)
+    rut = models.CharField(max_length=20, unique=True)
+    direccion = models.CharField(max_length=255)
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+    correo_electronico = models.EmailField(unique=True)
+    numero_telefono = models.CharField(max_length=20, blank=True, null=True)
+    cantidad_maquinas = models.PositiveIntegerField(default=0)
+    cantidad_faenas = models.PositiveIntegerField(default=0)
+    cantidad_usuarios = models.PositiveIntegerField(default=0)
+    administrador = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='empresas_administradas')
+
+
+
+    def __str__(self):
+        return self.nombre
 
 class Trabajo(models.Model):
     fecha = models.DateField()

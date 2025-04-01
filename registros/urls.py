@@ -10,6 +10,8 @@ urlpatterns = [
     path('export_historial_xlsx/', views.export_historial_xlsx,
          name='export_historial_xlsx'),
     path('register_user/', views.register_user, name='register_user'),
+    path('crear_empresa/', views.crear_empresa, name='crear_empresa'),
+    path('listar_empresas/', views.listar_empresas, name='listar_empresas'),
     path('listar_usuarios/', views.listar_usuarios, name='listar_usuarios'),
     path('crear_maquina/', views.crear_maquina, name='crear_maquina'),
     path('listar_maquinas/', views.listar_maquinas, name='listar_maquinas'),

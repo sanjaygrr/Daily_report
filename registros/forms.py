@@ -1,11 +1,34 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Trabajo, Maquina, Faena
+from .models import Trabajo, Maquina, Faena, Empresa
 import datetime
 from django.contrib.auth.models import User, Group
 
+class EmpresaForm(forms.ModelForm):
+    administrador_username = forms.CharField(max_length=150, label='Nombre de Usuario del Administrador')
+    administrador_password = forms.CharField(widget=forms.PasswordInput, label='Contraseña del Administrador')
 
+    class Meta:
+        model = Empresa
+        fields = ['nombre', 'rut', 'direccion', 'logo', 'correo_electronico', 'numero_telefono']
+
+    def clean_administrador_username(self):
+        username = self.cleaned_data['administrador_username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Ya existe un usuario con este nombre.")
+        return username
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("administrador_password")
+        username = cleaned_data.get("administrador_username")
+
+        if password and len(password) < 8:
+            self.add_error('administrador_password', "La contraseña debe tener al menos 8 caracteres.")
+
+        return cleaned_data
+    
 class UserEditForm(forms.ModelForm):
     group = forms.ModelChoiceField(
         queryset=Group.objects.all(),
