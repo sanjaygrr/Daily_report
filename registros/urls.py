@@ -16,6 +16,9 @@ urlpatterns = [
     path('crear_maquina/', views.crear_maquina, name='crear_maquina'),
     path('listar_maquinas/', views.listar_maquinas, name='listar_maquinas'),
     path('crear_faena/', views.crear_faena, name='crear_faena'),
+     path('empresas/editar/<int:pk>/', views.editar_empresa, name='editar_empresa'),
+     
+    path('empresas/eliminar/<int:pk>/', views.eliminar_empresa, name='eliminar_empresa'),
     path('listar_faenas/', views.listar_faenas, name='listar_faenas'),
     path('generar_pdf_trabajo/<int:pk>/',
          views.generar_pdf_trabajo, name='generar_pdf_trabajo'),
