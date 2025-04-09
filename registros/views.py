@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Trabajo, Maquina, Faena
+from .models import Trabajo, Maquina, Faena, Empresa
 from .forms import TrabajoForm, MaquinaForm, FaenaForm, UserRegistrationForm, UserEditForm
 from .filters import TrabajoFilter
+from django.db import IntegrityError
 from django.utils import timezone
 from django.http import HttpResponse
 import openpyxl
@@ -13,6 +14,7 @@ from reportlab.pdfgen import canvas
 import os
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from .forms import EmpresaForm
 from django.conf import settings
 from reportlab.lib.units import inch
 from reportlab.lib import colors
@@ -410,3 +412,64 @@ def upload_logo(request):
     else:
         form = LogoUploadForm()
     return render(request, 'registros/upload_logo.html', {'form': form})
+
+@login_required
+def crear_empresa(request):
+    if request.method == 'POST':
+        form = EmpresaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_empresas')
+    else:
+        form = EmpresaForm()
+    return render(request, 'registros/crear_empresa.html', {'form': form})
+
+
+@login_required
+def listar_empresas(request):
+    empresas = Empresa.objects.all()  # Recupera todas las empresas
+    return render(request, 'registros/listar_empresas.html', {'empresas': empresas}) 
+
+@login_required
+def editar_empresa(request, pk):
+    empresa = get_object_or_404(Empresa, pk=pk)
+    
+    if request.method == 'POST':
+        form = EmpresaForm(request.POST, instance=empresa)
+        
+        if form.is_valid():
+            # Guardamos temporalmente sin commit para poder manejar los campos únicos
+            instance = form.save(commit=False)
+            
+            try:
+                instance.save()
+                return redirect('listar_empresas')
+            except IntegrityError as e:
+                # Manejo específico de errores de unicidad
+                if 'nombre' in str(e):
+                    form.add_error('nombre', 'Ya existe una empresa con este nombre')
+                elif 'rut' in str(e):
+                    form.add_error('rut', 'Este RUT ya está registrado')
+                elif 'correo_electronico' in str(e):
+                    form.add_error('correo_electronico', 'Este correo ya está en uso')
+                else:
+                    form.add_error(None, 'Error al guardar: ' + str(e))
+    else:
+        form = EmpresaForm(instance=empresa)
+    
+    return render(request, 'registros/editar_empresa.html', {
+        'form': form,
+        'empresa': empresa
+    })
+
+@login_required
+def eliminar_empresa(request, pk):
+    empresa = get_object_or_404(Empresa, pk=pk)
+    if request.method == 'POST':
+        empresa.delete()
+        return redirect('listar_empresas')
+    
+    # Si es GET, mostramos confirmación (aunque tu modal ya lo hace)
+    return render(request, 'registros/confirmar_eliminar_empresa.html', {
+        'empresa': empresa
+    })

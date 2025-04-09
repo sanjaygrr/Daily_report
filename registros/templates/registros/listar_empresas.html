@@ -1,0 +1,86 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Lista de Empresas{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4 text-center">Empresas</h1>
+    <div class="list-group">
+        {% for empresa in empresas %}
+            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                <span>{{ empresa.nombre }} ({{ empresa.rut }})</span>
+                <div class="mt-2 mt-md-0">
+                    <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarModal{{ empresa.pk }}">Editar</button>
+                    <button class="btn btn-sm btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ empresa.pk }}">Eliminar</button>
+                </div>
+            </div>
+
+            <!-- Modal para editar la empresa -->
+            <div class="modal fade" id="editarModal{{ empresa.pk }}" tabindex="-1" aria-labelledby="editarModalLabel{{ empresa.pk }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editarModalLabel{{ empresa.pk }}">Editar {{ empresa.nombre }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <form method="post" action="{% url 'listar_empresas' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="empresa_id" value="{{ empresa.pk }}">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="id_nombre_{{ empresa.pk }}" class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="id_nombre_{{ empresa.pk }}" name="nombre" value="{{ empresa.nombre }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_rut_{{ empresa.pk }}" class="form-label">RUT</label>
+                                    <input type="text" class="form-control" id="id_rut_{{ empresa.pk }}" name="rut" value="{{ empresa.rut }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_direccion_{{ empresa.pk }}" class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" id="id_direccion_{{ empresa.pk }}" name="direccion" value="{{ empresa.direccion }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_correo_{{ empresa.pk }}" class="form-label">Correo Electrónico</label>
+                                    <input type="email" class="form-control" id="id_correo_{{ empresa.pk }}" name="correo_electronico" value="{{ empresa.correo_electronico }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_telefono_{{ empresa.pk }}" class="form-label">Número de Teléfono</label>
+                                    <input type="text" class="form-control" id="id_telefono_{{ empresa.pk }}" name="numero_telefono" value="{{ empresa.numero_telefono }}">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para eliminar la empresa -->
+            <div class="modal fade" id="eliminarModal{{ empresa.pk }}" tabindex="-1" aria-labelledby="eliminarModalLabel{{ empresa.pk }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="eliminarModalLabel{{ empresa.pk }}">Eliminar Empresa</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>¿Estás seguro de que deseas eliminar la empresa "{{ empresa.nombre }}"?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{% url 'eliminar_empresa' empresa.pk %}">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-center">No hay empresas registradas.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
