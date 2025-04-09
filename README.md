@@ -148,7 +148,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo LICENSE para más deta
 ## 📞 Contacto
 
 Sanjay Ramchandani - sanjaygr@gmail.com
-Enlace del proyecto: [https://github.com/sanjaygrr/Daily-report](https://github.com/sanjaygrr/Daily-report)
+Enlace del proyecto: [https://github.com/sanjaygrr/Daily_report](https://github.com/sanjaygrr/Daily_report)
 
 ---
 
