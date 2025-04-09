@@ -1,1 +1,1 @@
-web: gunicorn Daily_report.wsgi
+web: gunicorn proyecto.wsgi
