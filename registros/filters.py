@@ -1,14 +1,17 @@
+# registros/filters.py
 import django_filters
 from .models import Trabajo
-from django.contrib.auth.models import User
-
 
 class TrabajoFilter(django_filters.FilterSet):
-    supervisor = django_filters.ModelChoiceFilter(
-        queryset=User.objects.filter(groups__name='Supervisor')
-    )
-
+    estado = django_filters.ChoiceFilter(choices=Trabajo.ESTADO_CHOICES)
+    
     class Meta:
         model = Trabajo
-        fields = ['fecha', 'faena', 'maquina',
-                  'trabajador', 'supervisor', 'aprobado']
+        fields = {
+            'fecha': ['exact', 'gte', 'lte'],
+            'faena__nombre': ['icontains'],
+            'maquina__nombre': ['icontains'],
+            'supervisor__username': ['exact'],
+            'trabajador__username': ['exact'],
+            'estado': ['exact']  # Usamos estado en lugar de aprobado
+        }
