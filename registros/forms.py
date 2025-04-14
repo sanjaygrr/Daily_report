@@ -6,18 +6,13 @@ import datetime
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 
-# ---------------------- FORMULARIO EMPRESA ----------------------
-from django import forms
-from django.contrib.auth.models import User, Group
-from .models import Empresa
-
 # ---------------------- FORMULARIO REGISTRO USUARIO ----------------------
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True)
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
@@ -56,8 +51,24 @@ class EmpresaForm(forms.ModelForm):
     class Meta:
         model = Empresa
         fields = ['nombre', 'rut', 'direccion', 'logo', 'correo_electronico', 
-                 'numero_telefono', 'max_faenas', 'max_usuarios', 'max_maquinas']
+                 'numero_telefono', 'max_faenas', 'max_usuarios', 'max_maquinas', 'administrador'] #Se agrega el campo administrador
 
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['administrador'].queryset = User.objects.filter(groups__name='Admin')
+            
+    def clean(self):
+        super().clean()
+        admin_username = self.cleaned_data.get('admin_username')
+        admin_email = self.cleaned_data.get('admin_email')
+
+        if User.objects.filter(username=admin_username).exists():
+            self.add_error('admin_username', 'El nombre de usuario ya existe')
+        if User.objects.filter(email=admin_email).exists():
+            self.add_error('admin_email', 'El correo electrónico ya existe')
+            
     def save(self, commit=True):
         # Primero guardamos la empresa
         empresa = super().save(commit=False)
@@ -86,7 +97,7 @@ class EmpresaForm(forms.ModelForm):
         PerfilUsuario.objects.create(
             usuario=admin_user,
             empresa=empresa,
-            es_administrador=True
+            es_administrador=True #Se agrega el campo es_administrador
         )
         
         return empresa
@@ -107,14 +118,14 @@ class UserEditForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'group', 'empresa']
+        fields = ['username', 'first_name', 'last_name', 'email', 'group', 'empresa']  # Add any other fields you want to edit
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-
-        if user and not user.is_superuser:
-            self.fields['empresa'].queryset = Empresa.objects.filter(administrador=user)
+        if user:
+           self.fields['groups'].queryset = Group.objects.filter(name__in=['Trabajador', 'Supervisor'])
+           self.fields['empresa'].queryset = user.empresas_administradas.all()
 
         if self.instance and self.instance.pk:
             user_groups = self.instance.groups.all()
@@ -122,19 +133,17 @@ class UserEditForm(forms.ModelForm):
                 self.fields['group'].initial = user_groups.first().id
 
 # ---------------------- FORMULARIO MÁQUINA ----------------------
-# ---------------------- FORMULARIO MÁQUINA ----------------------
 class MaquinaForm(forms.ModelForm):
     class Meta:
         model = Maquina
         fields = ['nombre', 'modelo', 'numero_serie', 'fecha_adquisicion', 'estado', 'empresa']
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        if self.user and not self.user.is_superuser:
-            self.fields['empresa'].queryset = self.user.empresas_administradas.all()
-
+        if user and not user.is_superuser:
+            self.fields['empresa'].queryset = Empresa.objects.filter(administrador=user) #cambiado
 # ---------------------- FORMULARIO FAENA ----------------------
 class FaenaForm(forms.ModelForm):
     class Meta:
@@ -186,9 +195,9 @@ class TrabajoForm(forms.ModelForm):
             self.fields['maquina'].queryset = Maquina.objects.filter(empresa=empresa)
             self.fields['supervisor'].queryset = User.objects.filter(
                 groups__name='Supervisor',
-                empresa=empresa
+                empresas_administradas=empresa
             )
             self.fields['trabajador'].queryset = User.objects.filter(
                 groups__name='Trabajador',
-                empresa=empresa
+                empresas_administradas=empresa
             )
