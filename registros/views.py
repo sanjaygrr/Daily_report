@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.http import HttpResponse, HttpResponseForbidden
 from django.db.models import Q
 from .models import Trabajo, Maquina, Faena, Empresa, User, PerfilUsuario
-from .forms import (TrabajoForm, MaquinaForm, FaenaForm, 
+from .forms import (TrabajoForm, MaquinaForm, FaenaForm,
                    UserRegistrationForm, UserEditForm, EmpresaForm)
 from .filters import TrabajoFilter
 import openpyxl
@@ -23,6 +23,9 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import Group
 from django.core.paginator import Paginator
+from django.db.models import Count
+from django.db.models import Prefetch
+
 
 def get_user_empresa(user):
     # Si es superusuario, no tiene empresa asignada directamente
@@ -41,10 +44,12 @@ def get_user_empresa(user):
 
     return None
 
+
 def get_empresa_queryset(user):
     if user.is_superuser:
         return Empresa.objects.all()
-    return user.empresa_admin.all()
+    return user.empresas_administradas.all()  # Corrección aquí
+
 
 def get_maquina_queryset(user):
     empresa = get_user_empresa(user)
@@ -52,19 +57,19 @@ def get_maquina_queryset(user):
         return Maquina.objects.all()
     return Maquina.objects.filter(empresa=empresa) if empresa else Maquina.objects.none()
 
-@login_required
 
+@login_required
 def eliminar_maquina(request, pk):
     """
     Vista para eliminar una máquina existente
     """
     maquina = get_object_or_404(Maquina, pk=pk)
     empresa = get_user_empresa(request.user)
-    
+
     # Verificar permisos
     if not (request.user.is_superuser or maquina.empresa == empresa):
         return HttpResponseForbidden("No tienes permiso para eliminar esta máquina")
-    
+
     if request.method == 'POST':
         try:
             maquina.delete()
@@ -73,10 +78,11 @@ def eliminar_maquina(request, pk):
         except Exception as e:
             messages.error(request, f'Error al eliminar máquina: {str(e)}')
             return redirect('listar_maquinas')
-    
+
     return render(request, 'registros/confirmar_eliminar_maquina.html', {
         'maquina': maquina
     })
+
 
 def get_faena_queryset(user):
     empresa = get_user_empresa(user)
@@ -84,19 +90,19 @@ def get_faena_queryset(user):
         return Faena.objects.all()
     return Faena.objects.filter(empresa=empresa) if empresa else Faena.objects.none()
 
-@login_required
 
+@login_required
 def eliminar_faena(request, pk):
     """
     Vista para eliminar una faena existente
     """
     faena = get_object_or_404(Faena, pk=pk)
     empresa = get_user_empresa(request.user)
-    
+
     # Verificar permisos
     if not (request.user.is_superuser or faena.empresa == empresa):
         return HttpResponseForbidden("No tienes permiso para eliminar esta faena")
-    
+
     if request.method == 'POST':
         try:
             faena.delete()
@@ -105,26 +111,27 @@ def eliminar_faena(request, pk):
         except Exception as e:
             messages.error(request, f'Error al eliminar faena: {str(e)}')
             return redirect('listar_faenas')
-    
+
     return render(request, 'registros/confirmar_eliminar_faena.html', {
         'faena': faena
     })
 
-@login_required
 
+@login_required
 def editar_faena(request, pk):
     """
     Vista para editar una faena existente
     """
     faena = get_object_or_404(Faena, pk=pk)
     empresa = get_user_empresa(request.user)
-    
+
     # Verificar permisos
     if not (request.user.is_superuser or faena.empresa == empresa):
         return HttpResponseForbidden("No tienes permiso para editar esta faena")
-    
+
     if request.method == 'POST':
-        form = FaenaForm(empresa, request.user, request.POST, instance=faena)
+        # Corrección: Pasar request.user a FaenaForm
+        form = FaenaForm(request.POST, user=request.user, instance=faena)
         if form.is_valid():
             try:
                 form.save()
@@ -133,12 +140,14 @@ def editar_faena(request, pk):
             except IntegrityError as e:
                 messages.error(request, f'Error al actualizar faena: {str(e)}')
     else:
-        form = FaenaForm(empresa, request.user, instance=faena)
-    
+        # Corrección: Pasar request.user a FaenaForm
+        form = FaenaForm(instance=faena, user=request.user)
+
     return render(request, 'registros/editar_faena.html', {
         'form': form,
         'faena': faena
     })
+
 
 def get_trabajo_queryset(user):
     empresa = get_user_empresa(user)
@@ -146,11 +155,12 @@ def get_trabajo_queryset(user):
         return Trabajo.objects.all()
     return Trabajo.objects.filter(empresa=empresa) if empresa else Trabajo.objects.none()
 
-# Vistas de Empresa
 
+# Vistas de Empresa
+@login_required
 def crear_empresa(request):
     if request.method == 'POST':
-        form = EmpresaForm(request.POST, request.FILES)
+        form = EmpresaForm(request.POST, request.FILES, user=request.user) # Pass the user
         if form.is_valid():
             try:
                 empresa = form.save()
@@ -164,9 +174,10 @@ def crear_empresa(request):
                 for error in errors:
                     messages.error(request, f'Error en {field}: {error}')
     else:
-        form = EmpresaForm()
-
+        form = EmpresaForm(user=request.user) # Pass the user
     return render(request, 'registros/crear_empresa.html', {'form': form})
+
+
 
 @login_required
 def listar_empresas(request):
@@ -176,31 +187,32 @@ def listar_empresas(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'registros/listar_empresas.html', {'page_obj': page_obj})
 
+
 @login_required
 def editar_empresa(request, pk):
     empresa = get_object_or_404(Empresa, pk=pk)
-    
+
     if not (request.user.is_superuser or request.user == empresa.administrador):
         return HttpResponseForbidden("No tienes permiso para editar esta empresa")
-    
+
     if request.method == 'POST':
-        form = EmpresaForm(request.POST, request.FILES, instance=empresa)
+        form = EmpresaForm(request.POST, request.FILES, instance=empresa, user=request.user) # Pass the user
         if form.is_valid():
             form.save()
             messages.success(request, 'Empresa actualizada correctamente')
             return redirect('listar_empresas')
     else:
-        form = EmpresaForm(instance=empresa)
-    
+        form = EmpresaForm(instance=empresa, user=request.user) # Pass the user
     return render(request, 'registros/editar_empresa.html', {'form': form, 'empresa': empresa})
+
 
 @login_required
 def eliminar_empresa(request, pk):
     empresa = get_object_or_404(Empresa, pk=pk)
-    
+
     if not (request.user.is_superuser or request.user == empresa.administrador):
         return HttpResponseForbidden("No tienes permiso para eliminar esta empresa")
-    
+
     if request.method == 'POST':
         try:
             empresa.delete()
@@ -209,7 +221,7 @@ def eliminar_empresa(request, pk):
         except Exception as e:
             messages.error(request, f'Error al eliminar empresa: {str(e)}')
             return redirect('listar_empresas')
-    
+
     return render(request, 'registros/confirmar_eliminar_empresa.html', {'empresa': empresa})
 # Vistas de Trabajos
 @login_required
@@ -217,7 +229,7 @@ def crear_trabajo(request):
     empresa = get_user_empresa(request.user)
     if not empresa and not request.user.is_superuser:
         return HttpResponseForbidden("No tienes una empresa asignada")
-    
+
     if request.method == 'POST':
         # Cambié el argumento para pasar 'user' en lugar de 'empresa'
         form = TrabajoForm(request.POST, user=request.user)
@@ -235,8 +247,10 @@ def crear_trabajo(request):
     else:
         # También cambié para pasar 'user' en lugar de 'empresa'
         form = TrabajoForm(user=request.user, initial={'fecha': timezone.now().date()})
-    
+
     return render(request, 'registros/crear_trabajo.html', {'form': form})
+
+
 @login_required
 def historial(request):
     # Verificamos si el usuario es superusuario
@@ -252,8 +266,8 @@ def historial(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'registros/historial.html', {'filter': f, 'page_obj': page_obj})
 
-@login_required
 
+@login_required
 def pendientes(request):
     trabajos = get_trabajo_queryset(request.user).filter(estado='pendiente')
     paginator = Paginator(trabajos, 15)
@@ -261,90 +275,91 @@ def pendientes(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'registros/pendientes.html', {'page_obj': page_obj})
 
+
 @login_required
 def aprobar_trabajo(request, pk):
     trabajo = get_object_or_404(Trabajo, pk=pk)
-    
+
     if not (request.user == trabajo.supervisor or request.user.is_superuser):
         return HttpResponseForbidden("No tienes permiso para aprobar este trabajo")
-    
+
     try:
         trabajo.estado = 'completado'
         trabajo.save()
         messages.success(request, 'Trabajo aprobado exitosamente!')
     except Exception as e:
         messages.error(request, f'Error al aprobar trabajo: {str(e)}')
-    
+
     return redirect('pendientes')
 
+
 @login_required
-
 def register_user(request):
-    empresa = get_user_empresa(request.user)
-
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST, user=request.user)  # se pasa user como keyword
+        form = UserRegistrationForm(request.POST, user=request.user)
         if form.is_valid():
             try:
                 user = form.save()
-                messages.success(request, f'Usuario con RUT {user.rut} creado exitosamente!')
+                messages.success(request, 'Usuario creado exitosamente!')
                 return redirect('listar_usuarios')
             except IntegrityError as e:
                 messages.error(request, f'Error al crear usuario: {str(e)}')
                 return redirect('register_user')
     else:
-        form = UserRegistrationForm(user=request.user)
+        form = UserRegistrationForm(user=request.user) # Pasa el usuario al formulario
 
     return render(request, 'registros/register_user.html', {'form': form})
 
-@login_required
 
+@login_required
 def listar_usuarios(request):
     empresa = get_user_empresa(request.user)
-    
+
     if request.user.is_superuser:
-        usuarios = User.objects.all()
+        usuarios = User.objects.all().prefetch_related(
+            'groups',
+            Prefetch('perfil__empresa')
+        ).order_by('username')  # Añadido order_by para consistencia
     else:
         usuarios = User.objects.filter(
-            Q(empresa=empresa) | Q(empresa_admin=empresa)
-        ).distinct()
-    
+            Q(perfil__empresa=empresa)
+        ).prefetch_related(
+            'groups',
+            Prefetch('perfil__empresa')
+        ).order_by('username')  # Añadido order_by para consistencia
+        usuarios = [u for u in usuarios if hasattr(u, 'perfil') and u.perfil]
+
     paginator = Paginator(usuarios, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     forms = {}
     for usuario in page_obj.object_list:
         forms[usuario.pk] = UserEditForm(instance=usuario, user=request.user)
-    
-    if request.method == 'POST':
-        usuario_id = request.POST.get('usuario_id')
-        if usuario_id:
-            usuario = get_object_or_404(User, pk=usuario_id)
-            form = UserEditForm(request.POST, instance=usuario, user=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Usuario actualizado exitosamente!')
-                return redirect('listar_usuarios')
-    
-    return render(request, 'registros/listar_usuarios.html', {
+
+    context = {
         'page_obj': page_obj,
-        'forms': forms
-    })
+        'forms': forms,
+        'usuarios': page_obj.object_list,  # Asegúrate de pasar esto
+        'groups': Group.objects.all()  # Asegúrate de pasar esto si lo usas en la plantilla
+    }
+
+    print("Context in listar_usuarios:", context)  # Para depuración
+
+    return render(request, 'registros/listar_usuarios.html', context)
 
 @login_required
-
 def eliminar_usuario(request, pk):
     """
     Vista para eliminar un usuario
     """
     usuario = get_object_or_404(User, pk=pk)
     empresa = get_user_empresa(request.user)
-    
+
     # Verificar permisos
-    if not (request.user.is_superuser or usuario.empresa == empresa or usuario.empresa_admin == empresa):
+    if not (request.user.is_superuser or usuario.perfil.empresa == empresa): # Access empresa via perfil
         return HttpResponseForbidden("No tienes permiso para eliminar este usuario")
-    
+
     if request.method == 'POST':
         try:
             usuario.delete()
@@ -353,13 +368,13 @@ def eliminar_usuario(request, pk):
         except Exception as e:
             messages.error(request, f'Error al eliminar usuario: {str(e)}')
             return redirect('listar_usuarios')
-    
+
     return render(request, 'registros/confirmar_eliminar_usuario.html', {
         'usuario': usuario
     })
 
-@login_required
 
+@login_required
 def guardar_cambios_usuarios(request):
     """
     Vista para guardar cambios múltiples de usuarios
@@ -371,29 +386,56 @@ def guardar_cambios_usuarios(request):
             if request.user.is_superuser:
                 usuarios = User.objects.all()
             else:
-                usuarios = User.objects.filter(
-                    Q(empresa=empresa) | Q(empresa_admin=empresa))
-            
+                usuarios = User.objects.filter(perfil__empresa=empresa) # Access empresa via perfil
+
             # Procesar cada usuario
             for usuario in usuarios:
                 usuario_id = str(usuario.id)
-                form = UserEditForm(request.POST, prefix=usuario_id, instance=usuario, user=request.user)
+                form = UserEditForm(request.POST, prefix=usuario_id, instance=usuario,
+                                   user=request.user)
                 if form.is_valid():
                     form.save()
-            
+
             messages.success(request, 'Cambios en usuarios guardados exitosamente!')
         except Exception as e:
             messages.error(request, f'Error al guardar cambios: {str(e)}')
-        
+
         return redirect('listar_usuarios')
-    
+
     return HttpResponseForbidden("Método no permitido")
+
+def detalles_empresa(request, empresa_id):
+    empresa = get_object_or_404(Empresa, pk=empresa_id)
+
+    # Count users and their roles
+    user_roles = (
+        User.objects
+        .filter(perfil__empresa=empresa)
+        .values('groups__name')
+        .annotate(user_count=Count('id'))
+        .order_by('groups__name')
+    )
+
+    # Count machines, faenas, and trabajos
+    maquina_count = empresa.maquinas.count()  # Usa .maquinas
+    faena_count = empresa.faenas.count()    # Usa .faenas
+    trabajo_count = empresa.trabajos.count()  # Usa .trabajos
+
+    context = {
+        'empresa': empresa,
+        'user_roles': user_roles,
+        'maquina_count': maquina_count,
+        'faena_count': faena_count,
+        'trabajo_count': trabajo_count,
+    }
+    return render(request, 'registros/detalles_empresa.html', context)
 
 # Vistas de Máquinas
 @login_required
-
 def crear_maquina(request):
     empresa = get_user_empresa(request.user)
+    if not empresa and not request.user.is_superuser:
+        return HttpResponseForbidden("No tienes una empresa asignada")
 
     if request.method == 'POST':
         form = MaquinaForm(request.POST, user=request.user)
@@ -408,39 +450,44 @@ def crear_maquina(request):
                 messages.error(request, f'Error al crear máquina: {str(e)}')
                 return redirect('crear_maquina')
     else:
-        form = MaquinaForm(user=request.user)
+        form = MaquinaForm(user=request.user)  # Pass user here
 
     return render(request, 'registros/crear_maquina.html', {'form': form})
 
 @login_required
 def listar_maquinas(request):
-    maquinas = get_maquina_queryset(request.user)
+    empresa = get_user_empresa(request.user)  # Asumiendo que tienes esta función
+
+    if request.user.is_superuser:
+        maquinas = Maquina.objects.all().order_by('nombre') # Eliminado prefetch_related
+    else:
+        maquinas = Maquina.objects.filter(empresa=empresa).order_by('nombre') # Eliminado prefetch_related
+
     paginator = Paginator(maquinas, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
-    forms = {maquina.pk: MaquinaForm(maquina.empresa, instance=maquina) for maquina in page_obj.object_list}
-    
-    if request.method == 'POST':
-        maquina_id = request.POST.get('maquina_id')
-        if maquina_id:
-            maquina = get_object_or_404(Maquina, pk=maquina_id)
-            form = MaquinaForm(maquina.empresa, request.POST, instance=maquina)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Máquina actualizada exitosamente!')
-                return redirect('listar_maquinas')
-    
-    return render(request, 'registros/listar_maquinas.html', {
+
+    forms = {}
+    for maquina in page_obj.object_list:
+        forms[maquina.pk] = MaquinaForm(instance=maquina, user=request.user)
+
+    context = {
         'page_obj': page_obj,
-        'forms': forms
-    })
+        'forms': forms,
+        'maquinas': page_obj.object_list,
+    }
+
+    print("Context in listar_maquinas:", context)  # Para depuración
+
+    return render(request, 'registros/listar_maquinas.html', context)
+
 
 # Vistas de Faenas
 @login_required
-
 def crear_faena(request):
     empresa = get_user_empresa(request.user)
+    if not empresa and not request.user.is_superuser:
+        return HttpResponseForbidden("No tienes una empresa asignada")
 
     if request.method == 'POST':
         form = FaenaForm(request.POST, user=request.user)
@@ -458,29 +505,32 @@ def crear_faena(request):
         form = FaenaForm(user=request.user)
 
     return render(request, 'registros/crear_faena.html', {'form': form})
+
+
 @login_required
 def listar_faenas(request):
     faenas = get_faena_queryset(request.user)
     paginator = Paginator(faenas, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
-    forms = {faena.pk: FaenaForm(faena.empresa, request.user, instance=faena) for faena in page_obj.object_list}
-    
+
+    forms = {faena.pk: FaenaForm(instance=faena, user=request.user) for faena in page_obj.object_list}
+
     if request.method == 'POST':
         faena_id = request.POST.get('faena_id')
         if faena_id:
             faena = get_object_or_404(Faena, pk=faena_id)
-            form = FaenaForm(faena.empresa, request.user, request.POST, instance=faena)
+            form = FaenaForm(request.POST, instance=faena, user=request.user)
             if form.is_valid():
                 form.save()
                 messages.success(request, 'Faena actualizada exitosamente!')
                 return redirect('listar_faenas')
-    
+
     return render(request, 'registros/listar_faenas.html', {
         'page_obj': page_obj,
         'forms': forms
     })
+
 
 # Exportación y reportes
 @login_required
@@ -489,8 +539,9 @@ def export_historial_xlsx(request):
     filter_trabajos = TrabajoFilter(request.GET, queryset=trabajos)
     trabajos = filter_trabajos.qs
 
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
     empresa = get_user_empresa(request.user)
     filename = f"Historial_Trabajos_{empresa.nombre.replace(' ', '_')}" if empresa else "Historial_Trabajos"
     response['Content-Disposition'] = f'attachment; filename={filename}.xlsx'
@@ -500,12 +551,12 @@ def export_historial_xlsx(request):
     worksheet.title = 'Historial de Trabajos'
 
     columns = [
-        'Empresa', 'Fecha', 'Faena', 'Máquina', 'Trabajo', 
+        'Empresa', 'Fecha', 'Faena', 'Máquina', 'Trabajo',
         'Horómetro Inicial', 'Horómetro Final', 'Total Horas',
         'Petróleo (lts)', 'Aceite (tipo)', 'Aceite (lts)', 'Observaciones',
         'Supervisor', 'Trabajador', 'Estado'
     ]
-    
+
     for col_num, column_title in enumerate(columns, 1):
         column_letter = get_column_letter(col_num)
         cell = worksheet[f"{column_letter}1"]
@@ -529,7 +580,7 @@ def export_historial_xlsx(request):
             trabajo.observaciones,
             trabajo.supervisor.get_full_name() or trabajo.supervisor.username,
             trabajo.trabajador.get_full_name() or trabajo.trabajador.username,
-            trabajo.estado.capitalize() 
+            trabajo.estado.capitalize()
         ])
         row_num += 1
 
@@ -547,11 +598,12 @@ def export_historial_xlsx(request):
     workbook.save(response)
     return response
 
+
 @login_required
 def generar_pdf_trabajo(request, pk):
     trabajo = get_object_or_404(Trabajo, pk=pk)
     user_empresa = get_user_empresa(request.user)
-    
+
     if not (request.user.is_superuser or user_empresa == trabajo.empresa):
         return HttpResponseForbidden("No tienes permiso para ver este trabajo")
 
@@ -579,25 +631,25 @@ def generar_pdf_trabajo(request, pk):
             print(f"Error al cargar logo: {str(e)}")
 
     if logo and os.path.exists(logo):
-        p.drawImage(logo, width - 2*inch, height - 1*inch, 
-                   width=1.5*inch, height=1*inch, preserveAspectRatio=True)
+        p.drawImage(logo, width - 2 * inch, height - 1 * inch,
+                    width=1.5 * inch, height=1 * inch, preserveAspectRatio=True)
         os.unlink(logo)
 
     # Encabezado
     p.setFont(*titulo_style)
-    p.drawString(1*inch, height - 1.5*inch, "Reporte de Trabajo")
-    
+    p.drawString(1 * inch, height - 1.5 * inch, "Reporte de Trabajo")
+
     if trabajo.empresa:
         p.setFont(*subtitulo_style)
-        p.drawString(1*inch, height - 2*inch, f"Empresa: {trabajo.empresa.nombre}")
-        p.drawString(1*inch, height - 2.2*inch, f"RUT: {trabajo.empresa.rut}")
+        p.drawString(1 * inch, height - 2 * inch, f"Empresa: {trabajo.empresa.nombre}")
+        p.drawString(1 * inch, height - 2.2 * inch, f"RUT: {trabajo.empresa.rut}")
 
-    p.line(1*inch, height - 2.5*inch, width - 1*inch, height - 2.5*inch)
+    p.line(1 * inch, height - 2.5 * inch, width - 1 * inch, height - 2.5 * inch)
 
-    y_position = height - 3*inch
+    y_position = height - 3 * inch
     p.setFont(*subtitulo_style)
-    p.drawString(1*inch, y_position, "Detalles del Trabajo:")
-    
+    p.drawString(1 * inch, y_position, "Detalles del Trabajo:")
+
     p.setFont(*texto_style)
     detalles = [
         ("Fecha", trabajo.fecha.strftime("%d/%m/%Y")),
@@ -612,51 +664,54 @@ def generar_pdf_trabajo(request, pk):
         ("Aceite", f"{trabajo.aceite_tipo} ({trabajo.aceite_litros} litros)"),
         ("Supervisor", trabajo.supervisor.get_full_name()),
         ("Trabajador", trabajo.trabajador.get_full_name()),
-        ("Estado", trabajo.get_estado_display ())
+        ("Estado", trabajo.get_estado_display())
     ]
 
-    col1_x = 1*inch
-    col2_x = 4.5*inch
-    line_height = 0.4*inch
-    
+    col1_x = 1 * inch
+    col2_x = 4.5 * inch
+    line_height = 0.4 * inch
+
     for i, (label, value) in enumerate(detalles):
         x = col1_x if i % 2 == 0 else col2_x
-        y = y_position - (i//2 + 1)*line_height - 0.2*inch
+        y = y_position - (i // 2 + 1) * line_height - 0.2 * inch
         p.drawString(x, y, f"{label}:")
-        p.drawString(x + 1.5*inch, y, str(value))
+        p.drawString(x + 1.5 * inch, y, str(value))
 
-    y_position -= (len(detalles)//2 + 2)*line_height
+    y_position -= (len(detalles) // 2 + 2) * line_height
     p.setFont(*subtitulo_style)
-    p.drawString(1*inch, y_position, "Observaciones:")
+    p.drawString(1 * inch, y_position, "Observaciones:")
     p.setFont(*texto_style)
     observaciones = trabajo.observaciones or "Sin observaciones"
-    p.drawString(1*inch, y_position - line_height, observaciones)
+    p.drawString(1 * inch, y_position - line_height, observaciones)
 
     p.setFont("Helvetica", 8)
-    p.drawString(1*inch, 0.5*inch, f"Generado el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {request.user.get_full_name()}")
+    p.drawString(1 * inch, 0.5 * inch, f"Generado el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {request.user.get_full_name()}")
 
     p.showPage()
     p.save()
     return response
+
 
 # Vistas generales
 def home(request):
     context = {}
     if request.user.is_authenticated:
         # Obtenemos el perfil del usuario y la empresa asociada a él
-        perfil_usuario = getattr(request.user, 'perfil', None)  # Accede al perfil del usuario
+        perfil_usuario = getattr(request.user, 'perfil',
+                                 None)  # Accede al perfil del usuario
         empresa = perfil_usuario.empresa if perfil_usuario else None
-        
+
         context.update({
             'empresa': empresa,
             'es_administrador': request.user.groups.filter(name='Admin').exists(),
             'es_supervisor': request.user.groups.filter(name='Supervisor').exists()
         })
-        
+
         if empresa and empresa.logo:
             context['logo_empresa'] = empresa.logo.url
-            
+
     return render(request, 'registros/home.html', context)
+
 
 @login_required
 def detalle_empresa(request, pk):
@@ -665,13 +720,14 @@ def detalle_empresa(request, pk):
     estadísticas de usuarios, máquinas y faenas
     """
     empresa = get_object_or_404(Empresa, pk=pk)
-    
+
     # Obtenemos conteos y detalles
-    usuarios = User.objects.filter(Q(empresa=empresa) | Q(empresa_admin=empresa)).distinct()
+    usuarios = User.objects.filter(
+        Q(perfil__empresa=empresa))  # Corrección para filtrar por la empresa del perfil
     maquinas = Maquina.objects.filter(empresa=empresa)
     faenas = Faena.objects.filter(empresa=empresa)
     trabajos = Trabajo.objects.filter(empresa=empresa)
-    
+
     estadisticas = {
         'total_usuarios': usuarios.count(),
         'usuarios_por_grupo': {
@@ -687,7 +743,7 @@ def detalle_empresa(request, pk):
             'pendientes': trabajos.filter(estado='pendiente').count(),
         }
     }
-    
+
     return render(request, 'registros/detalle_empresa.html', {
         'empresa': empresa,
         'estadisticas': estadisticas,

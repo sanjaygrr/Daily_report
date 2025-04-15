@@ -1,3 +1,4 @@
+# Archivo: registros/models.py
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.db.models.signals import post_save
@@ -23,7 +24,7 @@ class Empresa(models.Model):
         null=True,
         blank=True,
         related_name='empresas_administradas',
-        limit_choices_to={'groups__name': 'Admin'},
+        limit_choices_to={'groups__name': 'Admin'}, # Aseguramos que solo los del grupo Admin puedan ser administradores
         verbose_name="Administrador asignado"
     )
     fecha_creacion = models.DateTimeField(default=timezone.now, verbose_name="Fecha de creación")
@@ -70,11 +71,11 @@ class Empresa(models.Model):
 
 class PerfilUsuario(models.Model): 
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
-    empresa = models.ForeignKey(Empresa, null=True, blank=True, on_delete=models.SET_NULL)
+    empresa = models.ForeignKey(Empresa, null=True, blank=True, on_delete=models.SET_NULL, related_name='usuarios')
     telefono = models.CharField(max_length=20, blank=True, null=True, verbose_name="Teléfono")
     fecha_ingreso = models.DateField(default=timezone.now, verbose_name="Fecha de ingreso")
-    es_administrador = models.BooleanField(default=False)  # Agregado el campo es_administrador
-
+    # Eliminamos el campo es_administrador
+    
     class Meta:
         verbose_name = "Perfil de Usuario"
         verbose_name_plural = "Perfiles de Usuarios"
@@ -281,19 +282,6 @@ class Faena(models.Model):
         if is_new:
             self.empresa.actualizar_contadores()
 
-    @property
-    def duracion_estimada(self):
-        """Calcula la duración estimada en días"""
-        if self.fecha_termino_estimada:
-            return (self.fecha_termino_estimada - self.fecha_inicio).days
-        return None
-
-    @property
-    def duracion_real(self):
-        """Calcula la duración real en días"""
-        if self.fecha_termino_real:
-            return (self.fecha_termino_real - self.fecha_inicio).days
-        return None
 
 
 class Trabajo(models.Model):
@@ -450,28 +438,3 @@ class Trabajo(models.Model):
             
         super().save(*args, **kwargs)
 
-@receiver(post_save, sender=User)
-def add_user_to_default_group(sender, instance, created, **kwargs):
-    if created and not instance.is_superuser:
-        group, created = Group.objects.get_or_create(name='Trabajador')
-        instance.groups.add(group)
-    
-    # Asegurar que el administrador tenga el grupo Admin
-    # Verificamos si la instancia es una empresa, no un usuario
-    if hasattr(instance, 'administrador'):
-        if instance.administrador:
-            # Asignar grupo Admin
-            grupo_admin, _ = Group.objects.get_or_create(name='Admin')
-            instance.administrador.groups.add(grupo_admin)
-            
-            # Asegurar que el administrador tenga perfil vinculado a esta empresa
-            if hasattr(instance.administrador, 'perfil'):
-                if instance.administrador.perfil.empresa != instance:
-                    instance.administrador.perfil.empresa = instance
-                    instance.administrador.perfil.save()
-            else:
-                PerfilUsuario.objects.create(
-                    usuario=instance.administrador,
-                    empresa=instance,
-                    cargo="Administrador"
-                )
