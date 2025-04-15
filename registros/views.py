@@ -23,6 +23,8 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import Group
 from django.core.paginator import Paginator
+from django.db.models import Count
+from django.db.models import Prefetch
 
 
 def get_user_empresa(user):
@@ -293,20 +295,18 @@ def aprobar_trabajo(request, pk):
 
 @login_required
 def register_user(request):
-    empresa = get_user_empresa(request.user)
-
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST, user=request.user)  # se pasa user como keyword
+        form = UserRegistrationForm(request.POST, user=request.user)
         if form.is_valid():
             try:
                 user = form.save()
-                messages.success(request, f'Usuario creado exitosamente!')
+                messages.success(request, 'Usuario creado exitosamente!')
                 return redirect('listar_usuarios')
             except IntegrityError as e:
                 messages.error(request, f'Error al crear usuario: {str(e)}')
                 return redirect('register_user')
     else:
-        form = UserRegistrationForm(user=request.user)
+        form = UserRegistrationForm(user=request.user) # Pasa el usuario al formulario
 
     return render(request, 'registros/register_user.html', {'form': form})
 
@@ -316,9 +316,18 @@ def listar_usuarios(request):
     empresa = get_user_empresa(request.user)
 
     if request.user.is_superuser:
-        usuarios = User.objects.all()
+        usuarios = User.objects.all().prefetch_related(
+            'groups',
+            Prefetch('perfil__empresa')
+        ).order_by('username')  # Añadido order_by para consistencia
     else:
-        usuarios = User.objects.filter(Q(perfil__empresa=empresa))  # Filtra usuarios por empresa a través del perfil
+        usuarios = User.objects.filter(
+            Q(perfil__empresa=empresa)
+        ).prefetch_related(
+            'groups',
+            Prefetch('perfil__empresa')
+        ).order_by('username')  # Añadido order_by para consistencia
+        usuarios = [u for u in usuarios if hasattr(u, 'perfil') and u.perfil]
 
     paginator = Paginator(usuarios, 15)
     page_number = request.GET.get('page')
@@ -328,21 +337,16 @@ def listar_usuarios(request):
     for usuario in page_obj.object_list:
         forms[usuario.pk] = UserEditForm(instance=usuario, user=request.user)
 
-    if request.method == 'POST':
-        usuario_id = request.POST.get('usuario_id')
-        if usuario_id:
-            usuario = get_object_or_404(User, pk=usuario_id)
-            form = UserEditForm(request.POST, instance=usuario, user=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Usuario actualizado exitosamente!')
-                return redirect('listar_usuarios')
-
-    return render(request, 'registros/listar_usuarios.html', {
+    context = {
         'page_obj': page_obj,
-        'forms': forms
-    })
+        'forms': forms,
+        'usuarios': page_obj.object_list,  # Asegúrate de pasar esto
+        'groups': Group.objects.all()  # Asegúrate de pasar esto si lo usas en la plantilla
+    }
 
+    print("Context in listar_usuarios:", context)  # Para depuración
+
+    return render(request, 'registros/listar_usuarios.html', context)
 
 @login_required
 def eliminar_usuario(request, pk):
@@ -400,6 +404,31 @@ def guardar_cambios_usuarios(request):
 
     return HttpResponseForbidden("Método no permitido")
 
+def detalles_empresa(request, empresa_id):
+    empresa = get_object_or_404(Empresa, pk=empresa_id)
+
+    # Count users and their roles
+    user_roles = (
+        User.objects
+        .filter(perfil__empresa=empresa)
+        .values('groups__name')
+        .annotate(user_count=Count('id'))
+        .order_by('groups__name')
+    )
+
+    # Count machines, faenas, and trabajos
+    maquina_count = empresa.maquinas.count()  # Usa .maquinas
+    faena_count = empresa.faenas.count()    # Usa .faenas
+    trabajo_count = empresa.trabajos.count()  # Usa .trabajos
+
+    context = {
+        'empresa': empresa,
+        'user_roles': user_roles,
+        'maquina_count': maquina_count,
+        'faena_count': faena_count,
+        'trabajo_count': trabajo_count,
+    }
+    return render(request, 'registros/detalles_empresa.html', context)
 
 # Vistas de Máquinas
 @login_required
@@ -427,27 +456,30 @@ def crear_maquina(request):
 
 @login_required
 def listar_maquinas(request):
-    maquinas = get_maquina_queryset(request.user)
+    empresa = get_user_empresa(request.user)  # Asumiendo que tienes esta función
+
+    if request.user.is_superuser:
+        maquinas = Maquina.objects.all().order_by('nombre') # Eliminado prefetch_related
+    else:
+        maquinas = Maquina.objects.filter(empresa=empresa).order_by('nombre') # Eliminado prefetch_related
+
     paginator = Paginator(maquinas, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    forms = {maquina.pk: MaquinaForm(instance=maquina, user=request.user) for maquina in page_obj.object_list}
+    forms = {}
+    for maquina in page_obj.object_list:
+        forms[maquina.pk] = MaquinaForm(instance=maquina, user=request.user)
 
-    if request.method == 'POST':
-        maquina_id = request.POST.get('maquina_id')
-        if maquina_id:
-            maquina = get_object_or_404(Maquina, pk=maquina_id)
-            form = MaquinaForm(request.POST, instance=maquina, user=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Máquina actualizada exitosamente!')
-                return redirect('listar_maquinas')
-
-    return render(request, 'registros/listar_maquinas.html', {
+    context = {
         'page_obj': page_obj,
-        'forms': forms
-    })
+        'forms': forms,
+        'maquinas': page_obj.object_list,
+    }
+
+    print("Context in listar_maquinas:", context)  # Para depuración
+
+    return render(request, 'registros/listar_maquinas.html', context)
 
 
 # Vistas de Faenas

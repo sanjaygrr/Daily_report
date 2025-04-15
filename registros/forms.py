@@ -6,19 +6,20 @@ import datetime
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 
-# ---------------------- FORMULARIO REGISTRO USUARIO ----------------------
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True)
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True, label="Rol")
+    empresa = forms.ModelChoiceField(queryset=Empresa.objects.all(), required=True, label="Empresa") # Nuevo campo
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'group', 'empresa'] # Añade 'empresa'
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-
-    class Meta:
-        model = User
-        fields = ['username', 'first_name',
-                  'last_name', 'email', 'password', 'group']
+        if user:
+            self.fields['empresa'].queryset = user.empresas_administradas.all() # Limita las empresas a las del usuario
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -26,8 +27,12 @@ class UserRegistrationForm(forms.ModelForm):
         if commit:
             user.save()
             user.groups.add(self.cleaned_data['group'])
+            # Crea el PerfilUsuario y asigna la empresa
+            PerfilUsuario.objects.create(
+                usuario=user,
+                empresa=self.cleaned_data['empresa']
+            )
         return user
-
 
 class EmpresaForm(forms.ModelForm):
     # Campos para la empresa
@@ -124,14 +129,13 @@ class UserEditForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         if user:
-           self.fields['groups'].queryset = Group.objects.filter(name__in=['Trabajador', 'Supervisor'])
+           self.fields['group'].queryset = Group.objects.filter(name__in=['Trabajador', 'Supervisor']) # Corregido
            self.fields['empresa'].queryset = user.empresas_administradas.all()
 
         if self.instance and self.instance.pk:
             user_groups = self.instance.groups.all()
             if user_groups.exists():
                 self.fields['group'].initial = user_groups.first().id
-
 # ---------------------- FORMULARIO MÁQUINA ----------------------
 class MaquinaForm(forms.ModelForm):
     class Meta:

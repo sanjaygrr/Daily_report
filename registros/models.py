@@ -438,13 +438,3 @@ class Trabajo(models.Model):
             
         super().save(*args, **kwargs)
 
-@receiver(post_save, sender=User)
-def add_user_to_default_group(sender, instance, created, **kwargs):
-    if created and not instance.is_superuser:
-        group, created = Group.objects.get_or_create(name='Trabajador')
-        instance.groups.add(group)
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        PerfilUsuario.objects.create(usuario=instance)

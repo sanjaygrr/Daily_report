@@ -1,0 +1,30 @@
+{% extends 'registros/base.html' %}
+
+{% block title %}Detalles de Empresa: {{ empresa.nombre }}{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4">Detalles de Empresa: {{ empresa.nombre }}</h1>
+
+    <h2>Información de la Empresa</h2>
+    <p><strong>RUT:</strong> {{ empresa.rut }}</p>
+    <p><strong>Dirección:</strong> {{ empresa.direccion }}</p>
+    <h2>Usuarios y Roles</h2>
+    {% if user_roles %}
+        <ul>
+            {% for role in user_roles %}
+                <li><strong>{{ role.groups__name }}:</strong> {{ role.user_count }} usuarios</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay usuarios asignados a esta empresa.</p>
+    {% endif %}
+
+    <h2>Estadísticas</h2>
+    <p><strong>Cantidad de Máquinas:</strong> {{ maquina_count }}</p>
+    <p><strong>Cantidad de Faenas:</strong> {{ faena_count }}</p>
+    <p><strong>Cantidad de Trabajos:</strong> {{ trabajo_count }}</p>
+
+    <a href="{% url 'listar_empresas' %}" class="btn btn-secondary mt-3">Volver a la lista de empresas</a>
+</div>
+{% endblock %}
