@@ -5,7 +5,8 @@
 {% block content %}
 <div class="card p-4">
     <h1 class="mb-4">Lista de Usuarios</h1>
-    <form method="post" action="{% url 'guardar_cambios_usuarios' %}">
+    {% comment %} El form de guardar cambios se mantiene por si lo usas para editar en línea {% endcomment %}
+    <form method="post" action="{% url 'guardar_cambios_usuarios' %}"> 
         {% csrf_token %}
         <table class="table table-striped">
             <thead>
@@ -55,8 +56,33 @@
                     <td>
                         <button type="button" class="btn btn-sm btn-warning" onclick="editarFila({{ usuario.pk }})">Editar</button>
                         <button type="submit" name="guardar_usuario" value="{{ usuario.pk }}" class="btn btn-sm btn-primary d-none usuario-input-{{ usuario.pk }}">Guardar</button>
-                        <a href="{% url 'eliminar_usuario' usuario.pk %}" class="btn btn-sm btn-danger usuario-valor-{{ usuario.pk }}">Eliminar</a>
+                        
+                        <button type="button" class="btn btn-sm btn-danger usuario-valor-{{ usuario.pk }}" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ usuario.pk }}">
+                            Eliminar
+                        </button>
+
                         <button type="button" class="btn btn-sm btn-secondary d-none usuario-input-{{ usuario.pk }}" onclick="cancelarEdicion({{ usuario.pk }})">Cancelar</button>
+
+                        <div class="modal fade" id="eliminarModal{{ usuario.pk }}" tabindex="-1" aria-labelledby="eliminarModalLabel{{ usuario.pk }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="eliminarModalLabel{{ usuario.pk }}">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        ¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuario.username }}</strong>?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form method="post" action="{% url 'eliminar_usuario' usuario.pk %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -67,21 +93,20 @@
 
 <script>
     function editarFila(pk) {
-        // Mostrar los inputs y habilitarlos para que sean editables
         document.querySelectorAll('.usuario-valor-' + pk).forEach(el => el.classList.add('d-none'));
         document.querySelectorAll('.usuario-input-' + pk).forEach(el => {
             el.classList.remove('d-none');
-            el.disabled = false; // Habilitar los campos de input
+            el.disabled = false;
         });
     }
 
     function cancelarEdicion(pk) {
-        // Restaurar los spans y deshabilitar los inputs
         document.querySelectorAll('.usuario-valor-' + pk).forEach(el => el.classList.remove('d-none'));
         document.querySelectorAll('.usuario-input-' + pk).forEach(el => {
             el.classList.add('d-none');
-            el.disabled = true; // Deshabilitar los campos de input
+            el.disabled = true; 
         });
+        // Opcional: Recargar o resetear valores si es necesario
     }
 </script>
 {% endblock %}

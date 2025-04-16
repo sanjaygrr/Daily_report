@@ -5,69 +5,131 @@
 {% block content %}
 <div class="card p-4">
     <h1 class="mb-4 text-center">Faenas</h1>
-    <div class="list-group">
-        {% for faena in faenas %}
-            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                <span>{{ faena.nombre }}</span>
-                <div class="mt-2 mt-md-0">
-                    <!-- Botón para abrir el modal de edición -->
-                    <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarModal{{ faena.pk }}">Editar</button>
-                    <!-- Botón para abrir el modal de eliminación -->
-                    <button class="btn btn-sm btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ faena.pk }}">Eliminar</button>
-                </div>
-            </div>
 
-            <!-- Modal para editar la faena -->
-            <div class="modal fade" id="editarModal{{ faena.pk }}" tabindex="-1" aria-labelledby="editarModalLabel{{ faena.pk }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editarModalLabel{{ faena.pk }}">Editar {{ faena.nombre }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <form method="post" action="{% url 'listar_faenas' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="faena_id" value="{{ faena.pk }}">
-                            <div class="modal-body">
-                                <!-- Campo de entrada para el nombre de la faena -->
-                                <div class="mb-3">
-                                    <label for="id_nombre_{{ faena.pk }}" class="form-label">Nombre de la Faena</label>
-                                    <input type="text" class="form-control" id="id_nombre_{{ faena.pk }}" name="nombre" value="{{ faena.nombre }}" required>
+    {# Botón "Nueva Faena" Eliminado #}
+    {# <div class="mb-3 text-end"> ... </div> #}
+
+    <div class="table-responsive mb-3">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Responsable (Supervisor)</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for faena in faenas_list %}
+                    <tr>
+                        <td>{{ faena.nombre }}</td>
+                        <td>{{ faena.ubicacion|default:"-" }}</td>
+                        <td>
+                            {% if faena.responsable %}
+                                {{ faena.responsable.get_full_name|default:faena.responsable.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {# Botones de acción #}
+                            <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarFaenaModal{{ faena.pk }}">
+                                <i class="fas fa-edit"></i><span class="d-none d-md-inline"> Editar</span>
+                            </button>
+                            <button class="btn btn-sm btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#eliminarFaenaModal{{ faena.pk }}">
+                                <i class="fas fa-trash"></i><span class="d-none d-md-inline"> Eliminar</span>
+                            </button>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay faenas disponibles.</td> {# Ajusta colspan #}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# --- INICIO: Definiciones de Modales (Fuera de la tabla) --- #}
+    {% for faena in faenas_list %}
+        {# --- MODAL EDITAR FAENA --- #}
+        <div class="modal fade" id="editarFaenaModal{{ faena.pk }}" tabindex="-1" aria-labelledby="editarFaenaModalLabel{{ faena.pk }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editarFaenaModalLabel{{ faena.pk }}">Editar Faena: {{ faena.nombre }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <form method="post" action="{% url 'editar_faena' faena.pk %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="edit_faena_nombre_{{ faena.pk }}" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="edit_faena_nombre_{{ faena.pk }}" name="nombre" value="{{ faena.nombre }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_faena_ubicacion_{{ faena.pk }}" class="form-label">Ubicación</label>
+                                <input type="text" class="form-control" id="edit_faena_ubicacion_{{ faena.pk }}" name="ubicacion" value="{{ faena.ubicacion|default:'' }}">
+                            </div>
+                             <div class="mb-3">
+                                <label for="edit_faena_descripcion_{{ faena.pk }}" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="edit_faena_descripcion_{{ faena.pk }}" name="descripcion" rows="3">{{ faena.descripcion|default:'' }}</textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_faena_fecha_inicio_{{ faena.pk }}" class="form-label">Fecha Inicio</label>
+                                    <input type="date" class="form-control" id="edit_faena_fecha_inicio_{{ faena.pk }}" name="fecha_inicio" value="{{ faena.fecha_inicio|date:'Y-m-d' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_faena_fecha_termino_{{ faena.pk }}" class="form-label">Fecha Término Estimada</label>
+                                    <input type="date" class="form-control" id="edit_faena_fecha_termino_{{ faena.pk }}" name="fecha_termino_estimada" value="{{ faena.fecha_termino_estimada|date:'Y-m-d' }}">
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                            </div>
+                             <div class="mb-3">
+                                 <label for="edit_faena_responsable_{{ faena.pk }}" class="form-label">Responsable (Supervisor)</label>
+                                  <select class="form-select" id="edit_faena_responsable_{{ faena.pk }}" name="responsable">
+                                     <option value="">--- Selecciona ---</option>
+                                     {% for sup in supervisores_list %} {# Usa la lista pasada desde la vista #}
+                                     <option value="{{ sup.pk }}" {% if faena.responsable and sup.pk == faena.responsable.pk %}selected{% endif %}>{{ sup.get_full_name|default:sup.username }}</option>
+                                     {% endfor %}
+                                 </select>
+                                 <small class="text-muted">Solo supervisores de la empresa.</small>
+                             </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# --- MODAL ELIMINAR FAENA --- #}
+        <div class="modal fade" id="eliminarFaenaModal{{ faena.pk }}" tabindex="-1" aria-labelledby="eliminarFaenaModalLabel{{ faena.pk }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                     <div class="modal-header">
+                        <h5 class="modal-title" id="eliminarFaenaModalLabel{{ faena.pk }}">Eliminar Faena</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                     <div class="modal-body">
+                        <p>¿Estás seguro de que deseas eliminar la faena "{{ faena.nombre }}"?</p>
+                    </div>
+                     <div class="modal-footer">
+                        <form method="post" action="{% url 'eliminar_faena' faena.pk %}">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
                         </form>
                     </div>
                 </div>
             </div>
+        </div>
+    {% endfor %}
+    {# --- FIN: Definiciones de Modales --- #}
 
-            <!-- Modal para confirmar la eliminación -->
-            <div class="modal fade" id="eliminarModal{{ faena.pk }}" tabindex="-1" aria-labelledby="eliminarModalLabel{{ faena.pk }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="eliminarModalLabel{{ faena.pk }}">Eliminar Faena</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>¿Estás seguro de que deseas eliminar la faena "{{ faena.nombre }}"?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <form method="post" action="{% url 'eliminar_faena' faena.pk %}">
-                                {% csrf_token %}
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-danger">Eliminar</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <p class="text-center">No hay faenas disponibles.</p>
-        {% endfor %}
-    </div>
+    {# Paginación Eliminada #}
+
 </div>
 {% endblock %}
