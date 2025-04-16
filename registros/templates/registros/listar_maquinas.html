@@ -6,7 +6,7 @@
 <div class="card p-4">
     <h1 class="mb-4 text-center">Máquinas</h1>
 
-    {# Botón "Nueva Máquina" Eliminado #}
+    {# Botón "Nueva Máquina" Eliminado (como estaba en tu original) #}
 
     <div class="table-responsive mb-3">
         <table class="table table-striped table-bordered">
@@ -14,7 +14,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Modelo</th>
-                    <th>Estado</th>
+                    {# <th>Estado</th> <--- COLUMNA ELIMINADA #}
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -23,13 +23,6 @@
                     <tr>
                         <td>{{ maquina.nombre }}</td>
                         <td>{{ maquina.modelo|default:"-" }}</td>
-                        <td>
-                            {# Mostrar estado simple. Usa get_estado_display si tienes choices #}
-                            <span class="badge {% if maquina.estado == 'operativa' %}bg-success{% elif maquina.estado == 'en_mantencion' %}bg-warning text-dark{% elif maquina.estado == 'de_baja' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                {# {{ maquina.get_estado_display|default:"-" }} #} {# <--- Usa esto SOLO si tienes choices #}
-                                {{ maquina.estado|default:"-" }} {# <--- Opción más segura #}
-                            </span>
-                        </td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarMaquinaModal{{ maquina.pk }}">
                                 <i class="fas fa-edit"></i><span class="d-none d-md-inline"> Editar</span>
@@ -41,7 +34,8 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center">No hay máquinas disponibles.</td>
+                        {# Ajustamos colspan de 4 a 3 porque eliminamos una columna #}
+                        <td colspan="3" class="text-center">No hay máquinas disponibles.</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -58,6 +52,7 @@
                         <h5 class="modal-title" id="editarMaquinaModalLabel{{ maquina.pk }}">Editar Máquina: {{ maquina.nombre }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
+                    {# Asegúrate que la URL 'editar_maquina' exista y acepte POST #}
                     <form method="post" action="{% url 'editar_maquina' maquina.pk %}">
                         {% csrf_token %}
                         <div class="modal-body">
@@ -66,32 +61,31 @@
                                 <input type="text" class="form-control" id="edit_maquina_nombre_{{ maquina.pk }}" name="nombre" value="{{ maquina.nombre }}" required>
                             </div>
                             <div class="row">
-                                 <div class="col-md-6 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="edit_maquina_modelo_{{ maquina.pk }}" class="form-label">Modelo</label>
                                     <input type="text" class="form-control" id="edit_maquina_modelo_{{ maquina.pk }}" name="modelo" value="{{ maquina.modelo|default:'' }}">
                                 </div>
-                                 <div class="col-md-6 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="edit_maquina_numero_serie_{{ maquina.pk }}" class="form-label">Número de Serie</label>
                                     <input type="text" class="form-control" id="edit_maquina_numero_serie_{{ maquina.pk }}" name="numero_serie" value="{{ maquina.numero_serie|default:'' }}">
                                 </div>
-                             </div>
+                            </div>
                             <div class="row">
-                                 <div class="col-md-6 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" class="form-label">Fecha Adquisición</label>
                                     <input type="date" class="form-control" id="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" name="fecha_adquisicion" value="{{ maquina.fecha_adquisicion|date:'Y-m-d' }}">
                                 </div>
-                                 <div class="col-md-6 mb-3">
-                                     <label for="edit_maquina_estado_{{ maquina.pk }}" class="form-label">Estado</label>
-                                     <select class="form-select" id="edit_maquina_estado_{{ maquina.pk }}" name="estado">
-                                         {# --- CORREGIDO: Usar estado_choices del contexto --- #}
-                                         {% for value, display in estado_choices %}
-                                             <option value="{{ value }}" {% if value == maquina.estado %}selected{% endif %}>{{ display }}</option>
-                                         {% empty %}
-                                             <option value="">-- No hay opciones --</option>
-                                         {% endfor %}
-                                     </select>
-                                 </div>
-                             </div>
+                                {# --- CAMPO DE ESTADO ELIMINADO DEL MODAL ---
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_maquina_estado_{{ maquina.pk }}" class="form-label">Estado</label>
+                                    <select class="form-select" id="edit_maquina_estado_{{ maquina.pk }}" name="estado">
+                                        {# Opciones de estado eliminadas #}
+                                    </select>
+                                </div>
+                                #}
+                                {# Si tienes otros campos como 'activa', 'horometro_actual', etc.,
+                                   asegúrate de que estén aquí si quieres editarlos #}
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -102,25 +96,26 @@
             </div>
         </div>
 
-        {# --- MODAL ELIMINAR MAQUINA (Sin cambios) --- #}
+        {# --- MODAL ELIMINAR MAQUINA (Sin cambios necesarios aquí) --- #}
         <div class="modal fade" id="eliminarMaquinaModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="eliminarMaquinaModalLabel{{ maquina.pk }}" aria-hidden="true">
              <div class="modal-dialog">
                  <div class="modal-content">
                      <div class="modal-header">
-                        <h5 class="modal-title" id="eliminarMaquinaModalLabel{{ maquina.pk }}">Eliminar Máquina</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                    </div>
+                         <h5 class="modal-title" id="eliminarMaquinaModalLabel{{ maquina.pk }}">Eliminar Máquina</h5>
+                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                     </div>
                      <div class="modal-body">
-                        <p>¿Estás seguro de que deseas eliminar la máquina "{{ maquina.nombre }}"?</p>
-                    </div>
+                         <p>¿Estás seguro de que deseas eliminar la máquina "{{ maquina.nombre }}"?</p>
+                     </div>
                      <div class="modal-footer">
-                        <form method="post" action="{% url 'eliminar_maquina' maquina.pk %}">
-                            {% csrf_token %}
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
-                        </form>
-                    </div>
-                </div>
+                         {# Asegúrate que la URL 'eliminar_maquina' exista y acepte POST #}
+                         <form method="post" action="{% url 'eliminar_maquina' maquina.pk %}">
+                             {% csrf_token %}
+                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                             <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                         </form>
+                     </div>
+                 </div>
              </div>
         </div>
     {% endfor %}

@@ -84,13 +84,6 @@ class PerfilUsuario(models.Model):
         return f"{self.usuario.username} - {self.empresa.nombre if self.empresa else 'Sin empresa'}"
 
 class Maquina(models.Model):
-    ESTADO_CHOICES = [
-        ('operativa', 'Operativa'),
-        ('mantenimiento', 'En mantenimiento'),
-        ('reparacion', 'En reparación'),
-        ('baja', 'Dada de baja'),
-    ]
-
     nombre = models.CharField(max_length=100, verbose_name="Nombre de la máquina")
     empresa = models.ForeignKey(
         Empresa,
@@ -103,12 +96,6 @@ class Maquina(models.Model):
     fecha_adquisicion = models.DateField(blank=True, null=True, verbose_name="Fecha de adquisición")
     ultimo_mantenimiento = models.DateField(blank=True, null=True, verbose_name="Último mantenimiento")
     proximo_mantenimiento = models.DateField(blank=True, null=True, verbose_name="Próximo mantenimiento")
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADO_CHOICES,
-        default='operativa',
-        verbose_name="Estado"
-    )
     activa = models.BooleanField(default=True, verbose_name="Activa")
     imagen = models.ImageField(upload_to='maquinas/', blank=True, null=True, verbose_name="Imagen")
     horometro_actual = models.DecimalField(

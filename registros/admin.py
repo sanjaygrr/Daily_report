@@ -23,9 +23,9 @@ class EmpresaAdmin(admin.ModelAdmin):
         return qs.filter(administrador=request.user)
 
 class MaquinaAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'modelo', 'empresa', 'estado', 'activa')
-    list_filter = ('empresa', 'estado', 'activa')
-    search_fields = ('nombre', 'modelo', 'numero_serie')
+    list_display = ('nombre', 'empresa', 'modelo', 'activa', 'fecha_adquisicion') # <--- 'estado' eliminado
+    list_filter = ('empresa', 'activa')  # <--- 'estado' eliminado
+    search_fields = ('nombre', 'modelo', 'numero_serie', 'empresa__nombre')
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)

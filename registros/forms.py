@@ -13,53 +13,86 @@ from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario
 # ---------------------- FORMULARIO REGISTRO DE USUARIO ----------------------
 
 class UserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
     group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True, label="Rol")
-    empresa = forms.ModelChoiceField(queryset=Empresa.objects.all(), required=True, label="Empresa")
+    # Eliminamos el campo 'empresa' de aquí
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'group', 'empresa']
+        # Eliminamos 'empresa' de los fields del formulario
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'group']
+        # Renombramos labels si queremos
+        labels = {
+            'username': 'Nombre de Usuario',
+            'first_name': 'Nombres',
+            'last_name': 'Apellidos',
+            'email': 'Correo Electrónico',
+        }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        # Obtenemos la empresa determinada por la vista
+        self.empresa_asignada = kwargs.pop('empresa', None)
+        # Eliminamos 'user' si se pasaba, ya no lo necesitamos aquí
+        kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user and not user.is_superuser:
-            if hasattr(user, 'empresas_administradas'):
-                self.fields['empresa'].queryset = user.empresas_administradas.all()
-            else:
-                self.fields['empresa'].queryset = Empresa.objects.none()
-        elif not user:
-            self.fields['empresa'].queryset = Empresa.objects.none()
+        # Ya no hay lógica para filtrar el queryset de 'empresa'
 
     def clean(self):
         cleaned_data = super().clean()
-        empresa_seleccionada = cleaned_data.get('empresa')
+        # La validación ahora usa la empresa asignada desde la vista
+        empresa_seleccionada = self.empresa_asignada
 
         if empresa_seleccionada:
             if empresa_seleccionada.max_usuarios is not None:
+                # Contamos perfiles existentes asociados a esa empresa
+                # Nota: Esto asume que cada usuario relevante *tendrá* un PerfilUsuario
                 num_usuarios_existentes = PerfilUsuario.objects.filter(empresa=empresa_seleccionada).count()
                 max_usuarios_permitidos = empresa_seleccionada.max_usuarios
 
-                if num_usuarios_existentes >= max_usuarios_permitidos:
+                # Validar solo si estamos creando (instance no tiene pk)
+                # o si estamos editando un usuario *que no pertenece ya* a esta empresa (menos común en este form)
+                is_new_or_different_company = True # Asumimos creación
+                if self.instance and self.instance.pk:
+                     # Si fuera un form de edición, verificaríamos si la empresa cambia
+                     # PerfilUsuario.objects.filter(usuario=self.instance, empresa=empresa_seleccionada).exists() ... etc.
+                     # Para un form de *registro*, asumimos que siempre es un check de nuevo usuario para esa empresa.
+                     pass # Mantenemos is_new_or_different_company = True
+
+                if is_new_or_different_company and num_usuarios_existentes >= max_usuarios_permitidos:
                     raise ValidationError(
                         (f"Se ha alcanzado el límite máximo de {max_usuarios_permitidos} usuarios permitidos para la empresa '{empresa_seleccionada.nombre}'."),
                         code='max_usuarios_excedido'
                     )
+        else:
+             # Si la vista no pudo determinar una empresa, lanzar error.
+             # Esto no debería pasar si la lógica de la vista es correcta.
+             raise ValidationError(
+                 "No se pudo determinar la empresa para validar el límite de usuarios.",
+                 code='no_empresa_for_validation'
+            )
+
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data['password'])
         if commit:
-            user.save()
-            user.groups.clear() # Limpia grupos por si acaso
+            user.save() # Guarda el User primero
+            # Asigna el grupo seleccionado
+            user.groups.clear()
             user.groups.add(self.cleaned_data['group'])
-            PerfilUsuario.objects.update_or_create(
-                usuario=user,
-                defaults={'empresa': self.cleaned_data['empresa']}
-            )
+
+            # Crea o actualiza el PerfilUsuario usando la empresa asignada
+            if self.empresa_asignada:
+                PerfilUsuario.objects.update_or_create(
+                    usuario=user,
+                    # Usamos la empresa que la vista determinó y pasó al form
+                    defaults={'empresa': self.empresa_asignada}
+                )
+            # else: Manejar caso donde no hay empresa? La validación clean debería prevenir esto.
+
         return user
+
 
 # ---------------------- FORMULARIO EDICIÓN DE USUARIO ----------------------
 
@@ -243,114 +276,141 @@ class EmpresaEditForm(forms.ModelForm):
 class MaquinaForm(forms.ModelForm):
     class Meta:
         model = Maquina
-        # Asegúrate que estos campos existan en tu modelo Maquina
-        fields = ['nombre', 'modelo', 'numero_serie', 'fecha_adquisicion', 'estado', 'empresa']
+        # Eliminamos 'estado' y 'empresa' de los campos visibles/editables
+        fields = ['nombre', 'modelo', 'numero_serie', 'fecha_adquisicion']
         widgets = {
-            'fecha_adquisicion': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_adquisicion': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            # Puedes añadir clases a otros widgets si quieres mejorar el estilo
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'modelo': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero_serie': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        # Obtenemos la empresa que la vista ha determinado y la quitamos de kwargs
+        self.empresa_asignada = kwargs.pop('empresa', None)
+        # Quitamos 'user' de kwargs si estaba, ya no lo usamos aquí directamente
+        kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.empresa_para_validacion = None # Para usar en clean()
-
-        if user:
-            if user.is_superuser:
-                # Superuser ve todas las empresas
-                self.fields['empresa'].queryset = Empresa.objects.all()
-            else:
-                # Usuario normal ve solo las empresas que administra
-                if hasattr(user, 'empresas_administradas'):
-                    empresas_admin = user.empresas_administradas.all()
-                    self.fields['empresa'].queryset = empresas_admin
-                    # Si solo administra una, la preseleccionamos y la usamos para validación
-                    if empresas_admin.count() == 1:
-                         self.fields['empresa'].initial = empresas_admin.first()
-                         self.empresa_para_validacion = empresas_admin.first()
-                else:
-                     self.fields['empresa'].queryset = Empresa.objects.none()
+        # Ya no es necesaria la lógica que ajustaba el queryset o initial de 'empresa'
 
     def clean(self):
         cleaned_data = super().clean()
-        # Determinar la empresa contra la cual validar
-        empresa_seleccionada = cleaned_data.get('empresa')
-        if not empresa_seleccionada and self.empresa_para_validacion:
-             # Si el campo estaba oculto/deshabilitado pero tenemos la empresa del init
-             empresa_seleccionada = self.empresa_para_validacion
 
-        if empresa_seleccionada:
-            if empresa_seleccionada.max_maquinas is not None:
-                num_maquinas_existentes = Maquina.objects.filter(empresa=empresa_seleccionada).count()
-                max_maquinas_permitidas = empresa_seleccionada.max_maquinas
+        # Validación del límite de máquinas usando la empresa asignada por la vista
+        if self.empresa_asignada:
+            if self.empresa_asignada.max_maquinas is not None:
+                # Validar solo al crear una nueva máquina (cuando no hay instancia o no tiene pk)
+                if not self.instance or not self.instance.pk:
+                    num_maquinas_existentes = Maquina.objects.filter(empresa=self.empresa_asignada).count()
+                    max_maquinas_permitidas = self.empresa_asignada.max_maquinas
 
-                if num_maquinas_existentes >= max_maquinas_permitidas:
-                     raise ValidationError(
-                         (f"Se ha alcanzado el límite máximo de {max_maquinas_permitidas} máquinas permitidas para la empresa '{empresa_seleccionada.nombre}'."),
-                         code='max_maquinas_excedido'
-                     )
+                    if num_maquinas_existentes >= max_maquinas_permitidas:
+                        raise ValidationError(
+                            (f"Se ha alcanzado el límite máximo de {max_maquinas_permitidas} "
+                             f"máquinas permitidas para la empresa '{self.empresa_asignada.nombre}'."),
+                            code='max_maquinas_excedido'
+                        )
+        else:
+            # Si la vista no pasó una empresa (no debería ocurrir con la lógica de la vista), error.
+            raise ValidationError(
+                "No se pudo determinar la empresa para la validación.",
+                code='no_empresa_for_validation'
+            )
+
+        # Validaciones propias del modelo (como fechas) que no dependen de los campos eliminados
+        # Si tuvieras más validaciones que dependieran de 'estado' o 'empresa' seleccionada,
+        # tendrías que adaptarlas o eliminarlas.
+
         return cleaned_data
-
 
 # ---------------------- FORMULARIO FAENA ----------------------
 
 class FaenaForm(forms.ModelForm):
     class Meta:
         model = Faena
+        # Quitamos 'empresa' de los campos del formulario
         fields = ['nombre', 'ubicacion', 'descripcion', 'fecha_inicio',
-                  'fecha_termino_estimada', 'responsable', 'empresa']
+                  'fecha_termino_estimada', 'responsable']
         widgets = {
-            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_termino_estimada': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_termino_estimada': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+             # Añadir clases a otros widgets si se desea
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'ubicacion': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'responsable': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = { # Opcional: mejorar etiquetas
+            'fecha_termino_estimada': 'Fecha Término Estimada',
+            'responsable': 'Supervisor Responsable',
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        # Obtenemos la empresa determinada por la vista
+        self.empresa_asignada = kwargs.pop('empresa', None)
+        # Quitamos 'user' si se pasaba
+        kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.empresa_para_validacion = None
 
-        # Inicializa querysets vacíos para evitar errores si no hay user
-        self.fields['empresa'].queryset = Empresa.objects.none()
-        self.fields['responsable'].queryset = User.objects.none()
+        # --- Filtrar el queryset de 'responsable' ---
+        # Basado en la empresa única asignada (pasada desde la vista)
+        if self.empresa_asignada:
+            self.fields['responsable'].queryset = User.objects.filter(
+                groups__name='Supervisor', # Asume que el responsable es del grupo 'Supervisor'
+                # Asume que el Supervisor tiene un PerfilUsuario vinculado a la empresa
+                perfil__empresa=self.empresa_asignada
+            ).distinct().order_by('username') # Ordenar alfabéticamente
+        else:
+            # Si no hay empresa asignada (no debería pasar si la vista funciona bien),
+            # dejar el queryset vacío.
+            self.fields['responsable'].queryset = User.objects.none()
 
-        if user:
-            if user.is_superuser:
-                self.fields['empresa'].queryset = Empresa.objects.all()
-                self.fields['responsable'].queryset = User.objects.filter(groups__name='Supervisor')
-            else:
-                if hasattr(user, 'empresas_administradas'):
-                     empresas_administradas = user.empresas_administradas.all()
-                     self.fields['empresa'].queryset = empresas_administradas
+        # Ya no necesitamos la lógica para el campo 'empresa' que fue eliminado
 
-                     if empresas_administradas.exists():
-                         # Asume que Supervisor tiene PerfilUsuario con FK a Empresa
-                         self.fields['responsable'].queryset = User.objects.filter(
-                             groups__name='Supervisor',
-                             perfil__empresa__in=empresas_administradas
-                         ).distinct()
-
-                         if empresas_administradas.count() == 1:
-                              empresa_unica = empresas_administradas.first()
-                              self.fields['empresa'].initial = empresa_unica
-                              self.empresa_para_validacion = empresa_unica
+    def clean_fecha_termino_estimada(self):
+        # Ejemplo de validación limpia para un campo específico
+        fecha_inicio = self.cleaned_data.get('fecha_inicio')
+        fecha_termino = self.cleaned_data.get('fecha_termino_estimada')
+        if fecha_inicio and fecha_termino and fecha_termino < fecha_inicio:
+            raise ValidationError("La fecha de término estimada no puede ser anterior a la fecha de inicio.")
+        return fecha_termino
 
     def clean(self):
         cleaned_data = super().clean()
-        empresa_seleccionada = cleaned_data.get('empresa')
-        if not empresa_seleccionada and self.empresa_para_validacion:
-             empresa_seleccionada = self.empresa_para_validacion
+        # Usamos la empresa asignada por la vista para validar max_faenas
+        empresa_seleccionada = self.empresa_asignada
 
         if empresa_seleccionada:
-            if empresa_seleccionada.max_faenas is not None:
-                num_faenas_existentes = Faena.objects.filter(empresa=empresa_seleccionada).count()
-                max_faenas_permitidas = empresa_seleccionada.max_faenas
+            # Validar límite de faenas si está definido en el modelo Empresa
+            if hasattr(empresa_seleccionada, 'max_faenas') and empresa_seleccionada.max_faenas is not None:
+                # Validar solo al crear (sin instancia o sin pk)
+                if not self.instance or not self.instance.pk:
+                    num_faenas_existentes = Faena.objects.filter(empresa=empresa_seleccionada).count()
+                    max_faenas_permitidas = empresa_seleccionada.max_faenas
 
-                if num_faenas_existentes >= max_faenas_permitidas:
-                    raise ValidationError(
-                        (f"Se ha alcanzado el límite máximo de {max_faenas_permitidas} faenas permitidas para la empresa '{empresa_seleccionada.nombre}'."),
-                        code='max_faenas_excedido'
-                    )
+                    if num_faenas_existentes >= max_faenas_permitidas:
+                        raise ValidationError(
+                            (f"Se ha alcanzado el límite máximo de {max_faenas_permitidas} faenas permitidas para la empresa '{empresa_seleccionada.nombre}'."),
+                            code='max_faenas_excedido'
+                        )
+        else:
+            # Esto no debería ocurrir si la vista funciona correctamente
+             raise ValidationError(
+                 "No se pudo determinar la empresa para validar el límite de faenas.",
+                 code='no_empresa_for_validation'
+            )
+
+        # Validar que el responsable pertenezca a la empresa asignada
+        responsable = cleaned_data.get('responsable')
+        if responsable and self.empresa_asignada:
+             # Verificar si el perfil del responsable pertenece a la empresa
+             if not hasattr(responsable, 'perfil') or responsable.perfil.empresa != self.empresa_asignada:
+                  raise ValidationError({
+                      'responsable': f"El usuario '{responsable.username}' no es un Supervisor válido para la empresa '{self.empresa_asignada.nombre}'."
+                  })
+
         return cleaned_data
-
 # ---------------------- FORMULARIO TRABAJO ----------------------
 
 class TrabajoForm(forms.ModelForm):

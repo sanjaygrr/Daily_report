@@ -23,6 +23,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.contrib.auth.models import User, Group
+from django.core.exceptions import MultipleObjectsReturned, ValidationError
 
 from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario # Asegúrate que PerfilUsuario esté aquí
 from .forms import (
@@ -32,20 +33,37 @@ from .forms import (
 from .filters import TrabajoFilter # Asegúrate que este filtro exista
 
 # ---------------------- HELPERS ----------------------
-
 def get_user_empresa(user):
+    """
+    Obtiene la única empresa asociada a un usuario no superusuario.
+    Prioriza 'empresas_administradas' y luego 'perfil.empresa'.
+    Devuelve la instancia de Empresa si es única.
+    Devuelve None si no hay empresa o es superusuario.
+    Lanza MultipleObjectsReturned si se encuentran múltiples empresas administradas.
+    """
     if user.is_superuser:
         return None
-    # Intenta obtener la primera empresa administrada (si la relación existe)
+
+    # 1. Intenta obtener desde 'empresas_administradas' (prioridad)
     if hasattr(user, 'empresas_administradas'):
         empresas_admin = user.empresas_administradas.all()
-        if empresas_admin.exists():
-            return empresas_admin.first()
-    # Si no, intenta obtener la empresa desde el perfil
-    if hasattr(user, 'perfil') and user.perfil and hasattr(user.perfil, 'empresa'):
-        return user.perfil.empresa
-    return None
+        count = empresas_admin.count()
 
+        if count == 1:
+            # Caso ideal: administra exactamente una empresa
+            return empresas_admin.first()
+        elif count > 1:
+            # Administra múltiples empresas: hay ambigüedad
+            raise MultipleObjectsReturned(f"El usuario {user.username} administra {count} empresas.")
+        # Si count es 0, continúa para verificar el perfil
+
+    # 2. Si no se encontró una única en 'empresas_administradas', intenta desde el perfil
+    if hasattr(user, 'perfil') and user.perfil and hasattr(user.perfil, 'empresa') and user.perfil.empresa:
+        # Asume que la relación perfil-empresa implica una única empresa
+        return user.perfil.empresa
+
+    # 3. Si no se encontró empresa por ninguna vía
+    return None
 # ---------------------- VISTAS GENERALES ----------------------
 
 def home(request):
@@ -204,28 +222,72 @@ def detalles_empresa(request, pk): # Asegúrate que tu URL use 'pk' si usas pk a
 
 @login_required
 def register_user(request):
-    # Añadir lógica de permisos: ¿Quién puede registrar? Superuser o Admin de empresa?
-    if not request.user.is_superuser and not request.user.groups.filter(name__in=['Admin', 'Supervisor']).exists():
-         messages.error(request, "No tienes permiso para registrar usuarios.")
+    empresa_del_registrador = None
+
+    # --- Determinar la empresa del usuario que registra ---
+    try:
+        # Permitimos Superuser Y Admin/Supervisor (según tu lógica de permisos)
+        # Pero solo asignamos empresa automáticamente si NO es Superuser
+        if request.user.is_superuser:
+             # Decisión: ¿Permitir a SU registrar sin asignar empresa? ¿O bloquear?
+             # Bloquearemos esta vista para SU, deben usar admin u otra interfaz.
+             messages.error(request, "Los Superusuarios deben usar la interfaz de administración para crear usuarios y asignar empresas.")
+             return redirect('home') # O redirect('admin:index')
+
+        # Para Admin/Supervisor, obtenemos su (única) empresa
+        empresa_del_registrador = get_user_empresa(request.user)
+
+        if not empresa_del_registrador:
+             messages.error(request, "No se pudo determinar una única empresa asociada a tu cuenta para asignar al nuevo usuario.")
+             return redirect('home') # O a donde corresponda
+
+    except MultipleObjectsReturned:
+         messages.error(request, "Administras múltiples empresas. No puedes registrar usuarios automáticamente desde aquí.")
+         return redirect('home')
+    except Exception as e:
+         messages.error(request, f"Error al determinar tu empresa: {e}")
          return redirect('home')
 
+    # --- Lógica de Permisos (Ya la tenías, la mantenemos) ---
+    # Asegurarse que solo usuarios permitidos accedan (Admin o Supervisor en este caso)
+    # Nota: El chequeo de SU ya se hizo arriba para la lógica de la empresa.
+    if not request.user.groups.filter(name__in=['Admin', 'Supervisor']).exists():
+        # Si llegamos aquí, no es SU y tampoco Admin/Supervisor
+        messages.error(request, "No tienes permiso para registrar usuarios.")
+        return redirect('home')
+
+    # Si llegamos aquí, empresa_del_registrador tiene la empresa única del Admin/Supervisor
+
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST, user=request.user)
+        # Pasamos la empresa determinada al formulario, quitamos user=request.user
+        form = UserRegistrationForm(request.POST, empresa=empresa_del_registrador)
         if form.is_valid():
             try:
+                # El método save del form ahora maneja la asignación al PerfilUsuario
                 user = form.save()
-                messages.success(request, f'Usuario {user.username} creado exitosamente!')
+                messages.success(request, f'Usuario {user.username} creado exitosamente en la empresa {empresa_del_registrador.nombre}!')
+                 # Ajusta 'listar_usuarios' al nombre de tu URL
                 return redirect('listar_usuarios')
             except IntegrityError as e:
-                messages.error(request, f'Error al crear usuario: {str(e)}')
+                 # Capturar error de username duplicado, etc.
+                 if 'UNIQUE constraint failed: auth_user.username' in str(e):
+                      messages.error(request, f"El nombre de usuario '{form.cleaned_data.get('username')}' ya existe.")
+                 else:
+                      messages.error(request, f'Error de base de datos al crear usuario: {str(e)}')
+            except ValidationError as e: # Errores del form.clean (ej: max_usuarios)
+                 messages.error(request, f"Error de validación: {e.message}")
             except Exception as e:
                  messages.error(request, f'Error inesperado al crear usuario: {str(e)}')
         else:
-             messages.error(request, 'No se pudo crear el usuario. Por favor, revisa los campos y los límites de la empresa seleccionada.')
+            # Ajustamos el mensaje de error general
+            messages.error(request, 'No se pudo crear el usuario. Por favor, revisa los campos.')
     else:
-        form = UserRegistrationForm(user=request.user)
+        # Pasamos la empresa también para GET
+        form = UserRegistrationForm(empresa=empresa_del_registrador)
 
+    # La plantilla 'registros/register_user.html' recibe el form SIN el campo 'empresa'
     return render(request, 'registros/register_user.html', {'form': form})
+
 
 
 @login_required
@@ -316,31 +378,62 @@ def guardar_cambios_usuarios(request):
 
 @login_required
 def crear_maquina(request):
-    # La empresa se selecciona en el formulario, no se asigna automáticamente aquí
-    # Pero verificamos si el usuario PUEDE crear máquinas (pertenece a alguna empresa o es SU)
-    empresa_del_usuario = get_user_empresa(request.user)
-    puede_crear = request.user.is_superuser or (empresa_del_usuario is not None)
-    if not puede_crear:
-        messages.error(request, "Necesitas estar asociado a una empresa para crear máquinas.")
+    empresa_asignada = None
+    try:
+        # --- Lógica para determinar la empresa automáticamente ---
+        if request.user.is_superuser:
+            messages.error(request, "Los superusuarios no pueden crear máquinas automáticamente. Utilice la interfaz de administración para especificar la empresa.")
+            return redirect('home') # O a la vista de lista o admin
+
+        empresa_asignada = get_user_empresa(request.user)
+
+        if not empresa_asignada:
+            messages.error(request, "No se encontró una única empresa asociada a su usuario para la asignación automática.")
+            return redirect('home') # O a donde corresponda
+
+    except MultipleObjectsReturned:
+        messages.error(request, "Usted administra múltiples empresas. No se puede asignar una automáticamente para crear la máquina.")
         return redirect('home') # O a donde corresponda
+    except Exception as e:
+        messages.error(request, f"Ocurrió un error al determinar su empresa: {e}")
+        return redirect('home')
+
+    # Si llegamos aquí, 'empresa_asignada' contiene la única empresa del usuario
 
     if request.method == 'POST':
-        form = MaquinaForm(request.POST, user=request.user)
+        # Pasamos la empresa determinada al formulario en el constructor
+        form = MaquinaForm(request.POST, empresa=empresa_asignada)
         if form.is_valid():
             try:
-                # El form ya incluye la empresa y la validación de límite
-                maquina = form.save()
-                messages.success(request, f'Máquina {maquina.nombre} creada exitosamente!')
+                # Guardamos sin hacer commit para asignar la empresa manualmente
+                maquina = form.save(commit=False)
+                maquina.empresa = empresa_asignada # Asignamos la empresa
+                # El campo 'estado' ya no existe, no hay nada que asignar.
+                maquina.save() # Guardamos la instancia completa en la BD
+                # form.save_m2m() # Llamar si hubiera campos ManyToMany en el form
+
+                messages.success(request, f'Máquina {maquina.nombre} creada exitosamente para la empresa {empresa_asignada.nombre}!')
+                # Ajusta 'listar_maquinas' al nombre real de tu URL
                 return redirect('listar_maquinas')
             except IntegrityError as e:
-                messages.error(request, f'Error de base de datos al crear máquina: {str(e)}')
+                 # Captura errores como unique_together ('nombre', 'empresa')
+                if 'UNIQUE constraint failed' in str(e) and 'maquina_nombre_empresa_id_uniq' in str(e): # Ajusta el nombre de la constraint si es diferente
+                     messages.error(request, f"Ya existe una máquina con el nombre '{form.cleaned_data.get('nombre')}' en la empresa '{empresa_asignada.nombre}'.")
+                else:
+                     messages.error(request, f'Error de base de datos al crear máquina: {str(e)}')
+            except ValidationError as e: # Errores del form.clean() como max_maquinas
+                 messages.error(request, f"Error de validación: {e.message}")
             except Exception as e:
                 messages.error(request, f'Error inesperado al crear máquina: {str(e)}')
         else:
-             messages.error(request, 'Error al crear máquina. Revisa los campos y límites.')
+            # Los errores de campo se mostrarán automáticamente por la plantilla
+            messages.error(request, 'Error al crear máquina. Por favor, revise los datos ingresados.')
     else:
-        form = MaquinaForm(user=request.user)
+        # Para GET, también pasamos la empresa (puede ser útil si el form hiciera algo con ella en init)
+        form = MaquinaForm(empresa=empresa_asignada)
 
+    # La plantilla ('registros/crear_maquina.html') usará este 'form', que ya no
+    # contiene los campos 'estado' ni 'empresa'.
     return render(request, 'registros/crear_maquina.html', {'form': form})
 
 @login_required
@@ -442,31 +535,85 @@ def eliminar_maquina(request, pk):
 
 # ---------------------- VISTAS DE FAENA ----------------------
 
+def get_user_empresa(user):
+    # ... (pega aquí la definición de get_user_empresa que ajustamos antes)
+    if user.is_superuser:
+        return None
+    if hasattr(user, 'empresas_administradas'):
+        empresas_admin = user.empresas_administradas.all()
+        count = empresas_admin.count()
+        if count == 1:
+            return empresas_admin.first()
+        elif count > 1:
+            raise MultipleObjectsReturned(f"El usuario {user.username} administra {count} empresas.")
+    if hasattr(user, 'perfil') and user.perfil and hasattr(user.perfil, 'empresa') and user.perfil.empresa:
+        return user.perfil.empresa
+    return None
+# --- Fin de get_user_empresa ---
+
 @login_required
 def crear_faena(request):
-    empresa_del_usuario = get_user_empresa(request.user)
-    puede_crear = request.user.is_superuser or (empresa_del_usuario is not None)
-    if not puede_crear:
-        messages.error(request, "Necesitas estar asociado a una empresa para crear faenas.")
+    empresa_asignada = None
+    try:
+        # --- Determinar la empresa del usuario que crea la faena ---
+        if request.user.is_superuser:
+             messages.error(request, "Los Superusuarios deben usar la interfaz de administración para crear faenas y asignar empresas.")
+             return redirect('home') # O admin
+
+        empresa_asignada = get_user_empresa(request.user)
+
+        if not empresa_asignada:
+             messages.error(request, "No se pudo determinar una única empresa asociada a tu cuenta para crear la faena.")
+             return redirect('home') # O a listar_faenas, etc.
+
+    except MultipleObjectsReturned:
+        messages.error(request, "Administras múltiples empresas. No puedes crear faenas automáticamente desde aquí.")
+        return redirect('home')
+    except Exception as e:
+        messages.error(request, f"Error al determinar tu empresa: {e}")
         return redirect('home')
 
+    # Si llegamos aquí, empresa_asignada contiene la empresa única del usuario
+
     if request.method == 'POST':
-        form = FaenaForm(request.POST, user=request.user)
+        # Pasamos la empresa determinada al formulario
+        form = FaenaForm(request.POST, empresa=empresa_asignada)
         if form.is_valid():
             try:
-                # El form ya incluye la empresa y la validación
-                faena = form.save()
-                messages.success(request, f'Faena {faena.nombre} creada exitosamente!')
+                # Guardamos sin commit para asignar la empresa manualmente
+                faena = form.save(commit=False)
+                faena.empresa = empresa_asignada # Asignamos la empresa
+                faena.save() # Guardamos la instancia completa
+                # form.save_m2m() # Si hubiera campos M2M
+
+                messages.success(request, f'Faena {faena.nombre} creada exitosamente para la empresa {empresa_asignada.nombre}!')
+                 # Ajusta 'listar_faenas' al nombre de tu URL
                 return redirect('listar_faenas')
             except IntegrityError as e:
-                messages.error(request, f'Error de base de datos al crear faena: {str(e)}')
-            except Exception as e:
-                 messages.error(request, f'Error inesperado al crear faena: {str(e)}')
-        else:
-            messages.error(request, 'Error al crear faena. Revisa los campos y límites.')
-    else:
-        form = FaenaForm(user=request.user)
+                 # Podría haber unique constraints en Faena (ej: nombre+empresa)
+                 messages.error(request, f'Error de base de datos al crear faena: {str(e)}')
+            except ValidationError as e: # Errores del form.clean (ej: max_faenas, responsable inválido)
+                 # Los errores de campo (como el de responsable) se manejan en el form.errors
+                 # Mostramos errores no ligados a campos específicos (non_field_errors)
+                 if hasattr(e, 'message_dict'): # Errores de campo específico
+                      for field, errors in e.message_dict.items():
+                           messages.error(request, f"Error en '{form.fields[field].label}': {'; '.join(errors)}")
+                 elif hasattr(e, 'message'): # Errores generales (non_field_errors)
+                      messages.error(request, f"Error de validación: {e.message}")
+                 else:
+                     messages.error(request, f"Error de validación: {e}")
 
+            except Exception as e:
+                messages.error(request, f'Error inesperado al crear faena: {str(e)}')
+        else:
+             messages.error(request, 'Error al crear faena. Por favor, revise los datos ingresados.')
+             # Los errores específicos de cada campo se mostrarán en la plantilla
+             # usando {{ form.campo.errors }} o iterando sobre form.errors.
+    else:
+        # Pasamos la empresa también para GET (necesario para filtrar 'responsable')
+        form = FaenaForm(empresa=empresa_asignada)
+
+    # La plantilla 'registros/crear_faena.html' recibe el form SIN el campo 'empresa'
     return render(request, 'registros/crear_faena.html', {'form': form})
 
 @login_required
