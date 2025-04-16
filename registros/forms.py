@@ -5,6 +5,7 @@ from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 import datetime
+from django.db.models import Q
 
 # Asegúrate de importar todos tus modelos aquí
 from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario
@@ -157,8 +158,8 @@ class EmpresaForm(forms.ModelForm):
 
     class Meta:
         model = Empresa
-        # Excluimos 'administrador' porque lo creamos/asignamos en save()
-        exclude = ['administrador']
+        # Excluimos 'administrador' y 'fecha_creacion' para evitar problemas
+        exclude = ['administrador', 'fecha_creacion', 'activa']
 
     def clean_admin_username(self):
         username = self.cleaned_data.get('admin_username')
@@ -173,7 +174,10 @@ class EmpresaForm(forms.ModelForm):
         return email
 
     def save(self, commit=True):
-        empresa = super().save(commit=False) # Guarda datos de EmpresaForm en memoria
+        empresa = super().save(commit=False)
+        
+        # Asignar explícitamente la fecha de creación
+        empresa.fecha_creacion = timezone.now()
 
         # Crear usuario admin primero para poder asignarlo a la empresa si es necesario
         try:
@@ -187,23 +191,18 @@ class EmpresaForm(forms.ModelForm):
             grupo_admin, _ = Group.objects.get_or_create(name='Admin')
             admin_user.groups.add(grupo_admin)
         except Exception as e:
-             # Si falla la creación del usuario, no podemos continuar
-             # Podrías añadir un error específico al formulario aquí
-             # self.add_error(None, f"Error al crear usuario administrador: {e}")
-             raise e # O relanzar la excepción
+            raise e
 
-        # Asignar el administrador creado al campo del modelo Empresa (si existe en el modelo)
-        # Si tu modelo Empresa NO tiene un campo 'administrador', comenta la siguiente línea
-        # empresa.administrador = admin_user
+        # Asignar el administrador a la empresa
+        empresa.administrador = admin_user
 
         if commit:
-            empresa.save() # Ahora guarda la empresa en la BD
+            empresa.save()
 
             # Crear el perfil del usuario y vincularlo a la empresa
-            # Asigna 'es_administrador' si existe ese campo en PerfilUsuario
             perfil_defaults = {'empresa': empresa}
             if hasattr(PerfilUsuario, 'es_administrador'):
-                 perfil_defaults['es_administrador'] = True
+                perfil_defaults['es_administrador'] = True
 
             PerfilUsuario.objects.update_or_create(
                 usuario=admin_user,
@@ -212,7 +211,7 @@ class EmpresaForm(forms.ModelForm):
 
             # Añadir la empresa a las empresas administradas por el usuario admin
             if hasattr(admin_user, 'empresas_administradas'):
-                 admin_user.empresas_administradas.add(empresa)
+                admin_user.empresas_administradas.add(empresa)
 
         return empresa
 
@@ -426,8 +425,6 @@ class TrabajoForm(forms.ModelForm):
 
             # Si no es superuser y no tiene empresa (vía perfil), los querysets quedan vacíos
 
-    # clean() y save() se mantienen como estaban en tu código original,
-    # ya que calculan horómetros y no afectan directamente al error del trabajador.
     def clean(self):
         cleaned_data = super().clean()
         horometro_inicial = cleaned_data.get('horometro_inicial')
