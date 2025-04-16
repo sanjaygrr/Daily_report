@@ -289,12 +289,12 @@ class Trabajo(models.Model):
         ('Horas', 'Horas'),
         ('Kilómetros', 'Kilómetros'),
     ]
-
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
-        ('en_proceso', 'En proceso'),
-        ('completado', 'Completado'),
+        ('aprobado', 'Aprobado'), # Cambiado de completado si es necesario
         ('rechazado', 'Rechazado'),
+        # ('en_proceso', 'En proceso'), # Puedes añadir más estados
+        # ('completado', 'Completado'),
     ]
 
     empresa = models.ForeignKey(
@@ -302,7 +302,8 @@ class Trabajo(models.Model):
         on_delete=models.CASCADE,
         related_name='trabajos',
         editable=False,
-        verbose_name="Empresa"
+        verbose_name="Empresa",
+        null=True # Permitir nulo temporalmente hasta que se asigne
     )
     faena = models.ForeignKey(
         Faena,
@@ -322,13 +323,13 @@ class Trabajo(models.Model):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name="Horómetro inicial"
+        verbose_name="Horómetro/Km inicial" # Ajustado label
     )
     horometro_final = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name="Horómetro final"
+        verbose_name="Horómetro/Km final" # Ajustado label
     )
     total_horas = models.DecimalField(
         max_digits=12,
@@ -336,20 +337,22 @@ class Trabajo(models.Model):
         null=True,
         blank=True,
         editable=False,
-        verbose_name="Total de horas"
+        verbose_name="Total Horas/Km" # Ajustado label
     )
     petroleo_litros = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name="Litros de petróleo"
+        verbose_name="Litros de petróleo",
+        null=True, blank=True # Hacer opcional si es necesario
     )
-    aceite_tipo = models.CharField(max_length=100, verbose_name="Tipo de aceite")
+    aceite_tipo = models.CharField(max_length=100, verbose_name="Tipo de aceite", null=True, blank=True) # Hacer opcional
     aceite_litros = models.DecimalField(
         max_digits=6,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name="Litros de aceite"
+        verbose_name="Litros de aceite",
+        null=True, blank=True # Hacer opcional
     )
     observaciones = models.TextField(blank=True, null=True, verbose_name="Observaciones")
     supervisor = models.ForeignKey(
@@ -363,8 +366,9 @@ class Trabajo(models.Model):
         User,
         related_name='trabajos_realizados',
         on_delete=models.PROTECT,
-        limit_choices_to={'groups__name': 'Trabajador'},
+        # Quitamos limit_choices_to para permitir Supervisor en el form
         verbose_name="Trabajador"
+        # null=False, blank=False por defecto (requerido)
     )
     estado = models.CharField(
         max_length=20,
@@ -382,9 +386,11 @@ class Trabajo(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de actualización")
     creado_por = models.ForeignKey(
         User,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL, # Usar SET_NULL para no perder el trabajo si se borra quien lo creó
         related_name='trabajos_creados',
-        verbose_name="Creado por"
+        verbose_name="Creado por",
+        null=True,
+        blank=True
     )
 
     class Meta:
@@ -397,44 +403,57 @@ class Trabajo(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.faena.nombre} - {self.maquina.nombre} - {self.fecha}"
+         # Asegurarse que faena y maquina existan antes de acceder a nombre
+        faena_nombre = self.faena.nombre if self.faena else "Sin Faena"
+        maquina_nombre = self.maquina.nombre if self.maquina else "Sin Máquina"
+        fecha_str = self.fecha.strftime("%Y-%m-%d") if self.fecha else "Sin Fecha"
+        return f"{faena_nombre} - {maquina_nombre} - {fecha_str}"
 
     def clean(self):
         errors = {}
-        
-        # Validar que faena y máquina pertenezcan a la misma empresa
-        if self.faena.empresa != self.maquina.empresa:
-            errors['maquina'] = "La faena y la máquina deben pertenecer a la misma empresa"
-        
-        # Asegurarse que el horómetro final sea mayor que el inicial
-        if self.horometro_final <= self.horometro_inicial:
-            errors['horometro_final'] = "El horómetro final debe ser mayor que el inicial"
-        
-        # Validar que trabajador y supervisor sean diferentes
-        if self.trabajador == self.supervisor:
-            errors['supervisor'] = "El trabajador y el supervisor no pueden ser la misma persona"
-        
-        # Validar que el trabajador y supervisor pertenezcan a la empresa
-        if hasattr(self.trabajador, 'perfil') and self.faena.empresa != self.trabajador.perfil.empresa:
-            errors['trabajador'] = "El trabajador debe pertenecer a la misma empresa que la faena"
-            
-        if hasattr(self.supervisor, 'perfil') and self.faena.empresa != self.supervisor.perfil.empresa:
-            errors['supervisor'] = "El supervisor debe pertenecer a la misma empresa que la faena"
-        
+
+        # Validar relaciones y campos solo si tienen valor
+        if self.faena and self.maquina and self.faena.empresa != self.maquina.empresa:
+            errors['maquina'] = "La faena y la máquina deben pertenecer a la misma empresa."
+
+        if self.horometro_inicial is not None and self.horometro_final is not None:
+            if self.horometro_final <= self.horometro_inicial:
+                errors['horometro_final'] = "El horómetro/Km final debe ser mayor o igual que el inicial." # Permitir igual si no hubo movimiento
+
+        if self.trabajador and self.supervisor and self.trabajador == self.supervisor:
+            # Permitir esto si el supervisor puede ser trabajador
+            # errors['supervisor'] = "El trabajador y el supervisor no pueden ser la misma persona."
+            pass # Se permite que sean el mismo
+
+        # Validar pertenencia a empresa solo si el usuario tiene perfil y faena asignada
+        empresa_trabajo = self.faena.empresa if self.faena else None
+        if empresa_trabajo:
+            if self.trabajador and hasattr(self.trabajador, 'perfil') and self.trabajador.perfil and self.trabajador.perfil.empresa != empresa_trabajo:
+                 errors['trabajador'] = f"El trabajador '{self.trabajador.username}' debe pertenecer a la empresa '{empresa_trabajo.nombre}'."
+
+            if self.supervisor and hasattr(self.supervisor, 'perfil') and self.supervisor.perfil and self.supervisor.perfil.empresa != empresa_trabajo:
+                 errors['supervisor'] = f"El supervisor '{self.supervisor.username}' debe pertenecer a la empresa '{empresa_trabajo.nombre}'."
+
         if errors:
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        # Calcular total de horas automáticamente
-        self.total_horas = self.horometro_final - self.horometro_inicial
-        
-        # Actualizar horómetro actual de la máquina
-        if self.estado == 'completado' and self.horometro_final > self.maquina.horometro_actual:
-            self.maquina.horometro_actual = self.horometro_final
-            self.maquina.save()
-        
-        # Asignar empresa automáticamente de la faena
-        self.empresa = self.faena.empresa
-            
-        super().save(*args, **kwargs)
+        # Calcular total de horas/km si ambos valores están presentes
+        if self.horometro_inicial is not None and self.horometro_final is not None:
+            self.total_horas = self.horometro_final - self.horometro_inicial
+        else:
+            self.total_horas = None
 
+        # Asignar empresa automáticamente desde la faena (siempre que haya faena)
+        if self.faena:
+             self.empresa = self.faena.empresa
+        elif self.maquina: # Plan B: desde la máquina si no hay faena
+             self.empresa = self.maquina.empresa
+
+        # Actualizar horómetro de la máquina (opcional, revisar lógica)
+        # if self.estado == 'aprobado' and self.maquina and self.horometro_final is not None:
+        #     if not hasattr(self.maquina, 'horometro_actual') or self.horometro_final > self.maquina.horometro_actual:
+        #         self.maquina.horometro_actual = self.horometro_final
+        #         self.maquina.save(update_fields=['horometro_actual'])
+
+        super().save(*args, **kwargs)

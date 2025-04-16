@@ -5,69 +5,126 @@
 {% block content %}
 <div class="card p-4">
     <h1 class="mb-4 text-center">Máquinas</h1>
-    <div class="list-group">
-        {% for maquina in maquinas %}
-            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                <span>{{ maquina.nombre }}</span>
-                <div class="mt-2 mt-md-0">
-                    <!-- Botón para abrir el modal de edición -->
-                    <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarModal{{ maquina.pk }}">Editar</button>
-                    <!-- Botón para abrir el modal de eliminación -->
-                    <button class="btn btn-sm btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ maquina.pk }}">Eliminar</button>
+
+    {# Botón "Nueva Máquina" Eliminado #}
+
+    <div class="table-responsive mb-3">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Modelo</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for maquina in maquinas_list %}
+                    <tr>
+                        <td>{{ maquina.nombre }}</td>
+                        <td>{{ maquina.modelo|default:"-" }}</td>
+                        <td>
+                            {# Mostrar estado simple. Usa get_estado_display si tienes choices #}
+                            <span class="badge {% if maquina.estado == 'operativa' %}bg-success{% elif maquina.estado == 'en_mantencion' %}bg-warning text-dark{% elif maquina.estado == 'de_baja' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {# {{ maquina.get_estado_display|default:"-" }} #} {# <--- Usa esto SOLO si tienes choices #}
+                                {{ maquina.estado|default:"-" }} {# <--- Opción más segura #}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-edit"></i><span class="d-none d-md-inline"> Editar</span>
+                            </button>
+                            <button class="btn btn-sm btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#eliminarMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-trash"></i><span class="d-none d-md-inline"> Eliminar</span>
+                            </button>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay máquinas disponibles.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# --- Definiciones de Modales --- #}
+    {% for maquina in maquinas_list %}
+        {# --- MODAL EDITAR MAQUINA --- #}
+        <div class="modal fade" id="editarMaquinaModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="editarMaquinaModalLabel{{ maquina.pk }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editarMaquinaModalLabel{{ maquina.pk }}">Editar Máquina: {{ maquina.nombre }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <form method="post" action="{% url 'editar_maquina' maquina.pk %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="edit_maquina_nombre_{{ maquina.pk }}" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="edit_maquina_nombre_{{ maquina.pk }}" name="nombre" value="{{ maquina.nombre }}" required>
+                            </div>
+                            <div class="row">
+                                 <div class="col-md-6 mb-3">
+                                    <label for="edit_maquina_modelo_{{ maquina.pk }}" class="form-label">Modelo</label>
+                                    <input type="text" class="form-control" id="edit_maquina_modelo_{{ maquina.pk }}" name="modelo" value="{{ maquina.modelo|default:'' }}">
+                                </div>
+                                 <div class="col-md-6 mb-3">
+                                    <label for="edit_maquina_numero_serie_{{ maquina.pk }}" class="form-label">Número de Serie</label>
+                                    <input type="text" class="form-control" id="edit_maquina_numero_serie_{{ maquina.pk }}" name="numero_serie" value="{{ maquina.numero_serie|default:'' }}">
+                                </div>
+                             </div>
+                            <div class="row">
+                                 <div class="col-md-6 mb-3">
+                                    <label for="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" class="form-label">Fecha Adquisición</label>
+                                    <input type="date" class="form-control" id="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" name="fecha_adquisicion" value="{{ maquina.fecha_adquisicion|date:'Y-m-d' }}">
+                                </div>
+                                 <div class="col-md-6 mb-3">
+                                     <label for="edit_maquina_estado_{{ maquina.pk }}" class="form-label">Estado</label>
+                                     <select class="form-select" id="edit_maquina_estado_{{ maquina.pk }}" name="estado">
+                                         {# --- CORREGIDO: Usar estado_choices del contexto --- #}
+                                         {% for value, display in estado_choices %}
+                                             <option value="{{ value }}" {% if value == maquina.estado %}selected{% endif %}>{{ display }}</option>
+                                         {% empty %}
+                                             <option value="">-- No hay opciones --</option>
+                                         {% endfor %}
+                                     </select>
+                                 </div>
+                             </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Modal para editar la máquina -->
-            <div class="modal fade" id="editarModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="editarModalLabel{{ maquina.pk }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editarModalLabel{{ maquina.pk }}">Editar {{ maquina.nombre }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <form method="post" action="{% url 'listar_maquinas' %}">
+        {# --- MODAL ELIMINAR MAQUINA (Sin cambios) --- #}
+        <div class="modal fade" id="eliminarMaquinaModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="eliminarMaquinaModalLabel{{ maquina.pk }}" aria-hidden="true">
+             <div class="modal-dialog">
+                 <div class="modal-content">
+                     <div class="modal-header">
+                        <h5 class="modal-title" id="eliminarMaquinaModalLabel{{ maquina.pk }}">Eliminar Máquina</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                     <div class="modal-body">
+                        <p>¿Estás seguro de que deseas eliminar la máquina "{{ maquina.nombre }}"?</p>
+                    </div>
+                     <div class="modal-footer">
+                        <form method="post" action="{% url 'eliminar_maquina' maquina.pk %}">
                             {% csrf_token %}
-                            <input type="hidden" name="maquina_id" value="{{ maquina.pk }}">
-                            <div class="modal-body">
-                                <!-- Campo de entrada para el nombre de la máquina -->
-                                <div class="mb-3">
-                                    <label for="id_nombre_{{ maquina.pk }}" class="form-label">Nombre de la Máquina</label>
-                                    <input type="text" class="form-control" id="id_nombre_{{ maquina.pk }}" name="nombre" value="{{ maquina.nombre }}" required>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                            </div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
                         </form>
                     </div>
                 </div>
-            </div>
+             </div>
+        </div>
+    {% endfor %}
+    {# --- FIN: Definiciones de Modales --- #}
 
-            <!-- Modal para confirmar la eliminación -->
-            <div class="modal fade" id="eliminarModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="eliminarModalLabel{{ maquina.pk }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="eliminarModalLabel{{ maquina.pk }}">Eliminar Máquina</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>¿Estás seguro de que deseas eliminar la máquina "{{ maquina.nombre }}"?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <form method="post" action="{% url 'eliminar_maquina' maquina.pk %}">
-                                {% csrf_token %}
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-danger">Eliminar</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <p class="text-center">No hay máquinas disponibles.</p>
-        {% endfor %}
-    </div>
 </div>
 {% endblock %}

@@ -7,20 +7,32 @@
     <h1 class="mb-4">Detalles de Empresa: {{ empresa.nombre }}</h1>
 
     <h2>Información de la Empresa</h2>
-    <p><strong>RUT:</strong> {{ empresa.rut }}</p>
-    <p><strong>Dirección:</strong> {{ empresa.direccion }}</p>
+    <p><strong>RUT:</strong> {{ empresa.rut|default:"No especificado" }}</p>
+    <p><strong>Dirección:</strong> {{ empresa.direccion|default:"No especificada" }}</p>
+    <p><strong>Email:</strong> {{ empresa.correo_electronico|default:"No especificado" }}</p>
+    <p><strong>Teléfono:</strong> {{ empresa.numero_telefono|default:"No especificado" }}</p>
+
+    {# --- SECCIÓN LÍMITES AÑADIDA --- #}
+    <h2>Límites Configurados</h2>
+    <p><strong>Máximo Usuarios:</strong> {{ max_usuarios|default:"No definido" }}</p>
+    <p><strong>Máximo Faenas:</strong> {{ max_faenas|default:"No definido" }}</p>
+    <p><strong>Máximo Máquinas:</strong> {{ max_maquinas|default:"No definido" }}</p>
+    {# --- FIN SECCIÓN LÍMITES --- #}
+
+
     <h2>Usuarios y Roles</h2>
     {% if user_roles %}
         <ul>
             {% for role in user_roles %}
-                <li><strong>{{ role.groups__name }}:</strong> {{ role.user_count }} usuarios</li>
+                {# Mostrar nombre del rol o 'Sin Rol Asignado' si es None #}
+                <li><strong>{{ role.groups__name|default:"Sin Rol Asignado" }}:</strong> {{ role.user_count }} usuario{{ role.user_count|pluralize }}</li>
             {% endfor %}
         </ul>
     {% else %}
-        <p>No hay usuarios asignados a esta empresa.</p>
+        <p>No hay usuarios asignados directamente a esta empresa (vía PerfilUsuario).</p>
     {% endif %}
 
-    <h2>Estadísticas</h2>
+    <h2>Estadísticas Actuales</h2>
     <p><strong>Cantidad de Máquinas:</strong> {{ maquina_count }}</p>
     <p><strong>Cantidad de Faenas:</strong> {{ faena_count }}</p>
     <p><strong>Cantidad de Trabajos:</strong> {{ trabajo_count }}</p>

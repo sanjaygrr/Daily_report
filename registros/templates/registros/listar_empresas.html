@@ -23,36 +23,69 @@
             </div>
 
             <div class="modal fade" id="editarModal{{ empresa.pk }}" tabindex="-1" aria-labelledby="editarModalLabel{{ empresa.pk }}" aria-hidden="true">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-lg"> {# Hacer modal más grande si es necesario #}
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="editarModalLabel{{ empresa.pk }}">Editar {{ empresa.nombre }}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                         </div>
-                        <form method="post" action="{% url 'listar_empresas' %}">
+                        {# --- CAMBIO IMPORTANTE: action apunta a editar_empresa --- #}
+                        <form method="post" action="{% url 'editar_empresa' empresa.pk %}" enctype="multipart/form-data">
                             {% csrf_token %}
-                            <input type="hidden" name="empresa_id" value="{{ empresa.pk }}">
+                            {# No necesitas el input hidden empresa_id si la URL ya lo contiene #}
                             <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="id_nombre_{{ empresa.pk }}" class="form-label">Nombre</label>
-                                    <input type="text" class="form-control" id="id_nombre_{{ empresa.pk }}" name="nombre" value="{{ empresa.nombre }}" required>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="edit_nombre_{{ empresa.pk }}" class="form-label">Nombre</label>
+                                        <input type="text" class="form-control" id="edit_nombre_{{ empresa.pk }}" name="nombre" value="{{ empresa.nombre }}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="edit_rut_{{ empresa.pk }}" class="form-label">RUT</label>
+                                        <input type="text" class="form-control" id="edit_rut_{{ empresa.pk }}" name="rut" value="{{ empresa.rut }}" required>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="id_rut_{{ empresa.pk }}" class="form-label">RUT</label>
-                                    <input type="text" class="form-control" id="id_rut_{{ empresa.pk }}" name="rut" value="{{ empresa.rut }}" required>
+                                    <label for="edit_direccion_{{ empresa.pk }}" class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" id="edit_direccion_{{ empresa.pk }}" name="direccion" value="{{ empresa.direccion|default:'' }}">
                                 </div>
+                                 <div class="row">
+                                     <div class="col-md-6 mb-3">
+                                        <label for="edit_correo_{{ empresa.pk }}" class="form-label">Correo Electrónico</label>
+                                        <input type="email" class="form-control" id="edit_correo_{{ empresa.pk }}" name="correo_electronico" value="{{ empresa.correo_electronico|default:'' }}">
+                                    </div>
+                                     <div class="col-md-6 mb-3">
+                                        <label for="edit_telefono_{{ empresa.pk }}" class="form-label">Número de Teléfono</label>
+                                        <input type="text" class="form-control" id="edit_telefono_{{ empresa.pk }}" name="numero_telefono" value="{{ empresa.numero_telefono|default:'' }}">
+                                    </div>
+                                 </div>
                                 <div class="mb-3">
-                                    <label for="id_direccion_{{ empresa.pk }}" class="form-label">Dirección</label>
-                                    <input type="text" class="form-control" id="id_direccion_{{ empresa.pk }}" name="direccion" value="{{ empresa.direccion }}">
+                                     <label for="edit_logo_{{ empresa.pk }}" class="form-label">Logo (opcional)</label>
+                                     {% if empresa.logo %}
+                                         <p>Logo actual: <img src="{{ empresa.logo.url }}" alt="Logo actual" height="40"></p>
+                                         <p><small>Selecciona un archivo nuevo para reemplazarlo.</small></p>
+                                     {% endif %}
+                                     <input type="file" class="form-control" id="edit_logo_{{ empresa.pk }}" name="logo">
                                 </div>
-                                <div class="mb-3">
-                                    <label for="id_correo_{{ empresa.pk }}" class="form-label">Correo Electrónico</label>
-                                    <input type="email" class="form-control" id="id_correo_{{ empresa.pk }}" name="correo_electronico" value="{{ empresa.correo_electronico }}">
+
+                                {# --- CAMPOS DE LÍMITES AÑADIDOS --- #}
+                                <hr>
+                                <h5>Límites</h5>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="edit_max_usuarios_{{ empresa.pk }}" class="form-label">Max. Usuarios</label>
+                                        <input type="number" class="form-control" id="edit_max_usuarios_{{ empresa.pk }}" name="max_usuarios" value="{{ empresa.max_usuarios|default:0 }}" min="0">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="edit_max_faenas_{{ empresa.pk }}" class="form-label">Max. Faenas</label>
+                                        <input type="number" class="form-control" id="edit_max_faenas_{{ empresa.pk }}" name="max_faenas" value="{{ empresa.max_faenas|default:0 }}" min="0">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="edit_max_maquinas_{{ empresa.pk }}" class="form-label">Max. Máquinas</label>
+                                        <input type="number" class="form-control" id="edit_max_maquinas_{{ empresa.pk }}" name="max_maquinas" value="{{ empresa.max_maquinas|default:0 }}" min="0">
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="id_telefono_{{ empresa.pk }}" class="form-label">Número de Teléfono</label>
-                                    <input type="text" class="form-control" id="id_telefono_{{ empresa.pk }}" name="numero_telefono" value="{{ empresa.numero_telefono }}">
-                                </div>
+                                {# --- FIN CAMPOS DE LÍMITES --- #}
+
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -63,25 +96,27 @@
                 </div>
             </div>
 
+            {# --- Modal de Eliminar (sin cambios) --- #}
             <div class="modal fade" id="eliminarModal{{ empresa.pk }}" tabindex="-1" aria-labelledby="eliminarModalLabel{{ empresa.pk }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="eliminarModalLabel{{ empresa.pk }}">Eliminar Empresa</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>¿Estás seguro de que deseas eliminar la empresa "{{ empresa.nombre }}"?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <form method="post" action="{% url 'eliminar_empresa' empresa.pk %}">
-                                {% csrf_token %}
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-danger">Eliminar</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                {# ... contenido del modal de eliminar ... #}
+                 <div class="modal-dialog">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <h5 class="modal-title" id="eliminarModalLabel{{ empresa.pk }}">Eliminar Empresa</h5>
+                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                         </div>
+                         <div class="modal-body">
+                             <p>¿Estás seguro de que deseas eliminar la empresa "{{ empresa.nombre }}"?</p>
+                         </div>
+                         <div class="modal-footer">
+                             <form method="post" action="{% url 'eliminar_empresa' empresa.pk %}">
+                                 {% csrf_token %}
+                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                 <button type="submit" class="btn btn-danger">Eliminar</button>
+                             </form>
+                         </div>
+                     </div>
+                 </div>
             </div>
         {% empty %}
             <p class="text-center">No hay empresas registradas.</p>
