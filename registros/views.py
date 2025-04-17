@@ -318,15 +318,8 @@ def listar_usuarios(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Pasar los forms para edición en línea si esa es la intención
-    # Si no, este diccionario de forms podría no ser necesario
-    forms = {}
-    # for usuario in page_obj.object_list:
-    #     forms[usuario.pk] = UserEditForm(instance=usuario, user=request.user)
-
     context = {
         'page_obj': page_obj,
-        'forms': forms, # Opcional
         'usuarios': page_obj.object_list,
         'groups': Group.objects.all() # Necesario para el dropdown en la tabla
     }
@@ -456,15 +449,9 @@ def listar_maquinas(request):
     # Obtiene la lista COMPLETA ordenada
     maquinas_list = maquinas_query.order_by('nombre')
 
-    # Obtener choices para el estado (necesario para el modal de edición)
-    estado_choices = []
-    if hasattr(Maquina, 'ESTADO_CHOICES'): # Comprueba si el atributo existe en el modelo
-        estado_choices = Maquina.ESTADO_CHOICES
-
     # Pasa la lista completa con la clave 'maquinas_list' que espera la plantilla
     context = {
         'maquinas_list': maquinas_list,
-        'estado_choices': estado_choices,
     }
     return render(request, 'registros/listar_maquinas.html', context)
 
@@ -648,10 +635,8 @@ def listar_faenas(request):
               ).order_by('username')
 
     context = {
-        # Pasar la lista completa con el nombre 'faenas_list'
         'faenas_list': faenas_list,
         'supervisores_list': supervisores_list, # Necesario para el modal
-        # Ya no necesitamos 'page_obj'
     }
     return render(request, 'registros/listar_faenas.html', context)
 # --- Vista Editar Faena (Maneja POST del modal) ---
