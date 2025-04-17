@@ -1,16 +1,79 @@
 {% extends 'registros/base.html' %}
-
 {% load static %}
 
 {% block title %}Inicio{% endblock %}
 
 {% block content %}
-<div class="text-center">
-    <h1>¡Bienvenido a Daily Report!</h1>
-    {% if username %}
-        <p>Hola, {{ username }}!</p>
-    {% endif %}
-    <p>Utiliza el menú para navegar por las diferentes secciones.</p>
-    <img src="{% static 'images/login_image.jpeg' %}" class="img-fluid mt-4" alt="Daily Report">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-6">
+                            <img src="{% static 'images/login_image.jpeg' %}" class="img-fluid h-100" style="object-fit: cover;" alt="Daily Report">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-center bg-gradient-primary">
+                            <div class="p-4 p-md-5 text-white">
+                                <h1 class="display-5 fw-bold mb-4">¡Bienvenido a Daily Report!</h1>
+                                
+                                {% if username %}
+                                    <p class="lead mb-4">Hola, <span class="fw-bold">{{ username }}</span>!</p>
+                                {% endif %}
+                                
+                                <p class="mb-4">Tu plataforma de gestión integral para mantener el control y seguimiento de todas tus operaciones.</p>
+                                
+                                <p class="mb-0 font-italic">Utiliza el menú lateral para navegar por las diferentes secciones.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm text-center">
+                        <div class="card-body py-5">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-4 d-inline-flex mb-4">
+                                <i class="fas fa-tasks fa-3x text-primary"></i>
+                            </div>
+                            <h4>Gestión Simplificada</h4>
+                            <p class="text-muted mb-0">Administra todos tus recursos desde un solo lugar</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm text-center">
+                        <div class="card-body py-5">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-4 d-inline-flex mb-4">
+                                <i class="fas fa-chart-line fa-3x text-success"></i>
+                            </div>
+                            <h4>Reportes Detallados</h4>
+                            <p class="text-muted mb-0">Visualiza la información que necesitas cuando la necesitas</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm text-center">
+                        <div class="card-body py-5">
+                            <div class="rounded-circle bg-info bg-opacity-10 p-4 d-inline-flex mb-4">
+                                <i class="fas fa-clock fa-3x text-info"></i>
+                            </div>
+                            <h4>Ahorro de Tiempo</h4>
+                            <p class="text-muted mb-0">Optimiza tus procesos y mejora la productividad</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+</style>
 {% endblock %}
