@@ -238,24 +238,30 @@ class Faena(models.Model):
         return f"{self.nombre} ({self.empresa.nombre})"
 
     def clean(self):
-        errors = {}
-        
-        # Validación de fechas
-        if self.fecha_termino_real and self.fecha_inicio:
-            if self.fecha_termino_real < self.fecha_inicio:
-                errors['fecha_termino_real'] = _("La fecha de término real no puede ser anterior a la fecha de inicio")
-        
-        if self.fecha_termino_estimada and self.fecha_inicio:
-            if self.fecha_termino_estimada < self.fecha_inicio:
-                errors['fecha_termino_estimada'] = _("La fecha de término estimada no puede ser anterior a la fecha de inicio")
-        
-        # Validar que el responsable pertenezca a la misma empresa
-        if self.responsable and hasattr(self.responsable, 'perfil'):
-            if self.responsable.perfil.empresa != self.empresa:
-                errors['responsable'] = _("El responsable debe pertenecer a la misma empresa")
-        
-        if errors:
-            raise ValidationError(errors)
+        # Llama al clean del padre si estás heredando (buena práctica)
+        super().clean()
+
+        # Verifica que los campos necesarios para la validación existan y tengan valor
+        # Asumiendo que 'perfil' es una relación en tu modelo User o Responsable
+        # y que 'empresa' es una relación en el modelo Perfil.
+        if self.responsable and hasattr(self.responsable, 'perfil') and self.responsable.perfil and self.empresa_id:
+            try:
+                # Es más seguro también usar el _id para la empresa del perfil
+                responsable_empresa_id = self.responsable.perfil.empresa_id
+                if responsable_empresa_id != self.empresa_id:
+                    raise ValidationError({
+                        # Puedes asociar el error a un campo específico si quieres
+                        'responsable': 'La empresa del responsable asignado no coincide con la empresa de la faena.',
+                        # O un error general
+                        # ValidationError.NON_FIELD_ERRORS: 'La empresa del responsable no coincide con la empresa de la faena.'
+                    })
+            except AttributeError:
+                # Maneja el caso donde 'perfil' o 'perfil.empresa_id' no existan como se espera
+                # Puedes pasar, loggear un warning, o lanzar una validación diferente si es necesario
+                pass
+            except Exception as e:
+                 # Captura otras posibles excepciones al acceder a los atributos
+                 raise ValidationError(f"Error al validar la empresa del responsable: {e}")
 
     def save(self, *args, **kwargs):
         # Lógica de estado
