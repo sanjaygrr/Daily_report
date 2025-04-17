@@ -8,7 +8,7 @@ from reportlab.lib import colors
 import os
 import tempfile
 import datetime
-
+from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
@@ -65,7 +65,13 @@ def get_user_empresa(user):
     # 3. Si no se encontró empresa por ninguna vía
     return None
 # ---------------------- VISTAS GENERALES ----------------------
-
+@login_required
+@csrf_protect
+def custom_logout(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect('login')
+    return redirect('home')
 def home(request):
     context = {}
     if request.user.is_authenticated:
