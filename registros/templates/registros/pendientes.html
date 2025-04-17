@@ -1,35 +1,118 @@
-{% extends 'registros/base.html' %}
+{% extends 'registros/base.html' %} {# Asegúrate que esta ruta a tu base sea correcta #}
 
-{% block title %}Trabajos Pendientes{% endblock %}
+{% block title %}Trabajos Pendientes de Revisión{% endblock %}
 
 {% block content %}
-<div class="card p-4">
-    <h1 class="mb-4">Pendietes Revisión</h1>
-    <table class="table table-striped table-bordered">
-        <thead class="thead-dark">
-            <tr>
-                <th>Fecha</th>
-                <th>Faena</th>
-                <th>Máquina</th>
-                <th>Trabajo</th>
-                <th>Supervisor</th>
-                <th>Trabajador</th>
-                <th>Aprobar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for trabajo in trabajos %}
-            <tr>
-                <td>{{ trabajo.fecha }}</td>
-                <td>{{ trabajo.faena }}</td>
-                <td>{{ trabajo.maquina }}</td>
-                <td>{{ trabajo.trabajo }}</td>
-                <td>{{ trabajo.supervisor }}</td>
-                <td>{{ trabajo.trabajador }}</td>
-                <td><a href="{% url 'aprobar_trabajo' trabajo.pk %}" class="btn btn-success">Aprobar</a></td>
-            </tr>
+<div class="container mt-4"> {# Usando container para mejor espaciado #}
+    <div class="card p-4">
+        <h1 class="mb-4">Pendientes de Revisión</h1> {# Corregido typo: Pendientes #}
+
+        {# Bloque para mostrar mensajes de Django (éxito, error, etc.) #}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> {# Asume Bootstrap 5 para el dismiss #}
+                </div>
             {% endfor %}
-        </tbody>
-    </table>
+        {% endif %}
+
+        {# Verifica si hay trabajos para mostrar en el contexto (page_obj) #}
+        {% if page_obj %}
+            <div class="table-responsive"> {# Para mejor visualización en móviles #}
+                <table class="table table-striped table-bordered table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Faena</th>
+                            <th>Máquina</th>
+                            <th>Trabajo</th>
+                            <th>Supervisor</th>
+                            <th>Trabajador</th>
+                            <th>Acciones</th> {# Cambiado de "Aprobar" a "Acciones" #}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {# Itera sobre los objetos en la página actual #}
+                        {% for trabajo in page_obj %}
+                        <tr>
+                            <td>{{ trabajo.fecha|date:"d/m/Y" }}</td> {# Formato de fecha opcional #}
+                            <td>{{ trabajo.faena|default:"N/A" }}</td> {# Manejo de None #}
+                            <td>{{ trabajo.maquina|default:"N/A" }}</td> {# Manejo de None #}
+                            <td>{{ trabajo.trabajo|default:"N/A" }}</td> {# Manejo de None #}
+                            <td>{{ trabajo.supervisor|default:"N/A" }}</td> {# Manejo de None #}
+                            <td>{{ trabajo.trabajador|default:"N/A" }}</td> {# Manejo de None #}
+                            <td>
+                                {# ===== CORRECCIÓN CLAVE ===== #}
+                                {# Formulario POST para el botón APROBAR, usando el namespace 'registros' #}
+                                <form action="{% url 'aprobar_trabajo' trabajo.pk %}" method="POST" style="display: inline;">
+                                    {% csrf_token %} {# Token CSRF obligatorio para POST #}
+                                    <button type="submit" class="btn btn-success btn-sm" title="Aprobar trabajo">
+                                        <i class="fas fa-check"></i> Aprobar {# Ejemplo con icono FontAwesome (opcional) #}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Controles de Paginación (si page_obj existe) #}
+            <nav aria-label="Navegación de trabajos">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="Primero">&laquo; Primero</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">Anterior</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link" aria-hidden="true">&laquo; Primero</span>
+                        </li>
+                         <li class="page-item disabled">
+                            <span class="page-link" aria-hidden="true">Anterior</span>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">
+                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                        </span>
+                     </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente">Siguiente</a>
+                        </li>
+                        <li class="page-item">
+                             <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Último">Último &raquo;</a>
+                        </li>
+                    {% else %}
+                         <li class="page-item disabled">
+                            <span class="page-link" aria-hidden="true">Siguiente</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link" aria-hidden="true">Último &raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% else %}
+            {# Mensaje si no hay trabajos pendientes #}
+            <div class="alert alert-info mt-3" role="alert">
+                No hay trabajos pendientes de revisión en este momento.
+            </div>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{# Espacio para JS adicional si es necesario #}
+{# Si usas Bootstrap 5 JS para el dismiss de las alertas, asegúrate que esté cargado en tu base.html o aquí #}
+{# <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script> #}
 {% endblock %}
