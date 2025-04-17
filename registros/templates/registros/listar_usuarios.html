@@ -12,11 +12,11 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Username</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
+                    <th>RUT</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
                     <th>Email</th>
-                    <th>Groups</th>
+                    <th>Rol</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -71,7 +71,7 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                     </div>
                                     <div class="modal-body">
-                                        ¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuario.username }}</strong>?
+                                        ¿Estás seguro de que deseas eliminar al usuario con RUT <strong>{{ usuario.username }}</strong>?
                                     </div>
                                     <div class="modal-footer">
                                         <form method="post" action="{% url 'eliminar_usuario' usuario.pk %}" style="display: inline;">

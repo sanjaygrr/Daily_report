@@ -12,8 +12,25 @@
             <h2 class="card-title text-center mb-4">Iniciar Sesión</h2>
             <form method="post" class="needs-validation" novalidate>
                 {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">RUT</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.username.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_password" class="form-label">Contraseña</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.password.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
             </form>
         </div>
     </div>

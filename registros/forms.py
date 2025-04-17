@@ -23,7 +23,7 @@ class UserRegistrationForm(forms.ModelForm):
         fields = ['username', 'first_name', 'last_name', 'email', 'password', 'group']
         # Renombramos labels si queremos
         labels = {
-            'username': 'Nombre de Usuario',
+            'username': 'RUT',  # Cambiado de 'Nombre de Usuario' a 'RUT'
             'first_name': 'Nombres',
             'last_name': 'Apellidos',
             'email': 'Correo Electrónico',
@@ -36,6 +36,17 @@ class UserRegistrationForm(forms.ModelForm):
         kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         # Ya no hay lógica para filtrar el queryset de 'empresa'
+
+    def clean_username(self):
+        rut = self.cleaned_data.get('username')
+        # Eliminar puntos y guiones para normalizar el formato
+        rut_limpio = rut.replace('.', '').replace('-', '')
+        
+        # Verificar que sea numérico (excepto posible K al final)
+        if not (rut_limpio[:-1].isdigit() and (rut_limpio[-1].isdigit() or rut_limpio[-1].upper() == 'K')):
+            raise ValidationError("El RUT debe contener solo números y posiblemente 'K' al final.")
+        
+        return rut
 
     def clean(self):
         cleaned_data = super().clean()
@@ -113,6 +124,12 @@ class UserEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'group', 'empresa']
+        labels = {
+            'username': 'RUT',  # Cambiado de 'Nombre de Usuario' a 'RUT'
+            'first_name': 'Nombres',
+            'last_name': 'Apellidos',
+            'email': 'Correo Electrónico',
+        }
 
     def __init__(self, *args, **kwargs):
         request_user = kwargs.pop('user', None) # Renombrado para claridad
@@ -146,6 +163,17 @@ class UserEditForm(forms.ModelForm):
                       self.fields['empresa'].initial = self.instance.perfil.empresa
             except PerfilUsuario.DoesNotExist:
                  self.fields['empresa'].initial = None
+
+    def clean_username(self):
+        rut = self.cleaned_data.get('username')
+        # Eliminar puntos y guiones para normalizar el formato
+        rut_limpio = rut.replace('.', '').replace('-', '')
+        
+        # Verificar que sea numérico (excepto posible K al final)
+        if not (rut_limpio[:-1].isdigit() and (rut_limpio[-1].isdigit() or rut_limpio[-1].upper() == 'K')):
+            raise ValidationError("El RUT debe contener solo números y posiblemente 'K' al final.")
+        
+        return rut
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -183,7 +211,7 @@ class EmpresaForm(forms.ModelForm):
     max_usuarios = forms.IntegerField(min_value=1, required=True, initial=1, label="Max. Usuarios")
     max_maquinas = forms.IntegerField(min_value=1, required=True, initial=1, label="Max. Máquinas")
 
-    admin_username = forms.CharField(max_length=150, label="Admin: Nombre de usuario")
+    admin_username = forms.CharField(max_length=150, label="Admin: RUT")  # Cambiado
     admin_password = forms.CharField(widget=forms.PasswordInput, label="Admin: Contraseña")
     admin_first_name = forms.CharField(max_length=150, required=False, label="Admin: Nombre")
     admin_last_name = forms.CharField(max_length=150, required=False, label="Admin: Apellido")
@@ -195,10 +223,17 @@ class EmpresaForm(forms.ModelForm):
         exclude = ['administrador', 'fecha_creacion', 'activa']
 
     def clean_admin_username(self):
-        username = self.cleaned_data.get('admin_username')
-        if User.objects.filter(username=username).exists():
-            raise ValidationError('El nombre de usuario del administrador ya existe.')
-        return username
+        rut = self.cleaned_data.get('admin_username')
+        # Verificar si el RUT ya existe
+        if User.objects.filter(username=rut).exists():
+            raise ValidationError('El RUT del administrador ya existe.')
+        
+        # Validar formato RUT
+        rut_limpio = rut.replace('.', '').replace('-', '')
+        if not (rut_limpio[:-1].isdigit() and (rut_limpio[-1].isdigit() or rut_limpio[-1].upper() == 'K')):
+            raise ValidationError("El RUT debe contener solo números y posiblemente 'K' al final.")
+        
+        return rut
 
     def clean_admin_email(self):
         email = self.cleaned_data.get('admin_email')
