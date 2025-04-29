@@ -197,11 +197,12 @@
                             {% endif %}
                         </div>
                         <div class="col-md-6">
-                            <label for="id_trabajador" class="form-label fs-5">Trabajador <span class="text-danger">*</span></label>
                             {% if user.groups.all.0.name == 'Trabajador' %}
-                                <input type="text" class="form-control form-control-lg" value="{{ user.get_full_name|default:user.username }}" readonly disabled>
-                                {{ form.trabajador }}
+                                <label class="form-label fs-5">Trabajador <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-lg bg-light" value="{{ user.get_full_name|default:user.username }}" readonly disabled>
+                                <input type="hidden" id="id_trabajador" name="trabajador" value="{{ user.id }}">
                             {% else %}
+                                <label for="id_trabajador" class="form-label fs-5">Trabajador <span class="text-danger">*</span></label>
                                 {{ form.trabajador }}
                                 {% if form.trabajador.errors %}
                                     <div class="invalid-feedback d-block">
@@ -357,13 +358,6 @@
                 }
             }
         });
-        
-        // Esconder el campo trabajador si es un trabajador viendo el formulario
-        {% if user.groups.all.0.name == 'Trabajador' %}
-            document.getElementById('id_trabajador').type = 'hidden';
-            // Asegurarse de que el valor es el ID del usuario actual
-            document.getElementById('id_trabajador').value = "{{ user.id }}";
-        {% endif %}
         
         // Script para calcular y actualizar el total de horas/km
         const horometroInicialInput = document.getElementById('id_horometro_inicial');

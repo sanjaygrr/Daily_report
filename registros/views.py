@@ -720,10 +720,21 @@ def crear_trabajo(request):
 
     if request.method == 'POST':
         form = TrabajoForm(request.POST, user=request.user)
+        
+        # Si el usuario es trabajador, forzar que el trabajador sea él mismo
+        if request.user.groups.filter(name='Trabajador').exists():
+            form.data = form.data.copy()  # Hacemos una copia mutable
+            form.data['trabajador'] = request.user.id
+        
         if form.is_valid():
             try:
                 trabajo = form.save(commit=False)
                 trabajo.creado_por = request.user
+                
+                # Si el usuario es trabajador, asegurar que el trabajador sea él mismo
+                if request.user.groups.filter(name='Trabajador').exists():
+                    trabajo.trabajador = request.user
+                
                 # Asignar empresa basado en la faena/maquina seleccionada si no se asigna de otra forma
                 if not trabajo.empresa:
                      if trabajo.faena:
@@ -734,20 +745,22 @@ def crear_trabajo(request):
                           trabajo.empresa = empresa_actual
 
                 trabajo.save()
-                messages.success(request, 'Trabajo creado exitosamente!')
+                messages.success(request, '¡Trabajo registrado exitosamente!')
                 return redirect('historial') # O a donde corresponda
             except IntegrityError as e:
                 messages.error(request, f'Error de base de datos al crear trabajo: {str(e)}')
             except Exception as e:
                 messages.error(request, f'Error inesperado al crear trabajo: {str(e)}')
         else:
-            messages.error(request, "Error al crear trabajo. Revisa los campos.")
+            messages.error(request, "Error al crear trabajo. Por favor revisa los campos y corrige los errores.")
     else:
         # Pasa el usuario para filtrar dropdowns
         form = TrabajoForm(user=request.user, initial={'fecha': timezone.now().date()})
 
-    return render(request, 'registros/crear_trabajo.html', {'form': form})
-
+    return render(request, 'registros/crear_trabajo.html', {
+        'form': form,
+        'user': request.user
+    })
 
 @login_required
 def historial(request):
