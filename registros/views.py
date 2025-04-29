@@ -579,9 +579,15 @@ def crear_faena(request):
                 faena.save() # Guardamos la instancia completa
                 # form.save_m2m() # Si hubiera campos M2M
 
+                # Mensaje de éxito
                 messages.success(request, f'Faena {faena.nombre} creada exitosamente para la empresa {empresa_asignada.nombre}!')
-                 # Ajusta 'listar_faenas' al nombre de tu URL
-                return redirect('listar_faenas')
+                
+                # Verificar si el usuario quiere crear otra faena
+                if request.POST.get('crear_otra') == '1':
+                    return redirect('crear_faena')
+                else:
+                    return redirect('listar_faenas')
+                    
             except IntegrityError as e:
                  # Podría haber unique constraints en Faena (ej: nombre+empresa)
                  messages.error(request, f'Error de base de datos al crear faena: {str(e)}')
@@ -601,14 +607,12 @@ def crear_faena(request):
         else:
              messages.error(request, 'Error al crear faena. Por favor, revise los datos ingresados.')
              # Los errores específicos de cada campo se mostrarán en la plantilla
-             # usando {{ form.campo.errors }} o iterando sobre form.errors.
     else:
         # Pasamos la empresa también para GET (necesario para filtrar 'responsable')
         form = FaenaForm(empresa=empresa_asignada)
 
-    # La plantilla 'registros/crear_faena.html' recibe el form SIN el campo 'empresa'
+    # Renderiza la plantilla con el formulario
     return render(request, 'registros/crear_faena.html', {'form': form})
-
 @login_required
 def listar_faenas(request):
     empresa_actual = get_user_empresa(request.user)

@@ -3,12 +3,264 @@
 {% block title %}Crear Faena{% endblock %}
 
 {% block content %}
-<div class="card p-4">
-    <h1 class="mb-4">Registrar Faena</h1>
-    <form method="post" class="needs-validation" novalidate>
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-warning">Guardar</button>
-    </form>
+<div class="card shadow">
+    <div class="card-header bg-light">
+        <h1 class="h3 mb-0 text-gray-800">Registrar Faena</h1>
+    </div>
+    <div class="card-body p-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form id="faenaForm" method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="mb-3">
+                <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre de la Faena <span class="text-danger">*</span></label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.nombre.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.ubicacion.id_for_label }}" class="form-label">Ubicación</label>
+                {{ form.ubicacion }}
+                {% if form.ubicacion.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.ubicacion.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.descripcion.id_for_label }}" class="form-label">Descripción</label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.descripcion.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">Fecha de Inicio <span class="text-danger">*</span></label>
+                    {{ form.fecha_inicio }}
+                    {% if form.fecha_inicio.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.fecha_inicio.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.fecha_termino_estimada.id_for_label }}" class="form-label">Fecha de Término Estimada</label>
+                    {{ form.fecha_termino_estimada }}
+                    {% if form.fecha_termino_estimada.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.fecha_termino_estimada.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.responsable.id_for_label }}" class="form-label">Responsable (Supervisor)</label>
+                {{ form.responsable }}
+                {% if form.responsable.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.responsable.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4 d-flex justify-content-end">
+                <a href="{% url 'listar_faenas' %}" class="btn btn-secondary me-2">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </a>
+                <button type="button" id="btnConfirmar" class="btn btn-warning">
+                    <i class="fas fa-save me-1"></i>Guardar
+                </button>
+            </div>
+            
+            <!-- Campo oculto para indicar si se desea crear otra faena después -->
+            <input type="hidden" name="crear_otra" id="crear_otra" value="0">
+        </form>
+    </div>
 </div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="confirmacionModalLabel">
+                    <i class="fas fa-question-circle me-2"></i>Confirmar Registro
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea registrar esta faena con los siguientes datos?</p>
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>Nombre:</strong> <span id="modal-nombre"></span></p>
+                        <p><strong>Ubicación:</strong> <span id="modal-ubicacion"></span></p>
+                        <p><strong>Fecha de Inicio:</strong> <span id="modal-fecha-inicio"></span></p>
+                        <p><strong>Fecha de Término Estimada:</strong> <span id="modal-fecha-termino"></span></p>
+                        <p><strong>Responsable:</strong> <span id="modal-responsable"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnConfirmarYCrearOtra" class="btn btn-info">
+                    <i class="fas fa-plus-circle me-1"></i>Guardar y Crear Otra
+                </button>
+                <button type="button" id="btnConfirmarGuardar" class="btn btn-warning">
+                    <i class="fas fa-save me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div class="modal fade" id="exitoModal" tabindex="-1" aria-labelledby="exitoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="exitoModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Operación Exitosa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <p class="text-center" id="mensajeExito">¡La faena ha sido registrada exitosamente!</p>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'listar_faenas' %}" class="btn btn-secondary">
+                    <i class="fas fa-list me-1"></i>Ir a Lista de Faenas
+                </a>
+                <a href="{% url 'crear_faena' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Crear Otra Faena
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Agregar clases de Bootstrap a los campos del formulario
+    document.addEventListener('DOMContentLoaded', function() {
+        // Aplicar clases a inputs y selects
+        const formElements = document.querySelectorAll('input, select, textarea');
+        formElements.forEach(element => {
+            if (!element.classList.contains('form-control') && 
+                !element.classList.contains('form-select') &&
+                element.type !== 'hidden' &&
+                element.type !== 'submit' &&
+                element.type !== 'button') {
+                
+                if (element.tagName === 'SELECT') {
+                    element.classList.add('form-select');
+                } else if (element.type === 'checkbox') {
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('form-check');
+                    element.parentNode.insertBefore(wrapper, element);
+                    wrapper.appendChild(element);
+                    element.classList.add('form-check-input');
+                } else if (element.type === 'date') {
+                    element.classList.add('form-control');
+                } else if (element.tagName === 'TEXTAREA') {
+                    element.classList.add('form-control');
+                    if (!element.hasAttribute('rows')) {
+                        element.setAttribute('rows', '4');
+                    }
+                } else {
+                    element.classList.add('form-control');
+                }
+            }
+        });
+        
+        // Modal de confirmación
+        const btnConfirmar = document.getElementById('btnConfirmar');
+        const faenaForm = document.getElementById('faenaForm');
+        const confirmacionModal = new bootstrap.Modal(document.getElementById('confirmacionModal'));
+        const btnConfirmarGuardar = document.getElementById('btnConfirmarGuardar');
+        const btnConfirmarYCrearOtra = document.getElementById('btnConfirmarYCrearOtra');
+        const crearOtraInput = document.getElementById('crear_otra');
+        
+        // Al hacer clic en el botón Guardar, mostrar el modal de confirmación
+        btnConfirmar.addEventListener('click', function() {
+            // Verificar validación del formulario
+            if (!faenaForm.checkValidity()) {
+                faenaForm.classList.add('was-validated');
+                return;
+            }
+            
+            // Actualizar datos en el modal
+            document.getElementById('modal-nombre').textContent = document.getElementById('{{ form.nombre.id_for_label }}').value;
+            document.getElementById('modal-ubicacion').textContent = document.getElementById('{{ form.ubicacion.id_for_label }}').value || 'No especificada';
+            document.getElementById('modal-fecha-inicio').textContent = document.getElementById('{{ form.fecha_inicio.id_for_label }}').value;
+            document.getElementById('modal-fecha-termino').textContent = document.getElementById('{{ form.fecha_termino_estimada.id_for_label }}').value || 'No especificada';
+            
+            // Para el responsable, necesitamos obtener el texto seleccionado
+            const responsableSelect = document.getElementById('{{ form.responsable.id_for_label }}');
+            const responsableText = responsableSelect.options[responsableSelect.selectedIndex]?.text || 'No especificado';
+            document.getElementById('modal-responsable').textContent = responsableText;
+            
+            // Mostrar el modal
+            confirmacionModal.show();
+        });
+        
+        // Al confirmar, enviar el formulario
+        btnConfirmarGuardar.addEventListener('click', function() {
+            crearOtraInput.value = '0';
+            faenaForm.submit();
+        });
+        
+        // Al confirmar y crear otra, enviar el formulario con el flag
+        btnConfirmarYCrearOtra.addEventListener('click', function() {
+            crearOtraInput.value = '1';
+            faenaForm.submit();
+        });
+        
+        // Si hay un parámetro de éxito en la URL, mostrar el modal de éxito
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('exito') === '1') {
+            const exitoModal = new bootstrap.Modal(document.getElementById('exitoModal'));
+            exitoModal.show();
+        }
+    });
+</script>
 {% endblock %}
