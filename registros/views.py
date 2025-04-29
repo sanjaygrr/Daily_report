@@ -64,6 +64,7 @@ def get_user_empresa(user):
 
     # 3. Si no se encontró empresa por ninguna vía
     return None
+
 # ---------------------- VISTAS GENERALES ----------------------
 @login_required
 @csrf_protect
@@ -72,6 +73,7 @@ def custom_logout(request):
         logout(request)
         return redirect('login')
     return redirect('home')
+
 def home(request):
     context = {}
     if request.user.is_authenticated:
@@ -185,7 +187,7 @@ def eliminar_empresa(request, pk):
 
     return redirect('listar_empresas')
 
-login_required
+@login_required
 #@user_passes_test(lambda u: u.is_superuser) # Puedes descomentar si solo superuser debe entrar
 def detalles_empresa(request, pk): # Asegúrate que tu URL use 'pk' si usas pk aquí
     if not request.user.is_superuser:
@@ -293,7 +295,6 @@ def register_user(request):
 
     # La plantilla 'registros/register_user.html' recibe el form SIN el campo 'empresa'
     return render(request, 'registros/register_user.html', {'form': form})
-
 
 
 @login_required
@@ -407,13 +408,17 @@ def crear_maquina(request):
                 # Guardamos sin hacer commit para asignar la empresa manualmente
                 maquina = form.save(commit=False)
                 maquina.empresa = empresa_asignada # Asignamos la empresa
-                # El campo 'estado' ya no existe, no hay nada que asignar.
                 maquina.save() # Guardamos la instancia completa en la BD
-                # form.save_m2m() # Llamar si hubiera campos ManyToMany en el form
 
+                # Mensaje de éxito
                 messages.success(request, f'Máquina {maquina.nombre} creada exitosamente para la empresa {empresa_asignada.nombre}!')
-                # Ajusta 'listar_maquinas' al nombre real de tu URL
-                return redirect('listar_maquinas')
+                
+                # Verificar si el usuario quiere crear otra máquina
+                if request.POST.get('crear_otra') == '1':
+                    return redirect('crear_maquina')
+                else:
+                    return redirect('listar_maquinas')
+                    
             except IntegrityError as e:
                  # Captura errores como unique_together ('nombre', 'empresa')
                 if 'UNIQUE constraint failed' in str(e) and 'maquina_nombre_empresa_id_uniq' in str(e): # Ajusta el nombre de la constraint si es diferente
@@ -421,18 +426,17 @@ def crear_maquina(request):
                 else:
                      messages.error(request, f'Error de base de datos al crear máquina: {str(e)}')
             except ValidationError as e: # Errores del form.clean() como max_maquinas
-                 messages.error(request, f"Error de validación: {e.message}")
+                 messages.error(request, f"Error de validación: {e.message if hasattr(e, 'message') else e}")
             except Exception as e:
                 messages.error(request, f'Error inesperado al crear máquina: {str(e)}')
         else:
             # Los errores de campo se mostrarán automáticamente por la plantilla
             messages.error(request, 'Error al crear máquina. Por favor, revise los datos ingresados.')
     else:
-        # Para GET, también pasamos la empresa (puede ser útil si el form hiciera algo con ella en init)
+        # Para GET, también pasamos la empresa
         form = MaquinaForm(empresa=empresa_asignada)
 
-    # La plantilla ('registros/crear_maquina.html') usará este 'form', que ya no
-    # contiene los campos 'estado' ni 'empresa'.
+    # Renderiza la plantilla con el formulario
     return render(request, 'registros/crear_maquina.html', {'form': form})
 
 @login_required
@@ -476,7 +480,7 @@ def editar_maquina(request, pk):
 
     if request.method == 'POST':
         # Usa el MaquinaForm normal, pasándole el usuario si el form lo necesita
-        form = MaquinaForm(request.POST, instance=maquina, user=request.user)
+        form = MaquinaForm(request.POST, instance=maquina, empresa=empresa_actual)
         if form.is_valid():
             try:
                 form.save()
@@ -527,22 +531,6 @@ def eliminar_maquina(request, pk):
 
 
 # ---------------------- VISTAS DE FAENA ----------------------
-
-def get_user_empresa(user):
-    # ... (pega aquí la definición de get_user_empresa que ajustamos antes)
-    if user.is_superuser:
-        return None
-    if hasattr(user, 'empresas_administradas'):
-        empresas_admin = user.empresas_administradas.all()
-        count = empresas_admin.count()
-        if count == 1:
-            return empresas_admin.first()
-        elif count > 1:
-            raise MultipleObjectsReturned(f"El usuario {user.username} administra {count} empresas.")
-    if hasattr(user, 'perfil') and user.perfil and hasattr(user.perfil, 'empresa') and user.perfil.empresa:
-        return user.perfil.empresa
-    return None
-# --- Fin de get_user_empresa ---
 
 @login_required
 def crear_faena(request):
@@ -613,6 +601,7 @@ def crear_faena(request):
 
     # Renderiza la plantilla con el formulario
     return render(request, 'registros/crear_faena.html', {'form': form})
+
 @login_required
 def listar_faenas(request):
     empresa_actual = get_user_empresa(request.user)
@@ -643,6 +632,7 @@ def listar_faenas(request):
         'supervisores_list': supervisores_list, # Necesario para el modal
     }
     return render(request, 'registros/listar_faenas.html', context)
+
 # --- Vista Editar Faena (Maneja POST del modal) ---
 @login_required
 def editar_faena(request, pk):
@@ -663,7 +653,7 @@ def editar_faena(request, pk):
 
     if request.method == 'POST':
         # Usa el FaenaForm normal, pasándole el usuario para filtrar el 'responsable' si es necesario
-        form = FaenaForm(request.POST, instance=faena, user=request.user)
+        form = FaenaForm(request.POST, instance=faena, empresa=empresa_actual)
         if form.is_valid():
             try:
                 form.save()

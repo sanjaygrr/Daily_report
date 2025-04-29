@@ -57,16 +57,46 @@ class Empresa(models.Model):
     @property
     def faenas_activas(self):
         return self.faenas.filter(activa=True).count()
-
-    def actualizar_contadores(self):
-        self.cantidad_maquinas = self.maquinas.count()
-        self.cantidad_faenas = self.faenas.count()
-        self.cantidad_usuarios = User.objects.filter(
+    
+    @property
+    def cantidad_maquinas(self):
+        """Propiedad que reemplaza al campo eliminado"""
+        return self.maquinas.count()
+    
+    @property
+    def cantidad_faenas(self):
+        """Propiedad que reemplaza al campo eliminado"""
+        return self.faenas.count()
+    
+    @property
+    def cantidad_usuarios(self):
+        """Propiedad que reemplaza al campo eliminado"""
+        return User.objects.filter(
             models.Q(groups__name='Trabajador') | 
             models.Q(groups__name='Supervisor'),
             perfil__empresa=self
         ).distinct().count()
-        self.save(update_fields=['cantidad_maquinas', 'cantidad_faenas', 'cantidad_usuarios'])
+
+    def actualizar_contadores(self):
+        """
+        Este método ahora solo cuenta pero no actualiza campos que ya no existen.
+        """
+        # Ya no se actualizan los campos en la base de datos, 
+        # pues fueron eliminados en una migración anterior
+        
+        # Solo para fines de registro o depuración
+        maquinas_count = self.maquinas.count()
+        faenas_count = self.faenas.count()
+        usuarios_count = User.objects.filter(
+            models.Q(groups__name='Trabajador') | 
+            models.Q(groups__name='Supervisor'),
+            perfil__empresa=self
+        ).distinct().count()
+        
+        # Se puede hacer un print() para debugging pero no se requiere guardar
+        # print(f"Empresa {self.nombre}: {maquinas_count} máquinas, {faenas_count} faenas, {usuarios_count} usuarios")
+        
+        # Ya NO se actualiza la BD con estos contadores
 
 
 class PerfilUsuario(models.Model): 
@@ -126,8 +156,13 @@ class Maquina(models.Model):
     def save(self, *args, **kwargs):
         is_new = not self.pk
         super().save(*args, **kwargs)
-        if is_new:
-            self.empresa.actualizar_contadores()
+        # Se intenta llamar al método de forma segura para evitar errores
+        if is_new and hasattr(self.empresa, 'actualizar_contadores'):
+            try:
+                self.empresa.actualizar_contadores()
+            except Exception as e:
+                # Si ocurre un error, lo registramos pero no interrumpimos el guardado
+                print(f"Error al actualizar contadores de empresa: {e}")
 
 
 class Faena(models.Model):
@@ -242,22 +277,16 @@ class Faena(models.Model):
         super().clean()
 
         # Verifica que los campos necesarios para la validación existan y tengan valor
-        # Asumiendo que 'perfil' es una relación en tu modelo User o Responsable
-        # y que 'empresa' es una relación en el modelo Perfil.
         if self.responsable and hasattr(self.responsable, 'perfil') and self.responsable.perfil and self.empresa_id:
             try:
                 # Es más seguro también usar el _id para la empresa del perfil
                 responsable_empresa_id = self.responsable.perfil.empresa_id
                 if responsable_empresa_id != self.empresa_id:
                     raise ValidationError({
-                        # Puedes asociar el error a un campo específico si quieres
                         'responsable': 'La empresa del responsable asignado no coincide con la empresa de la faena.',
-                        # O un error general
-                        # ValidationError.NON_FIELD_ERRORS: 'La empresa del responsable no coincide con la empresa de la faena.'
                     })
             except AttributeError:
                 # Maneja el caso donde 'perfil' o 'perfil.empresa_id' no existan como se espera
-                # Puedes pasar, loggear un warning, o lanzar una validación diferente si es necesario
                 pass
             except Exception as e:
                  # Captura otras posibles excepciones al acceder a los atributos
@@ -271,9 +300,13 @@ class Faena(models.Model):
         is_new = not self.pk
         super().save(*args, **kwargs)
         
-        # Actualización de contadores para nueva faena
-        if is_new:
-            self.empresa.actualizar_contadores()
+        # Actualización de contadores para nueva faena de forma segura
+        if is_new and hasattr(self.empresa, 'actualizar_contadores'):
+            try:
+                self.empresa.actualizar_contadores()
+            except Exception as e:
+                # Si hay error, lo registramos pero no interrumpimos
+                print(f"Error al actualizar contadores para faena: {e}")
 
 
 
@@ -284,10 +317,8 @@ class Trabajo(models.Model):
     ]
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
-        ('aprobado', 'Aprobado'), # Cambiado de completado si es necesario
+        ('aprobado', 'Aprobado'), 
         ('rechazado', 'Rechazado'),
-        # ('en_proceso', 'En proceso'), # Puedes añadir más estados
-        # ('completado', 'Completado'),
     ]
 
     empresa = models.ForeignKey(
@@ -316,13 +347,13 @@ class Trabajo(models.Model):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name="Horómetro/Km inicial" # Ajustado label
+        verbose_name="Horómetro/Km inicial"
     )
     horometro_final = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name="Horómetro/Km final" # Ajustado label
+        verbose_name="Horómetro/Km final"
     )
     total_horas = models.DecimalField(
         max_digits=12,
@@ -330,22 +361,22 @@ class Trabajo(models.Model):
         null=True,
         blank=True,
         editable=False,
-        verbose_name="Total Horas/Km" # Ajustado label
+        verbose_name="Total Horas/Km"
     )
     petroleo_litros = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         verbose_name="Litros de petróleo",
-        null=True, blank=True # Hacer opcional si es necesario
+        null=True, blank=True
     )
-    aceite_tipo = models.CharField(max_length=100, verbose_name="Tipo de aceite", null=True, blank=True) # Hacer opcional
+    aceite_tipo = models.CharField(max_length=100, verbose_name="Tipo de aceite", null=True, blank=True)
     aceite_litros = models.DecimalField(
         max_digits=6,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         verbose_name="Litros de aceite",
-        null=True, blank=True # Hacer opcional
+        null=True, blank=True
     )
     observaciones = models.TextField(blank=True, null=True, verbose_name="Observaciones")
     supervisor = models.ForeignKey(
@@ -359,9 +390,7 @@ class Trabajo(models.Model):
         User,
         related_name='trabajos_realizados',
         on_delete=models.PROTECT,
-        # Quitamos limit_choices_to para permitir Supervisor en el form
         verbose_name="Trabajador"
-        # null=False, blank=False por defecto (requerido)
     )
     estado = models.CharField(
         max_length=20,
@@ -379,7 +408,7 @@ class Trabajo(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de actualización")
     creado_por = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL, # Usar SET_NULL para no perder el trabajo si se borra quien lo creó
+        on_delete=models.SET_NULL,
         related_name='trabajos_creados',
         verbose_name="Creado por",
         null=True,
@@ -396,7 +425,6 @@ class Trabajo(models.Model):
         ]
 
     def __str__(self):
-         # Asegurarse que faena y maquina existan antes de acceder a nombre
         faena_nombre = self.faena.nombre if self.faena else "Sin Faena"
         maquina_nombre = self.maquina.nombre if self.maquina else "Sin Máquina"
         fecha_str = self.fecha.strftime("%Y-%m-%d") if self.fecha else "Sin Fecha"
@@ -411,12 +439,7 @@ class Trabajo(models.Model):
 
         if self.horometro_inicial is not None and self.horometro_final is not None:
             if self.horometro_final <= self.horometro_inicial:
-                errors['horometro_final'] = "El horómetro/Km final debe ser mayor o igual que el inicial." # Permitir igual si no hubo movimiento
-
-        if self.trabajador and self.supervisor and self.trabajador == self.supervisor:
-            # Permitir esto si el supervisor puede ser trabajador
-            # errors['supervisor'] = "El trabajador y el supervisor no pueden ser la misma persona."
-            pass # Se permite que sean el mismo
+                errors['horometro_final'] = "El horómetro/Km final debe ser mayor o igual que el inicial."
 
         # Validar pertenencia a empresa solo si el usuario tiene perfil y faena asignada
         empresa_trabajo = self.faena.empresa if self.faena else None
@@ -442,11 +465,5 @@ class Trabajo(models.Model):
              self.empresa = self.faena.empresa
         elif self.maquina: # Plan B: desde la máquina si no hay faena
              self.empresa = self.maquina.empresa
-
-        # Actualizar horómetro de la máquina (opcional, revisar lógica)
-        # if self.estado == 'aprobado' and self.maquina and self.horometro_final is not None:
-        #     if not hasattr(self.maquina, 'horometro_actual') or self.horometro_final > self.maquina.horometro_actual:
-        #         self.maquina.horometro_actual = self.horometro_final
-        #         self.maquina.save(update_fields=['horometro_actual'])
 
         super().save(*args, **kwargs)
