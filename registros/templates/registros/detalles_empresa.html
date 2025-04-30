@@ -37,19 +37,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h6 class="text-uppercase">Usuarios</h6>
-                            <h2 class="display-4 mt-2 mb-0">
-                                {% if user_roles %}
-                                    {% with total_users=0 %}
-                                        {% for role in user_roles %}
-                                            {% with new_total=total_users|add:role.user_count %}
-                                                {% if forloop.last %}{{ new_total }}{% else %}{% with total_users=new_total %}{% endwith %}{% endif %}
-                                            {% endwith %}
-                                        {% endfor %}
-                                    {% endwith %}
-                                {% else %}
-                                    0
-                                {% endif %}
-                            </h2>
+                            <h2 class="display-4 mt-2 mb-0">{{ usuarios_count|default:"0" }}</h2>
                         </div>
                         <div class="bg-white rounded-circle p-3 text-primary">
                             <i class="fas fa-users fa-2x"></i>
@@ -58,21 +46,7 @@
                     <div class="progress mt-3 bg-white bg-opacity-25">
                         <div class="progress-bar bg-white" role="progressbar" 
                              style="width: {% if empresa.max_usuarios and empresa.max_usuarios > 0 %}
-                                        {% if user_roles %}
-                                            {% with total_users=0 %}
-                                                {% for role in user_roles %}
-                                                    {% with new_total=total_users|add:role.user_count %}
-                                                        {% if forloop.last %}
-                                                            {% widthratio new_total empresa.max_usuarios 100 %}
-                                                        {% else %}
-                                                            {% with total_users=new_total %}{% endwith %}
-                                                        {% endif %}
-                                                    {% endwith %}
-                                                {% endfor %}
-                                            {% endwith %}
-                                        {% else %}
-                                            0
-                                        {% endif %}
+                                        {% widthratio usuarios_count empresa.max_usuarios 100 %}
                                     {% else %}
                                         50
                                     {% endif %}%;" 
@@ -80,17 +54,7 @@
                     </div>
                     <small class="text-white-50 mt-2 d-block">
                         {% if empresa.max_usuarios and empresa.max_usuarios > 0 %}
-                            {% with total_users=0 %}
-                                {% for role in user_roles %}
-                                    {% with new_total=total_users|add:role.user_count %}
-                                        {% if forloop.last %}
-                                            Límite: {{ new_total }}/{{ empresa.max_usuarios }} usuarios
-                                        {% else %}
-                                            {% with total_users=new_total %}{% endwith %}
-                                        {% endif %}
-                                    {% endwith %}
-                                {% endfor %}
-                            {% endwith %}
+                            Límite: {{ usuarios_count }}/{{ empresa.max_usuarios }} usuarios
                         {% else %}
                             Sin límite definido
                         {% endif %}
@@ -272,41 +236,13 @@
                         <label class="form-label d-flex justify-content-between">
                             <span>Máximo de Usuarios</span>
                             <span class="text-primary">
-                                {% if user_roles %}
-                                    {% with total_users=0 %}
-                                        {% for role in user_roles %}
-                                            {% with new_total=total_users|add:role.user_count %}
-                                                {% if forloop.last %}
-                                                    {{ new_total }}/{{ empresa.max_usuarios|default:"∞" }}
-                                                {% else %}
-                                                    {% with total_users=new_total %}{% endwith %}
-                                                {% endif %}
-                                            {% endwith %}
-                                        {% endfor %}
-                                    {% endwith %}
-                                {% else %}
-                                    0/{{ empresa.max_usuarios|default:"∞" }}
-                                {% endif %}
+                                {{ usuarios_count }}/{{ empresa.max_usuarios|default:"∞" }}
                             </span>
                         </label>
                         <div class="progress" style="height: 10px;">
                             <div class="progress-bar bg-primary" role="progressbar" 
                                  style="width: {% if empresa.max_usuarios and empresa.max_usuarios > 0 %}
-                                            {% if user_roles %}
-                                                {% with total_users=0 %}
-                                                    {% for role in user_roles %}
-                                                        {% with new_total=total_users|add:role.user_count %}
-                                                            {% if forloop.last %}
-                                                                {% widthratio new_total empresa.max_usuarios 100 %}
-                                                            {% else %}
-                                                                {% with total_users=new_total %}{% endwith %}
-                                                            {% endif %}
-                                                        {% endwith %}
-                                                    {% endfor %}
-                                                {% endwith %}
-                                            {% else %}
-                                                0
-                                            {% endif %}
+                                            {% widthratio usuarios_count empresa.max_usuarios 100 %}
                                         {% else %}
                                             0
                                         {% endif %}%;" 
@@ -394,7 +330,50 @@
             </div>
         </div>
         
-        <!-- Estado de trabajos -->
+        <!-- Evolución de trabajos por mes -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Evolución de Trabajos</h5>
+                </div>
+                <div class="card-body">
+                    {% if etiquetas_meses %}
+                        <div class="chart-container" style="position: relative; height:250px;">
+                            <canvas id="trabajosPorMesChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-clipboard-check fa-4x text-muted mb-3"></i>
+                            <p>No hay suficientes datos para mostrar la evolución de trabajos</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas adicionales -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Máquinas Más Utilizadas</h5>
+                </div>
+                <div class="card-body">
+                    {% if etiquetas_maquinas %}
+                        <div class="chart-container" style="position: relative; height:250px;">
+                            <canvas id="maquinasUtilizadasChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-truck fa-4x text-muted mb-3"></i>
+                            <p>Aún no hay datos suficientes sobre el uso de máquinas</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
@@ -403,7 +382,7 @@
                 <div class="card-body">
                     {% if trabajos_por_estado %}
                         <div class="chart-container" style="position: relative; height:250px;">
-                            <canvas id="workStatusChart"></canvas>
+                            <canvas id="estadoTrabajosChart"></canvas>
                         </div>
                     {% else %}
                         <div class="text-center py-5">
@@ -415,73 +394,9 @@
             </div>
         </div>
     </div>
-
-    <!-- Estadísticas de máquinas -->
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Estado de Máquinas</h5>
-                    <a href="{% url 'listar_maquinas' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
-                </div>
-                <div class="card-body">
-                    {% if maquinas_por_estado %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="chart-container" style="position: relative; height:250px;">
-                                    <canvas id="machineStatusChart"></canvas>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Estado</th>
-                                                <th>Cantidad</th>
-                                                <th>Porcentaje</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for estado, cantidad in maquinas_por_estado.items %}
-                                                <tr>
-                                                    <td>
-                                                        {% if estado == 'operativa' %}
-                                                            <span class="badge bg-success">Operativa</span>
-                                                        {% elif estado == 'mantenimiento' %}
-                                                            <span class="badge bg-warning">En mantenimiento</span>
-                                                        {% elif estado == 'reparacion' %}
-                                                            <span class="badge bg-danger">En reparación</span>
-                                                        {% elif estado == 'baja' %}
-                                                            <span class="badge bg-secondary">Dada de baja</span>
-                                                        {% else %}
-                                                            <span class="badge bg-info">{{ estado|title }}</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>{{ cantidad }}</td>
-                                                    <td>
-                                                        {% widthratio cantidad maquina_count 100 %}%
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-truck fa-4x text-muted mb-3"></i>
-                            <p>No hay máquinas registradas para esta empresa</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Modal de Edición -->
+<!-- Modal de Edición (sin cambios) -->
 <div class="modal fade" id="editarModal{{ empresa.pk }}" tabindex="-1" aria-labelledby="editarModalLabel{{ empresa.pk }}" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -551,11 +466,11 @@
     </div>
 </div>
 
-{% comment %} Scripts para gráficos - Requiere Chart.js {% endcomment %}
+{% comment %} Scripts para gráficos actualizados {% endcomment %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gráfico para roles de usuario
+    // Gráfico para roles de usuario - Sigue igual
     {% if user_roles %}
     const userRolesCtx = document.getElementById('userRolesChart').getContext('2d');
     new Chart(userRolesCtx, {
@@ -591,11 +506,110 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     {% endif %}
     
-    // Gráfico para estado de trabajos
-    {% if trabajos_por_estado %}
-    const workStatusCtx = document.getElementById('workStatusChart').getContext('2d');
-    new Chart(workStatusCtx, {
+    // NUEVO: Gráfico para evolución de trabajos por mes
+    {% if etiquetas_meses %}
+    const trabajosPorMesCtx = document.getElementById('trabajosPorMesChart').getContext('2d');
+    new Chart(trabajosPorMesCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for mes in etiquetas_meses %}
+                    '{{ mes }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Trabajos por Mes',
+                data: [
+                    {% for dato in datos_trabajos %}
+                        {{ dato }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(78, 115, 223, 0.2)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 2,
+                tension: 0.3,
+                pointRadius: 3,
+                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                pointBorderColor: '#fff',
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            return tooltipItems[0].label;
+                        },
+                        label: function(context) {
+                            return 'Trabajos: ' + context.parsed.y;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // NUEVO: Gráfico para máquinas más utilizadas
+    {% if etiquetas_maquinas %}
+    const maquinasUtilizadasCtx = document.getElementById('maquinasUtilizadasChart').getContext('2d');
+    new Chart(maquinasUtilizadasCtx, {
         type: 'bar',
+        data: {
+            labels: [
+                {% for maquina in etiquetas_maquinas %}
+                    '{{ maquina }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Trabajos Realizados',
+                data: [
+                    {% for dato in datos_maquinas %}
+                        {{ dato }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    'rgba(54, 185, 204, 0.8)',
+                    'rgba(28, 200, 138, 0.8)',
+                    'rgba(246, 194, 62, 0.8)',
+                    'rgba(78, 115, 223, 0.8)',
+                    'rgba(231, 74, 59, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+    
+    // Gráfico para estado de trabajos - Ahora es un gráfico independiente
+    {% if trabajos_por_estado %}
+    const estadoTrabajosCtx = document.getElementById('estadoTrabajosChart').getContext('2d');
+    new Chart(estadoTrabajosCtx, {
+        type: 'doughnut',
         data: {
             labels: [
                 {% for estado, cantidad in trabajos_por_estado.items %}
@@ -611,7 +625,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 {% endfor %}
             ],
             datasets: [{
-                label: 'Cantidad de Trabajos',
                 data: [
                     {% for estado, cantidad in trabajos_por_estado.items %}
                         {{ cantidad }},
@@ -636,75 +649,11 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            }
-        }
-    });
-    {% endif %}
-
-    // Gráfico para estado de máquinas
-    {% if maquinas_por_estado %}
-    const machineStatusCtx = document.getElementById('machineStatusChart').getContext('2d');
-    new Chart(machineStatusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: [
-                {% for estado, cantidad in maquinas_por_estado.items %}
-                    {% if estado == 'operativa' %}
-                        'Operativa',
-                    {% elif estado == 'mantenimiento' %}
-                        'En mantenimiento',
-                    {% elif estado == 'reparacion' %}
-                        'En reparación',
-                    {% elif estado == 'baja' %}
-                        'Dada de baja',
-                    {% else %}
-                        '{{ estado|title }}',
-                    {% endif %}
-                {% endfor %}
-            ],
-            datasets: [{
-                data: [
-                    {% for estado, cantidad in maquinas_por_estado.items %}
-                        {{ cantidad }},
-                    {% endfor %}
-                ],
-                backgroundColor: [
-                    {% for estado, cantidad in maquinas_por_estado.items %}
-                        {% if estado == 'operativa' %}
-                            '#1cc88a',
-                        {% elif estado == 'mantenimiento' %}
-                            '#f6c23e',
-                        {% elif estado == 'reparacion' %}
-                            '#e74a3b',
-                        {% elif estado == 'baja' %}
-                            '#858796',
-                        {% else %}
-                            '#4e73df',
-                        {% endif %}
-                    {% endfor %}
-                ],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right',
-                    labels: {
-                        padding: 20
-                    }
+                    position: 'right'
                 }
-            },
-            cutout: '60%'
+            }
         }
     });
     {% endif %}

@@ -188,28 +188,245 @@ def eliminar_empresa(request, pk):
     return redirect('listar_empresas')
 
 @login_required
-#@user_passes_test(lambda u: u.is_superuser) # Puedes descomentar si solo superuser debe entrar
-def detalles_empresa(request, pk): # Asegúrate que tu URL use 'pk' si usas pk aquí
-    if not request.user.is_superuser:
-        messages.error(request, "Solo los superusuarios pueden ver detalles de empresas.")
-        return redirect('home')
+@user_passes_test(lambda u: u.is_superuser)
+def detalles_empresa(request, pk):
+    empresa = get_object_or_404(Empresa, pk=pk)
+
+    # Conteo simple de usuarios de la empresa (sin importar el rol)
+    # Esto asegura que se cuenten todos los usuarios correctamente
+    usuarios_count = PerfilUsuario.objects.filter(empresa=empresa).count()
+    
+    # Contar máquinas
+    maquina_count = Maquina.objects.filter(empresa=empresa).count()
+    
+    # Contar faenas
+    faena_count = Faena.objects.filter(empresa=empresa).count()
+    
+    # Obtener faenas activas
+    faenas_activas = Faena.objects.filter(
+        empresa=empresa, 
+        estado='activa'
+    ).order_by('-fecha_inicio')[:5]
+    
+    # Contar trabajos
+    trabajo_count = Trabajo.objects.filter(empresa=empresa).count()
+    
+    # Obtener trabajos por mes para el gráfico de evolución (últimos 6 meses)
+    from django.db.models.functions import TruncMonth
+    from datetime import datetime, timedelta
+    
+    # Definir rango de fechas (últimos 6 meses)
+    fecha_fin = datetime.now().date() + timedelta(days=1)  # Incluir hoy
+    fecha_inicio = (datetime.now() - timedelta(days=180)).date()  # 6 meses atrás
+    
+    # Obtener conteo de trabajos por mes
+    trabajos_por_mes = Trabajo.objects.filter(
+        empresa=empresa,
+        fecha__gte=fecha_inicio,
+        fecha__lt=fecha_fin
+    ).annotate(
+        mes=TruncMonth('fecha')
+    ).values('mes').annotate(
+        cantidad=Count('id')
+    ).order_by('mes')
+    
+    # Convertir a un formato más fácil de usar en el template
+    etiquetas_meses = []
+    datos_trabajos = []
+    
+    # Crear mapa de meses para llenar meses sin datos
+    meses_map = {}
+    current_date = fecha_inicio.replace(day=1)
+    while current_date < fecha_fin:
+        month_name = current_date.strftime("%b %Y")
+        meses_map[month_name] = 0
+        etiquetas_meses.append(month_name)
+        current_date = (current_date.replace(day=28) + timedelta(days=4)).replace(day=1)
+    
+    # Llenar datos reales
+    for item in trabajos_por_mes:
+        month_name = item['mes'].strftime("%b %Y")
+        meses_map[month_name] = item['cantidad']
+    
+    # Convertir mapa a lista ordenada
+    for month in etiquetas_meses:
+        datos_trabajos.append(meses_map.get(month, 0))
+    
+    # Obtener las máquinas más utilizadas (top 5)
+    maquinas_mas_usadas = Trabajo.objects.filter(
+        empresa=empresa
+    ).values(
+        'maquina__nombre'
+    ).annotate(
+        cantidad=Count('id')
+    ).order_by('-cantidad')[:5]
+    
+    etiquetas_maquinas = []
+    datos_maquinas = []
+    
+    for item in maquinas_mas_usadas:
+        etiquetas_maquinas.append(item['maquina__nombre'])
+        datos_maquinas.append(item['cantidad'])
+    
+    # Obtener distribución de usuarios por rol de manera simple
+    # Evitamos consultas complejas que pueden no funcionar
+    user_roles = []
+    
+    # Contar usuarios administradores
+    admin_count = User.objects.filter(
+        groups__name='Admin',
+        perfil__empresa=empresa
+    ).count()
+    
+    if admin_count > 0:
+        user_roles.append({
+            'groups__name': 'Admin',
+            'user_count': admin_count
+        })
+    
+    # Contar usuarios supervisores
+    supervisor_count = User.objects.filter(
+        groups__name='Supervisor',
+        perfil__empresa=empresa
+    ).count()
+    
+    if supervisor_count > 0:
+        user_roles.append({
+            'groups__name': 'Supervisor',
+            'user_count': supervisor_count
+        })
+    
+    # Contar usuarios trabajadores
+    trabajador_count = User.objects.filter(
+        groups__name='Trabajador',
+        perfil__empresa=empresa
+    ).count()
+    
+    if trabajador_count > 0:
+        user_roles.append({
+            'groups__name': 'Trabajador',
+            'user_count': trabajador_count
+        })
+    
+    # Si el conteo de roles no suma el total, añadir "Sin rol asignado"
+    total_roles = admin_count + supervisor_count + trabajador_count
+    if total_roles < usuarios_count and (usuarios_count - total_roles) > 0:
+        user_roles.append({
+            'groups__name': 'Sin Rol Asignado',
+            'user_count': usuarios_count - total_roles
+        })
+    
+    # Obtener estados de trabajos para la gráfica de estados
+    estados_trabajo = {
+        'pendiente': Trabajo.objects.filter(empresa=empresa, estado='pendiente').count(),
+        'aprobado': Trabajo.objects.filter(empresa=empresa, estado='aprobado').count(),
+        'rechazado': Trabajo.objects.filter(empresa=empresa, estado='rechazado').count()
+    }
+    
+    # Eliminar estados con 0 trabajos
+    trabajos_por_estado = {k: v for k, v in estados_trabajo.items() if v > 0}
+    
+    # Crear contexto con TODOS los datos necesarios
+    context = {
+        'empresa': empresa,
+        'usuarios_count': usuarios_count,
+        'user_roles': user_roles,
+        'maquina_count': maquina_count,
+        'faena_count': faena_count,
+        'trabajo_count': trabajo_count,
+        'faenas_activas': faenas_activas,
+        'trabajos_por_estado': trabajos_por_estado,
+        'etiquetas_meses': etiquetas_meses,
+        'datos_trabajos': datos_trabajos,
+        'etiquetas_maquinas': etiquetas_maquinas,
+        'datos_maquinas': datos_maquinas
+    }
+    
+    return render(request, 'registros/detalles_empresa.html', context)
+
 
     empresa = get_object_or_404(Empresa, pk=pk)
 
-    # Calcular roles de usuario
-    user_roles = (
-        User.objects
-        .filter(perfil__empresa=empresa) # Asume relación User -> PerfilUsuario (perfil) -> Empresa (empresa)
-        .values('groups__name') # Asume relación User -> Group (groups)
-        .annotate(user_count=Count('id'))
-        .order_by('groups__name')
-    )
-
-    # Calcular conteos
+    # Contar máquinas
     maquina_count = Maquina.objects.filter(empresa=empresa).count()
+    
+    # Contar faenas
     faena_count = Faena.objects.filter(empresa=empresa).count()
+    
+    # Obtener faenas activas
+    faenas_activas = Faena.objects.filter(
+        empresa=empresa, 
+        estado='activa'
+    ).order_by('-fecha_inicio')[:5]  # Mostrar las 5 más recientes
+    
+    # Contar trabajos
     trabajo_count = Trabajo.objects.filter(empresa=empresa).count()
-
+    
+    # Obtener distribución de trabajos por estado
+    trabajos_por_estado = {}
+    estados_trabajo = Trabajo.objects.filter(empresa=empresa).values('estado').annotate(
+        cantidad=Count('id')
+    )
+    for estado in estados_trabajo:
+        trabajos_por_estado[estado['estado']] = estado['cantidad']
+    
+    # Obtener distribución de máquinas por estado
+    maquinas_por_estado = {}
+    # Nota: Si tu modelo de Maquina ya no tiene el campo 'estado', este código necesita ser adaptado
+    # Por ejemplo, podrías usar un campo diferente o una lógica diferente para categorizar las máquinas
+    
+    # Opción 1: Si tienes un campo alternativo para representar el estado
+    if hasattr(Maquina, 'estado_actual'):  # Reemplaza con el nombre real del campo si existe
+        estados_maquina = Maquina.objects.filter(empresa=empresa).values('estado_actual').annotate(
+            cantidad=Count('id')
+        )
+        for estado in estados_maquina:
+            maquinas_por_estado[estado['estado_actual']] = estado['cantidad']
+    
+    # Opción 2: Si no hay un campo de estado, podrías crear categorías basadas en otros atributos
+    # Por ejemplo, basado en la fecha de mantenimiento o alguna otra propiedad
+    else:
+        # Por defecto al menos mostramos máquinas activas
+        activas = Maquina.objects.filter(empresa=empresa, activa=True).count()
+        inactivas = Maquina.objects.filter(empresa=empresa, activa=False).count()
+        
+        if activas > 0:
+            maquinas_por_estado['operativa'] = activas
+        if inactivas > 0:
+            maquinas_por_estado['baja'] = inactivas
+    
+    # Obtener distribución de usuarios por rol
+    # Mejorado para asegurar que obtengamos correctamente los recuentos
+    user_roles = []
+    
+    # Obtener todos los grupos existentes primero
+    grupos = Group.objects.all()
+    
+    for grupo in grupos:
+        # Contar usuarios en este grupo para esta empresa
+        count = User.objects.filter(
+            groups=grupo,
+            perfil__empresa=empresa
+        ).count()
+        
+        if count > 0:
+            user_roles.append({
+                'groups__name': grupo.name,
+                'user_count': count
+            })
+    
+    # Añadimos "Sin rol" si hay usuarios que no están en ningún grupo
+    sin_rol_count = User.objects.filter(
+        perfil__empresa=empresa,
+        groups__isnull=True
+    ).count()
+    
+    if sin_rol_count > 0:
+        user_roles.append({
+            'groups__name': 'Sin Rol Asignado',
+            'user_count': sin_rol_count
+        })
+    
     # Crear el diccionario de contexto COMPLETO
     context = {
         'empresa': empresa,
@@ -217,15 +434,12 @@ def detalles_empresa(request, pk): # Asegúrate que tu URL use 'pk' si usas pk a
         'maquina_count': maquina_count,
         'faena_count': faena_count,
         'trabajo_count': trabajo_count,
-        # --- LÍNEAS AÑADIDAS ---
-        'max_usuarios': empresa.max_usuarios,
-        'max_faenas': empresa.max_faenas,
-        'max_maquinas': empresa.max_maquinas,
-        # --- FIN LÍNEAS AÑADIDAS ---
+        'faenas_activas': faenas_activas,
+        'trabajos_por_estado': trabajos_por_estado,
+        'maquinas_por_estado': maquinas_por_estado,
     }
-    # Renderizar la plantilla con el contexto actualizado
+    
     return render(request, 'registros/detalles_empresa.html', context)
-
 # ---------------------- VISTAS DE USUARIO ----------------------
 
 @login_required
