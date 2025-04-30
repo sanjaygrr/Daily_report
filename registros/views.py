@@ -764,10 +764,12 @@ def crear_trabajo(request):
 
 @login_required
 def historial(request):
+    # Obtener todos los trabajos con sus relaciones
     trabajos_query = Trabajo.objects.select_related(
         'empresa', 'faena', 'maquina', 'supervisor', 'trabajador'
     )
 
+    # Filtrar por empresa del usuario si no es superusuario
     if not request.user.is_superuser:
         empresa_actual = get_user_empresa(request.user)
         if empresa_actual:
@@ -775,21 +777,83 @@ def historial(request):
         else:
             # Si no es SU y no tiene empresa, no ve trabajos
             trabajos_query = Trabajo.objects.none()
+    else:
+        empresa_actual = None  # Para uso en los filtros más adelante
 
-    # Aplicar filtros de TrabajoFilter
-    trabajo_filter = TrabajoFilter(request.GET, queryset=trabajos_query)
+    # Aplicamos filtros manualmente basados en los parámetros GET
+    # FECHA: corregimos para asegurar que funcione correctamente
+    if 'fecha' in request.GET and request.GET['fecha']:
+        fecha_filtro = request.GET['fecha']
+        trabajos_query = trabajos_query.filter(fecha=fecha_filtro)
+    
+    # FAENA: Filtramos por el ID de la faena seleccionada
+    if 'faena' in request.GET and request.GET['faena']:
+        faena_id = request.GET['faena']
+        trabajos_query = trabajos_query.filter(faena_id=faena_id)
+    
+    # MÁQUINA: Filtramos por el ID de la máquina seleccionada
+    if 'maquina' in request.GET and request.GET['maquina']:
+        maquina_id = request.GET['maquina']
+        trabajos_query = trabajos_query.filter(maquina_id=maquina_id)
+    
+    # SUPERVISOR: Filtramos por el ID del supervisor seleccionado
+    if 'supervisor' in request.GET and request.GET['supervisor']:
+        supervisor_id = request.GET['supervisor']
+        trabajos_query = trabajos_query.filter(supervisor_id=supervisor_id)
+    
+    # TRABAJADOR: Filtramos por el ID del trabajador seleccionado
+    if 'trabajador' in request.GET and request.GET['trabajador']:
+        trabajador_id = request.GET['trabajador']
+        trabajos_query = trabajos_query.filter(trabajador_id=trabajador_id)
+    
+    # ESTADO: Filtramos por el estado seleccionado
+    if 'estado' in request.GET and request.GET['estado']:
+        estado = request.GET['estado']
+        trabajos_query = trabajos_query.filter(estado=estado)
 
-    # Ordenar antes de paginar
-    trabajos_ordenados = trabajo_filter.qs.order_by('-fecha', '-id') # Ejemplo de orden
+    # Obtener datos para los filtros dropdown
+    # Filtrar listas según la empresa del usuario
+    if empresa_actual:
+        faenas = Faena.objects.filter(empresa=empresa_actual).order_by('nombre')
+        maquinas = Maquina.objects.filter(empresa=empresa_actual).order_by('nombre')
+        supervisores = User.objects.filter(
+            groups__name='Supervisor',
+            perfil__empresa=empresa_actual
+        ).order_by('username')
+        trabajadores = User.objects.filter(
+            groups__name='Trabajador',
+            perfil__empresa=empresa_actual
+        ).order_by('username')
+    else:
+        # Si es superusuario o no hay empresa, mostrar todos
+        faenas = Faena.objects.all().order_by('nombre')
+        maquinas = Maquina.objects.all().order_by('nombre')
+        supervisores = User.objects.filter(groups__name='Supervisor').order_by('username')
+        trabajadores = User.objects.filter(groups__name='Trabajador').order_by('username')
 
-    paginator = Paginator(trabajos_ordenados, 15)
+    # Ordenar después de filtrar
+    trabajos_query = trabajos_query.order_by('-fecha', '-id')
+
+    # Paginación
+    paginator = Paginator(trabajos_query, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Añadir todos los datos necesarios al contexto
     context = {
-        'filter': trabajo_filter,
-        'page_obj': page_obj
+        'filter': {'qs': trabajos_query},  # Mantenemos la estructura esperada por el template
+        'page_obj': page_obj,
+        'faenas': faenas,
+        'maquinas': maquinas,
+        'supervisores': supervisores,
+        'trabajadores': trabajadores,
+        'estados': [
+            {'id': 'pendiente', 'nombre': 'Pendiente'},
+            {'id': 'aprobado', 'nombre': 'Aprobado'},
+            {'id': 'rechazado', 'nombre': 'Rechazado'}
+        ]
     }
+    
     return render(request, 'registros/historial.html', context)
 
 
