@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Report</title>
+    <title>{% block title %}Daily Report{% endblock %}</title>
     {% load static %}
     {% load custom_filters %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
@@ -13,7 +13,7 @@
     <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
 
     <style>
-        /* Tus estilos CSS (sin cambios) */
+        /* Tus estilos CSS existentes */
         body,
         html {
             height: 100%;
@@ -176,10 +176,145 @@
          .dropdown-icon.rotate {
              transform: rotate(180deg);
          }
+        
+        /* Dark Mode Styles */
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --navbar-bg: #111;
+            --navbar-text: #fff;
+            --sidebar-bg: #111;
+            --sidebar-text: #818181;
+            --sidebar-hover: #333;
+            --card-bg: #fff;
+            --card-text: #333;
+            --border-color: #dee2e6;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #f8f9fa;
+            --navbar-bg: #000;
+            --navbar-text: #fff;
+            --sidebar-bg: #000;
+            --sidebar-text: #b0b0b0;
+            --sidebar-hover: #333;
+            --card-bg: #2d2d2d;
+            --card-text: #f8f9fa;
+            --border-color: #404040;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .top-navbar {
+            background-color: var(--navbar-bg);
+        }
+
+        .sidebar {
+            background-color: var(--sidebar-bg);
+        }
+
+        .sidebar .nav-link {
+            color: var(--sidebar-text);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            color: var(--card-text);
+            border-color: var(--border-color);
+        }
+
+        .table {
+            color: var(--text-color);
+        }
+
+        .table thead {
+            background-color: var(--navbar-bg);
+            color: var(--navbar-text);
+        }
+
+        .form-control, .form-select {
+            background-color: var(--card-bg);
+            color: var(--card-text);
+            border-color: var(--border-color);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--card-bg);
+            color: var(--card-text);
+            border-color: #ffc107;
+            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+        }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px 10px;
+            margin-left: 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive adjustments */
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-form button {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-outline-warning {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             .sidebar.active { width: 100%; }
             .content-shifted { margin-left: 0; }
             footer.footer-shifted { margin-left: 0; }
+            
+            .user-info {
+                display: none !important;
+            }
+            
+            .logout-form button,
+            .btn-outline-warning {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-actions {
+                gap: 5px;
+            }
+            
+            .theme-toggle {
+                font-size: 18px;
+                padding: 3px 8px;
+            }
+            
+            .logout-form button,
+            .btn-outline-warning {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -204,7 +339,12 @@
             {% endif %}
         </div>
 
-        <div class="d-flex align-items-center">
+        <div class="navbar-actions">
+            <!-- Dark mode toggle -->
+            <button id="theme-toggle" class="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            
             {% if user.is_authenticated %}
                 <div class="user-info d-none d-md-block">
                     {{ user.username }}
@@ -214,7 +354,7 @@
                         ({{ user.groups.first.name }})
                     {% endif %}
                 </div>
-                <form method="post" action="{% url 'logout' %}" class="logout-form ms-3">
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
                     {% csrf_token %}
                     <button type="submit" class="nav-link btn-link">
                         <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
@@ -258,12 +398,12 @@
                     <div class="collapse" id="empresasMenuSU">
                         <ul class="nav flex-column ms-0">
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'crear_empresa' %}"> {# SIN NAMESPACE #}
+                                <a class="nav-link" href="{% url 'crear_empresa' %}">
                                     <i class="fas fa-plus me-2"></i>Crear Empresa
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'listar_empresas' %}"> {# SIN NAMESPACE #}
+                                <a class="nav-link" href="{% url 'listar_empresas' %}">
                                     <i class="fas fa-list me-2"></i>Lista de Empresas
                                 </a>
                             </li>
@@ -281,8 +421,8 @@
                     </a>
                     <div class="collapse" id="trabajosMenuAdmin">
                         <ul class="nav flex-column ms-0">
-                            <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li> {# SIN NAMESPACE #}
-                            <li class="nav-item"><a class="nav-link" href="{% url 'pendientes' %}"><i class="fas fa-tasks me-2"></i>Pendientes</a></li> {# SIN NAMESPACE #}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'pendientes' %}"><i class="fas fa-tasks me-2"></i>Pendientes</a></li>
                         </ul>
                     </div>
                  </li>
@@ -293,8 +433,8 @@
                     </a>
                     <div class="collapse" id="maquinasMenuAdmin">
                         <ul class="nav flex-column ms-0">
-                            <li class="nav-item"><a class="nav-link" href="{% url 'crear_maquina' %}"><i class="fas fa-plus me-2"></i>Crear Máquina</a></li> {# SIN NAMESPACE #}
-                            <li class="nav-item"><a class="nav-link" href="{% url 'listar_maquinas' %}"><i class="fas fa-list me-2"></i>Lista de Máquinas</a></li> {# SIN NAMESPACE #}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'crear_maquina' %}"><i class="fas fa-plus me-2"></i>Crear Máquina</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'listar_maquinas' %}"><i class="fas fa-list me-2"></i>Lista de Máquinas</a></li>
                         </ul>
                     </div>
                  </li>
@@ -305,8 +445,8 @@
                     </a>
                     <div class="collapse" id="faenasMenuAdmin">
                         <ul class="nav flex-column ms-0">
-                            <li class="nav-item"><a class="nav-link" href="{% url 'crear_faena' %}"><i class="fas fa-plus me-2"></i>Crear Faena</a></li> {# SIN NAMESPACE #}
-                            <li class="nav-item"><a class="nav-link" href="{% url 'listar_faenas' %}"><i class="fas fa-list me-2"></i>Lista de Faenas</a></li> {# SIN NAMESPACE #}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'crear_faena' %}"><i class="fas fa-plus me-2"></i>Crear Faena</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'listar_faenas' %}"><i class="fas fa-list me-2"></i>Lista de Faenas</a></li>
                         </ul>
                     </div>
                  </li>
@@ -317,12 +457,11 @@
                     </a>
                     <div class="collapse" id="usuariosMenuAdmin">
                         <ul class="nav flex-column ms-0">
-                            <li class="nav-item"><a class="nav-link" href="{% url 'register_user' %}"><i class="fas fa-user-plus me-2"></i>Registrar Usuario</a></li> {# SIN NAMESPACE #}
-                            <li class="nav-item"><a class="nav-link" href="{% url 'listar_usuarios' %}"><i class="fas fa-list me-2"></i>Lista de Usuarios</a></li> {# SIN NAMESPACE #}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'register_user' %}"><i class="fas fa-user-plus me-2"></i>Registrar Usuario</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'listar_usuarios' %}"><i class="fas fa-list me-2"></i>Lista de Usuarios</a></li>
                         </ul>
                     </div>
                  </li>
-                 {# El bloque de Empresas fue removido de aquí #}
 
             {% elif user|user_is_in_group:"Supervisor" %}
                  <li class="nav-item dropdown">
@@ -332,16 +471,16 @@
                      </a>
                      <div class="collapse" id="trabajosMenuSup">
                          <ul class="nav flex-column ms-0">
-                             <li class="nav-item"><a class="nav-link" href="{% url 'crear_trabajo' %}"><i class="fas fa-plus me-2"></i>Crear Trabajo</a></li> {# SIN NAMESPACE #}
-                             <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li> {# SIN NAMESPACE #}
-                             <li class="nav-item"><a class="nav-link" href="{% url 'pendientes' %}"><i class="fas fa-tasks me-2"></i>Pendientes</a></li> {# SIN NAMESPACE #}
+                             <li class="nav-item"><a class="nav-link" href="{% url 'crear_trabajo' %}"><i class="fas fa-plus me-2"></i>Crear Trabajo</a></li>
+                             <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li>
+                             <li class="nav-item"><a class="nav-link" href="{% url 'pendientes' %}"><i class="fas fa-tasks me-2"></i>Pendientes</a></li>
                          </ul>
                      </div>
                  </li>
 
             {% elif user|user_is_in_group:"Trabajador" %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'crear_trabajo' %}"><i class="fas fa-plus me-2"></i>Crear Trabajo</a></li> {# SIN NAMESPACE #}
-                <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li> {# SIN NAMESPACE #}
+                <li class="nav-item"><a class="nav-link" href="{% url 'crear_trabajo' %}"><i class="fas fa-plus me-2"></i>Crear Trabajo</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li>
 
             {% endif %}
         </ul>
@@ -371,13 +510,46 @@
     </footer>
 
     <script>
-        // Tu JavaScript (sin cambios)
+        // JavaScript existente
         document.addEventListener('DOMContentLoaded', function() {
             const menuToggle = document.getElementById('menu-toggle');
             const closeSidebar = document.getElementById('close-sidebar');
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
             const footer = document.getElementById('footer');
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = themeToggle.querySelector('i');
+
+            // Dark mode functionality
+            function updateThemeIcon(isDark) {
+                if (isDark) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            }
+
+            // Initialize theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeIcon(true);
+            }
+
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                if (currentTheme === 'dark') {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                    updateThemeIcon(false);
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    updateThemeIcon(true);
+                }
+            });
 
             function openSidebar() {
                 sidebar.classList.add('active');
