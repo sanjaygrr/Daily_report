@@ -26,7 +26,13 @@
                         <td>{{ faena.ubicacion|default:"-" }}</td>
                         <td>
                             {% if faena.responsable %}
-                                {{ faena.responsable.get_full_name|default:faena.responsable.username }}
+                                {% if faena.responsable.first_name and faena.responsable.last_name %}
+                                    {{ faena.responsable.first_name }} {{ faena.responsable.last_name }}
+                                {% elif faena.responsable.first_name %}
+                                    {{ faena.responsable.first_name }}
+                                {% else %}
+                                    {{ faena.responsable.username }}
+                                {% endif %}
                             {% else %}
                                 -
                             {% endif %}
@@ -90,7 +96,15 @@
                                   <select class="form-select" id="edit_faena_responsable_{{ faena.pk }}" name="responsable">
                                      <option value="">--- Selecciona ---</option>
                                      {% for sup in supervisores_list %} {# Usa la lista pasada desde la vista #}
-                                     <option value="{{ sup.pk }}" {% if faena.responsable and sup.pk == faena.responsable.pk %}selected{% endif %}>{{ sup.get_full_name|default:sup.username }}</option>
+                                     <option value="{{ sup.pk }}" {% if faena.responsable and sup.pk == faena.responsable.pk %}selected{% endif %}>
+                                        {% if sup.first_name and sup.last_name %}
+                                            {{ sup.first_name }} {{ sup.last_name }}
+                                        {% elif sup.first_name %}
+                                            {{ sup.first_name }}
+                                        {% else %}
+                                            {{ sup.username }}
+                                        {% endif %}
+                                     </option>
                                      {% endfor %}
                                  </select>
                                  <small class="text-muted">Solo supervisores de la empresa.</small>

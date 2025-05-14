@@ -14,12 +14,23 @@ from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario
 class UserModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         # Si tiene nombre y apellido, mostrar nombre completo, de lo contrario mostrar username
+        # Nota: Si el campo username muestra el RUT, queremos evitar mostrarlo
         if obj.first_name and obj.last_name:
             return f"{obj.first_name} {obj.last_name}"
         elif obj.first_name:
             return obj.first_name
         else:
             return obj.username
+            
+    # Sobrescribir el método para asegurarse de que solo se muestra el label personalizado
+    def get_bound_field(self, form, field_name):
+        bound_field = super().get_bound_field(form, field_name)
+        # Sobrescribir el método que Django usa para renderizar el campo
+        # Esto asegura que solo se muestra el valor que retorna label_from_instance
+        if hasattr(bound_field, 'choices'):
+            orig_choices = bound_field.choices
+            bound_field.choices = [(val, txt) for val, txt in orig_choices]
+        return bound_field
 
 # ---------------------- FORMULARIO REGISTRO DE USUARIO ----------------------
 
