@@ -959,8 +959,27 @@ def crear_trabajo(request):
                           trabajo.empresa = empresa_actual
 
                 trabajo.save()
+                
+                # Actualizar el horometro de la máquina si está configurado para hacerlo
+                if hasattr(trabajo.maquina, 'horometro_actual') and trabajo.horometro_final:
+                    try:
+                        maquina = trabajo.maquina
+                        maquina.horometro_actual = trabajo.horometro_final
+                        maquina.save(update_fields=['horometro_actual'])
+                    except Exception as e:
+                        # Registrar el error pero no interrumpir el flujo
+                        print(f"Error al actualizar horómetro de máquina: {e}")
+                
                 messages.success(request, '¡Trabajo registrado exitosamente!')
-                return redirect('historial') # O a donde corresponda
+                
+                # Si el usuario tiene rol de Trabajador, redirigir a crear otro trabajo
+                if 'crear_otra' in request.POST or request.user.groups.filter(name='Trabajador').exists():
+                    # Limpiar sesión de formulario
+                    if 'trabajo_form_data' in request.session:
+                        del request.session['trabajo_form_data']
+                    return redirect('crear_trabajo')
+                else:
+                    return redirect('historial')
             except IntegrityError as e:
                 messages.error(request, f'Error de base de datos al crear trabajo: {str(e)}')
             except Exception as e:

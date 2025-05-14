@@ -524,16 +524,11 @@ class TrabajoForm(forms.ModelForm):
         cleaned_data = super().clean()
         horometro_inicial = cleaned_data.get('horometro_inicial')
         horometro_final = cleaned_data.get('horometro_final')
-        trabajador = cleaned_data.get('trabajador')
-        supervisor = cleaned_data.get('supervisor')
-
+        
         if horometro_inicial is not None and horometro_final is not None:
              if horometro_final < horometro_inicial:
-                  self.add_error('horometro_final', 'El horómetro/kilometraje final no puede ser menor que el inicial.')
-
-        # La validación del modelo Trabaja.clean() se ejecutará también
-        # y verificará la pertenencia a la empresa, etc.
-
+                  self.add_error('horometro_final', 'El horómetro/kilometraje final debe ser mayor que el inicial.')
+        
         return cleaned_data
 
     def save(self, commit=True):

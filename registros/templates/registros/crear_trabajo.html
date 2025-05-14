@@ -324,13 +324,23 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>Cancelar
-                </button>
-                <button type="button" id="btnGuardar" class="btn btn-warning btn-lg">
-                    <i class="fas fa-save me-1"></i>Confirmar y Guardar
-                </button>
+            <div class="modal-footer flex-column align-items-stretch">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="crearOtraCheck" name="crear_otra" value="1">
+                        <label class="form-check-label fs-5" for="crearOtraCheck">
+                            <i class="fas fa-plus-circle me-1"></i>Crear otro trabajo después de guardar
+                        </label>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" id="btnGuardar" class="btn btn-warning btn-lg">
+                        <i class="fas fa-save me-1"></i>Confirmar y Guardar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -385,8 +395,16 @@
         // Modal de confirmación
         const btnConfirmar = document.getElementById('btnConfirmar');
         const trabajoForm = document.getElementById('trabajoForm');
-        const confirmacionModal = new bootstrap.Modal(document.getElementById('confirmacionModal'));
+        const modalElement = document.getElementById('confirmacionModal');
+        const confirmacionModal = new bootstrap.Modal(modalElement);
         const btnGuardar = document.getElementById('btnGuardar');
+        
+        // Asegurarse de que el modal se reinicie cuando se cierre
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            // Habilitar el botón de guardar nuevamente cuando se cierre el modal
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fas fa-save me-1"></i>Confirmar y Guardar';
+        });
         
         // Al hacer clic en el botón Guardar, mostrar el modal de confirmación
         btnConfirmar.addEventListener('click', function() {
@@ -442,7 +460,33 @@
         
         // Al confirmar, enviar el formulario
         btnGuardar.addEventListener('click', function() {
-            trabajoForm.submit();
+            // Asegurarse que el formulario no esté ya enviado
+            if (!document.querySelector('input[name="trabajo_submitted"]')) {
+                // Añadir un campo oculto para indicar que el formulario ha sido enviado
+                const submittedField = document.createElement('input');
+                submittedField.type = 'hidden';
+                submittedField.name = 'trabajo_submitted';
+                submittedField.value = 'true';
+                trabajoForm.appendChild(submittedField);
+                
+                // Verificar si el usuario quiere crear otro trabajo
+                const crearOtraCheck = document.getElementById('crearOtraCheck');
+                if (crearOtraCheck && crearOtraCheck.checked) {
+                    // Añadir campo oculto al formulario para indicar que quiere crear otro trabajo
+                    const crearOtraField = document.createElement('input');
+                    crearOtraField.type = 'hidden';
+                    crearOtraField.name = 'crear_otra';
+                    crearOtraField.value = '1';
+                    trabajoForm.appendChild(crearOtraField);
+                }
+                
+                // Enviar el formulario
+                trabajoForm.submit();
+                
+                // Deshabilitar el botón para evitar múltiples envíos accidentales
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+            }
         });
     });
 </script>
