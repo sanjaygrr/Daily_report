@@ -75,16 +75,13 @@
                                     <label for="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" class="form-label">Fecha Adquisición</label>
                                     <input type="date" class="form-control" id="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" name="fecha_adquisicion" value="{{ maquina.fecha_adquisicion|date:'Y-m-d' }}">
                                 </div>
-                                {# --- CAMPO DE ESTADO ELIMINADO DEL MODAL ---
+
                                 <div class="col-md-6 mb-3">
                                     <label for="edit_maquina_estado_{{ maquina.pk }}" class="form-label">Estado</label>
                                     <select class="form-select" id="edit_maquina_estado_{{ maquina.pk }}" name="estado">
                                         {# Opciones de estado eliminadas #}
                                     </select>
                                 </div>
-                                #}
-                                {# Si tienes otros campos como 'activa', 'horometro_actual', etc.,
-                                   asegúrate de que estén aquí si quieres editarlos #}
                             </div>
                         </div>
                         <div class="modal-footer">
