@@ -438,8 +438,8 @@ class Trabajo(models.Model):
             errors['maquina'] = "La faena y la máquina deben pertenecer a la misma empresa."
 
         if self.horometro_inicial is not None and self.horometro_final is not None:
-            if self.horometro_final <= self.horometro_inicial:
-                errors['horometro_final'] = "El horómetro/Km final debe ser mayor o igual que el inicial."
+            if self.horometro_final < self.horometro_inicial:
+                errors['horometro_final'] = "El horómetro/Km final debe ser mayor que el inicial."
 
         # Validar pertenencia a empresa solo si el usuario tiene perfil y faena asignada
         empresa_trabajo = self.faena.empresa if self.faena else None
