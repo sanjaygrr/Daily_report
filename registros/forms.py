@@ -10,6 +10,17 @@ from django.db.models import Q
 # Asegúrate de importar todos tus modelos aquí
 from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario
 
+# Clase personalizada para mostrar los usuarios por nombre completo en lugar de username
+class UserModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        # Si tiene nombre y apellido, mostrar nombre completo, de lo contrario mostrar username
+        if obj.first_name and obj.last_name:
+            return f"{obj.first_name} {obj.last_name}"
+        elif obj.first_name:
+            return obj.first_name
+        else:
+            return obj.username
+
 # ---------------------- FORMULARIO REGISTRO DE USUARIO ----------------------
 
 class UserRegistrationForm(forms.ModelForm):
@@ -362,6 +373,14 @@ class MaquinaForm(forms.ModelForm):
 # ---------------------- FORMULARIO FAENA ----------------------
 
 class FaenaForm(forms.ModelForm):
+    # Usar nuestro campo personalizado para mostrar el nombre completo del responsable
+    responsable = UserModelChoiceField(
+        queryset=User.objects.none(), # Se llenará en __init__
+        required=True,
+        label="Supervisor Responsable",
+        to_field_name="id"
+    )
+    
     class Meta:
         model = Faena
         # Quitamos 'empresa' de los campos del formulario
@@ -374,11 +393,9 @@ class FaenaForm(forms.ModelForm):
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'ubicacion': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'responsable': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = { # Opcional: mejorar etiquetas
             'fecha_termino_estimada': 'Fecha Término Estimada',
-            'responsable': 'Supervisor Responsable',
         }
 
     def __init__(self, *args, **kwargs):
@@ -460,11 +477,20 @@ class TrabajoForm(forms.ModelForm):
         initial=timezone.now().date()
     )
 
-    # Forzar que trabajador sea requerido en el formulario
-    trabajador = forms.ModelChoiceField(
+    # Forzar que trabajador sea requerido en el formulario y mostrar nombres completos
+    trabajador = UserModelChoiceField(
         queryset=User.objects.none(), # Se llenará en __init__
         required=True,
-        label="Trabajador"
+        label="Trabajador",
+        to_field_name="id"
+    )
+    
+    # Personalizar el supervisor para mostrar nombre completo
+    supervisor = UserModelChoiceField(
+        queryset=User.objects.none(), # Se llenará en __init__
+        required=True,
+        label="Supervisor",
+        to_field_name="id"
     )
 
     class Meta:

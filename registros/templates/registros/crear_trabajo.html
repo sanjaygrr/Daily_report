@@ -445,7 +445,9 @@
             document.getElementById('modal-supervisor').textContent = supervisorSelect.options[supervisorSelect.selectedIndex]?.text || 'No seleccionado';
             
             {% if user.groups.all.0.name == 'Trabajador' %}
-                document.getElementById('modal-trabajador').textContent = "{{ user.get_full_name|default:user.username }}";
+                // Mostrar nombre completo del trabajador, no el username
+                const nombreCompleto = "{{ user.first_name }} {{ user.last_name }}";
+                document.getElementById('modal-trabajador').textContent = nombreCompleto.trim() !== "" ? nombreCompleto : "{{ user.username }}";
             {% else %}
                 const trabajadorSelect = document.getElementById('id_trabajador');
                 document.getElementById('modal-trabajador').textContent = trabajadorSelect.options[trabajadorSelect.selectedIndex]?.text || 'No seleccionado';
