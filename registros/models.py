@@ -139,7 +139,6 @@ class Maquina(models.Model):
     class Meta:
         verbose_name = "Máquina"
         verbose_name_plural = "Máquinas"
-        unique_together = ('nombre', 'empresa')
         ordering = ['nombre']
         permissions = [
             ("gestion_maquina", "Puede gestionar completamente las máquinas"),
