@@ -146,7 +146,7 @@ class Maquina(models.Model):
 
     def __str__(self):
         modelo_str = f" | Modelo: {self.modelo}" if self.modelo else ""
-        serie_str = f" | Serie: {self.numero_serie}" if self.numero_serie else ""
+        serie_str = f" | Cdigo: {self.numero_serie}" if self.numero_serie else ""
         return f"{self.nombre}{modelo_str}{serie_str} - {self.empresa.nombre}"
 
     def clean(self):
