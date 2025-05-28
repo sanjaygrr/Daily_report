@@ -25,10 +25,33 @@
             margin-left: 0;
             transition: margin-left 0.3s;
             padding-top: 70px;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         .content-shifted {
             margin-left: 250px;
         }
+        
+        /* Ajuste para pantallas grandes cuando el sidebar está abierto */
+        @media (min-width: 769px) {
+            .content-shifted {
+                max-width: calc(100% - 250px);
+            }
+        }
+        
+        /* Ajuste para el container dentro del content */
+        .content .container {
+            max-width: 100%;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        @media (min-width: 1200px) {
+            .content .container {
+                max-width: 1140px;
+            }
+        }
+        
         footer {
             flex-shrink: 0;
             transition: margin-left 0.3s;
@@ -367,6 +390,108 @@
         .sidebar .nav-link.logout-link:hover i {
             transform: translateX(3px);
         }
+        
+        /* Mejoras para tablas responsivas */
+        .table-responsive {
+            margin-left: -15px;
+            margin-right: -15px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        /* En pantallas grandes, limitar el ancho del contenido */
+        @media (min-width: 1400px) {
+            .content .container-fluid {
+                max-width: 1320px;
+                margin: 0 auto;
+            }
+        }
+        
+        /* Ajustes para evitar desbordamiento */
+        .card {
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Mejorar visualización de tablas */
+        .table th {
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        /* Ajustar botones en grupos */
+        .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+        }
+        
+        /* En pantallas medianas, mostrar tabla pero con scroll si es necesario */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            .table {
+                min-width: 600px;
+            }
+        }
+        
+        /* Estilos para tarjetas mejoradas */
+        .hover-shadow {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        
+        .hover-shadow:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+        }
+        
+        .bg-opacity-10 {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .fw-medium {
+            font-weight: 500;
+        }
+        
+        /* Mejorar apariencia de badges */
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+        
+        /* Ajustar altura de tarjetas en grid */
+        .card.h-100 {
+            min-height: 280px;
+        }
+        
+        /* Estilos para tarjetas con borde de advertencia */
+        .border-warning {
+            border-color: #ffc107 !important;
+            border-width: 2px !important;
+        }
+        
+        .bg-opacity-10 {
+            --bs-bg-opacity: .1;
+        }
+        
+        /* Mejoras para el contador de pendientes */
+        .text-truncate {
+            max-width: 100%;
+        }
+        
+        /* Mejorar visualización de recursos en tarjetas */
+        .border-start.border-3 {
+            border-width: 3px !important;
+        }
     </style>
 </head>
 
@@ -560,8 +685,10 @@
         {% endif %}
     </div>
 
-    <main class="container-fluid mt-3 mb-5 content" id="main-content">
-        {% block content %}{% endblock %}
+    <main class="content" id="main-content">
+        <div class="container-fluid px-3 px-md-4">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
     <footer class="bg-dark text-white text-center p-3" id="footer">

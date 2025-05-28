@@ -3,71 +3,102 @@
 {% block title %}Lista de Máquinas{% endblock %}
 
 {% block content %}
-<div class="card p-4">
+<div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0">Máquinas</h1>
         <a href="{% url 'crear_maquina' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Nueva Máquina
+            <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
+            <span class="d-none d-sm-inline">Nueva Máquina</span>
+            <span class="d-sm-none">+</span>
         </a>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Nombre</th>
-                    <th>Modelo</th>
-                    <th>Código</th>
-                    <th class="text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for maquina in maquinas_list %}
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                {% if maquina.imagen %}
-                                    <img src="{{ maquina.imagen.url }}" alt="{{ maquina.nombre }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                                {% else %}
-                                    <div class="rounded-circle bg-secondary me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                        <i class="fas fa-truck text-white"></i>
-                                    </div>
-                                {% endif %}
-                                <div>
-                                    <strong>{{ maquina.nombre }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ maquina.empresa.nombre }}</small>
+    {# Grid de tarjetas para todas las pantallas #}
+    <div class="row g-3">
+        {% for maquina in maquinas_list %}
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="card h-100 shadow-sm hover-shadow">
+                    <div class="card-body">
+                        {# Encabezado con imagen y nombre #}
+                        <div class="d-flex align-items-center mb-3">
+                            {% if maquina.imagen %}
+                                <img src="{{ maquina.imagen.url }}" alt="{{ maquina.nombre }}" 
+                                     class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary me-3 d-flex align-items-center justify-content-center" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-truck text-white fa-lg"></i>
                                 </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1 text-truncate">{{ maquina.nombre }}</h5>
+                                <p class="text-muted small mb-0">{{ maquina.empresa.nombre }}</p>
                             </div>
-                        </td>
-                        <td>{{ maquina.modelo|default:"-" }}</td>
-                        <td>{{ maquina.numero_serie|default:"-" }}</td>
-                        <td class="text-center">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editarMaquinaModal{{ maquina.pk }}" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detallesMaquinaModal{{ maquina.pk }}" title="Ver detalles">
-                                    <i class="fas fa-info-circle"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#eliminarMaquinaModal{{ maquina.pk }}" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                        </div>
+                        
+                        {# Información de la máquina #}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small">
+                                    <i class="fas fa-cog me-1"></i> Modelo
+                                </span>
+                                <span class="small fw-medium">{{ maquina.modelo|default:"No especificado" }}</span>
                             </div>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center py-4">
-                            <div class="text-muted">
-                                <i class="fas fa-truck fa-3x mb-3"></i>
-                                <p class="mb-0">No hay máquinas disponibles.</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">
+                                    <i class="fas fa-barcode me-1"></i> Código
+                                </span>
+                                <span class="small fw-medium">{{ maquina.numero_serie|default:"No especificado" }}</span>
                             </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            {% if maquina.fecha_adquisicion %}
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="text-muted small">
+                                    <i class="fas fa-calendar me-1"></i> Adquisición
+                                </span>
+                                <span class="small fw-medium">{{ maquina.fecha_adquisicion|date:"d/m/Y" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {# Botones de acción #}
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary flex-fill" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#detallesMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <span class="d-none d-sm-inline">Detalles</span>
+                                <span class="d-sm-none">Info</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning flex-fill" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editarMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-edit me-1"></i>
+                                <span class="d-none d-sm-inline">Editar</span>
+                                <span class="d-sm-none">Edit</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#eliminarMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-truck fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay máquinas disponibles</h5>
+                        <p class="text-muted mb-4">Comienza agregando tu primera máquina</p>
+                        <a href="{% url 'crear_maquina' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Agregar Máquina
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 
     {# --- Modales --- #}
