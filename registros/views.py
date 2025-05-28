@@ -88,6 +88,9 @@ def home(request):
             context['logo_empresa'] = empresa.logo.url
     return render(request, 'registros/home.html', context)
 
+def landing_page(request):
+    return render(request, 'registros/landing_page.html')
+
 # ---------------------- VISTAS DE EMPRESA ----------------------
 
 @login_required
