@@ -36,5 +36,5 @@ urlpatterns = [
          views.eliminar_usuario, name='eliminar_usuario'),
     path('guardar_cambios_usuarios/', views.guardar_cambios_usuarios,
          name='guardar_cambios_usuarios'),
-
+    path('dashboard/', views.dashboard_admin, name='dashboard_admin'),
 ]

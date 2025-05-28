@@ -17,7 +17,7 @@ from django.contrib import messages
 from django.db import IntegrityError
 from django.utils import timezone
 from django.http import HttpResponse, HttpResponseForbidden
-from django.db.models import Q, Count, Prefetch
+from django.db.models import Q, Count, Prefetch, Sum
 from django.core.paginator import Paginator
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -1365,3 +1365,152 @@ def generar_pdf_trabajo(request, pk):
     p.showPage()
     p.save()
     return response
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='Admin').exists())
+def dashboard_admin(request):
+    # Obtener la empresa del usuario
+    empresa = get_user_empresa(request.user)
+    if not empresa:
+        messages.error(request, "No se encontró una empresa asociada a su usuario.")
+        return redirect('home')
+
+    # Conteo de usuarios
+    usuarios_count = PerfilUsuario.objects.filter(empresa=empresa).count()
+    
+    # Conteo de máquinas
+    maquina_count = Maquina.objects.filter(empresa=empresa).count()
+    
+    # Conteo de faenas
+    faena_count = Faena.objects.filter(empresa=empresa).count()
+    
+    # Conteo de trabajos
+    trabajo_count = Trabajo.objects.filter(empresa=empresa).count()
+    
+    # Obtener faenas activas
+    faenas_activas = Faena.objects.filter(
+        empresa=empresa, 
+        estado='activa'
+    ).order_by('-fecha_inicio')[:5]
+    
+    # Obtener trabajos por mes para el gráfico de evolución (últimos 6 meses)
+    from django.db.models.functions import TruncMonth
+    from datetime import datetime, timedelta
+    
+    fecha_fin = datetime.now().date() + timedelta(days=1)
+    fecha_inicio = (datetime.now() - timedelta(days=180)).date()
+    
+    trabajos_por_mes = Trabajo.objects.filter(
+        empresa=empresa,
+        fecha__gte=fecha_inicio,
+        fecha__lt=fecha_fin
+    ).annotate(
+        mes=TruncMonth('fecha')
+    ).values('mes').annotate(
+        cantidad=Count('id')
+    ).order_by('mes')
+    
+    # Preparar datos para el gráfico
+    etiquetas_meses = []
+    datos_trabajos = []
+    
+    meses_map = {}
+    current_date = fecha_inicio.replace(day=1)
+    while current_date < fecha_fin:
+        month_name = current_date.strftime("%b %Y")
+        meses_map[month_name] = 0
+        etiquetas_meses.append(month_name)
+        current_date = (current_date.replace(day=28) + timedelta(days=4)).replace(day=1)
+    
+    for item in trabajos_por_mes:
+        month_name = item['mes'].strftime("%b %Y")
+        meses_map[month_name] = item['cantidad']
+    
+    for month in etiquetas_meses:
+        datos_trabajos.append(meses_map.get(month, 0))
+    
+    # Obtener las máquinas más utilizadas
+    maquinas_mas_usadas = Trabajo.objects.filter(
+        empresa=empresa
+    ).values(
+        'maquina__nombre'
+    ).annotate(
+        cantidad=Count('id')
+    ).order_by('-cantidad')[:5]
+    
+    # Obtener distribución de usuarios por rol
+    user_roles = []
+    
+    # Contar usuarios por rol
+    for grupo in Group.objects.all():
+        count = User.objects.filter(
+            groups=grupo,
+            perfil__empresa=empresa
+        ).count()
+        
+        if count > 0:
+            user_roles.append({
+                'groups__name': grupo.name,
+                'user_count': count
+            })
+    
+    # Añadir usuarios sin rol
+    sin_rol_count = User.objects.filter(
+        perfil__empresa=empresa,
+        groups__isnull=True
+    ).count()
+    
+    if sin_rol_count > 0:
+        user_roles.append({
+            'groups__name': 'Sin Rol Asignado',
+            'user_count': sin_rol_count
+        })
+
+    # Obtener trabajos pendientes
+    trabajos_pendientes = Trabajo.objects.filter(
+        empresa=empresa,
+        estado='pendiente'
+    ).select_related('faena', 'maquina', 'trabajador').order_by('-fecha')[:5]
+
+    # Obtener estadísticas de trabajos por estado
+    trabajos_por_estado = Trabajo.objects.filter(
+        empresa=empresa
+    ).values('estado').annotate(
+        cantidad=Count('id')
+    )
+
+    # Obtener consumo total de recursos
+    consumo_recursos = Trabajo.objects.filter(
+        empresa=empresa,
+        fecha__gte=fecha_inicio
+    ).aggregate(
+        total_petroleo=Sum('petroleo_litros'),
+        total_aceite=Sum('aceite_litros'),
+        total_horas=Sum('total_horas')
+    )
+
+    # Obtener trabajos recientes
+    trabajos_recientes = Trabajo.objects.filter(
+        empresa=empresa
+    ).select_related(
+        'faena', 'maquina', 'trabajador', 'supervisor'
+    ).order_by('-fecha')[:5]
+    
+    context = {
+        'empresa': empresa,
+        'usuarios_count': usuarios_count,
+        'maquina_count': maquina_count,
+        'faena_count': faena_count,
+        'trabajo_count': trabajo_count,
+        'faenas_activas': faenas_activas,
+        'etiquetas_meses': etiquetas_meses,
+        'datos_trabajos': datos_trabajos,
+        'maquinas_mas_usadas': maquinas_mas_usadas,
+        'user_roles': user_roles,
+        'trabajos_pendientes': trabajos_pendientes,
+        'trabajos_por_estado': trabajos_por_estado,
+        'consumo_recursos': consumo_recursos,
+        'trabajos_recientes': trabajos_recientes
+    }
+    
+    return render(request, 'registros/dashboard_admin.html', context)

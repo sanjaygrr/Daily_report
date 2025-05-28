@@ -414,6 +414,11 @@
 
             {% elif user|user_is_in_group:"Admin" %}
                  {# Admin VE TODO MENOS Empresas (según nuevo requisito) #}
+                 <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard_admin' %}">
+                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                    </a>
+                 </li>
                  <li class="nav-item dropdown">
                     <a class="nav-link" href="#trabajosMenuAdmin" data-bs-toggle="collapse" aria-expanded="false">
                         <i class="fas fa-clipboard-check me-2"></i>Trabajos
