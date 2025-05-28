@@ -161,7 +161,7 @@
                         <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detalleModal{{ trabajo.pk }}">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <form method="post" action="{% url 'generar_pdf_trabajo' trabajo.pk %}">
+                        <form method="post" action="{% url 'generar_pdf_trabajo' trabajo.pk %}" target="_blank">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-file-pdf"></i>
@@ -308,7 +308,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <form method="post" action="{% url 'generar_pdf_trabajo' trabajo.pk %}" class="me-auto">
+                <form method="post" action="{% url 'generar_pdf_trabajo' trabajo.pk %}" target="_blank" class="me-auto">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-file-pdf me-1"></i>Descargar PDF

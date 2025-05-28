@@ -673,6 +673,7 @@ def listar_maquinas(request):
     # Pasa la lista completa con la clave 'maquinas_list' que espera la plantilla
     context = {
         'maquinas_list': maquinas_list,
+        'now': timezone.now().date(),  # Agregamos la fecha actual para comparaciones
     }
     return render(request, 'registros/listar_maquinas.html', context)
 
@@ -1252,65 +1253,117 @@ def generar_pdf_trabajo(request, pk):
     if request.user.is_superuser:
          permiso_para_ver = True
     elif trabajo.empresa == user_empresa:
-         # Asume que cualquier usuario de la empresa puede ver el PDF
          permiso_para_ver = True
-         # Podrías restringir más por rol si es necesario
 
     if not permiso_para_ver:
         messages.error(request, "No tienes permiso para generar este reporte.")
-        # Redirigir a historial o home podría ser mejor que Forbidden
         return redirect('historial')
 
     response = HttpResponse(content_type='application/pdf')
     filename = f"Reporte_{trabajo.faena.nombre if trabajo.faena else 'SinFaena'}_{trabajo.fecha.strftime('%Y%m%d')}.pdf"
-    response['Content-Disposition'] = f'inline; filename="{filename}"' # inline para ver en navegador
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
     margin = inch
 
-    # Logo (manejo seguro de archivos)
+    # Configuración de colores
+    primary_color = colors.HexColor('#0d6efd')  # Color primario de Bootstrap
+    secondary_color = colors.HexColor('#6c757d')  # Color secundario
+    accent_color = colors.HexColor('#198754')  # Color de éxito
+    light_gray = colors.HexColor('#f8f9fa')  # Color de fondo claro
+
+    # Encabezado con fondo de color y gradiente
+    p.setFillColor(primary_color)
+    p.rect(0, height - 2.5*inch, width, 2.5*inch, fill=True, stroke=False)
+    
+    # Logo y nombre de la empresa
     logo_path_temp = None
     if trabajo.empresa and trabajo.empresa.logo:
         try:
             logo_file = default_storage.open(trabajo.empresa.logo.name)
-            # Crear archivo temporal seguro
-            fd, logo_path_temp = tempfile.mkstemp(suffix=".png") # Asume png o ajusta
+            fd, logo_path_temp = tempfile.mkstemp(suffix=".png")
             with os.fdopen(fd, 'wb') as temp_logo:
                  temp_logo.write(logo_file.read())
             logo_file.close()
-            # Dibujar imagen
-            p.drawImage(logo_path_temp, width - margin - 1.5*inch, height - margin - 0.5*inch,
-                         width=1.5*inch, height=0.5*inch, preserveAspectRatio=True, mask='auto')
+            
+            # Dibujar logo con fondo blanco y borde
+            logo_width = 1.5*inch
+            logo_height = 1.5*inch
+            logo_x = margin
+            logo_y = height - margin - logo_height
+            
+            # Fondo blanco para el logo con sombra
+            p.setFillColor(colors.white)
+            p.rect(logo_x - 0.1*inch, logo_y - 0.1*inch, 
+                   logo_width + 0.2*inch, logo_height + 0.2*inch, 
+                   fill=True, stroke=False)
+            
+            # Borde para el logo
+            p.setStrokeColor(colors.white)
+            p.setLineWidth(2)
+            p.rect(logo_x - 0.1*inch, logo_y - 0.1*inch, 
+                   logo_width + 0.2*inch, logo_height + 0.2*inch, 
+                   fill=False, stroke=True)
+            
+            # Dibujar el logo
+            p.drawImage(logo_path_temp, logo_x, logo_y,
+                       width=logo_width, height=logo_height, 
+                       preserveAspectRatio=True, mask='auto')
+            
+            # Nombre de la empresa al lado del logo
+            p.setFont("Helvetica-Bold", 24)
+            p.setFillColor(colors.white)
+            p.drawString(logo_x + logo_width + 0.3*inch, 
+                        height - margin - 0.5*inch, 
+                        trabajo.empresa.nombre)
+            
+            # RUT de la empresa debajo del nombre
+            p.setFont("Helvetica", 12)
+            p.drawString(logo_x + logo_width + 0.3*inch, 
+                        height - margin - 0.8*inch, 
+                        f"RUT: {trabajo.empresa.rut}")
+            
         except Exception as e:
             print(f"Error al procesar logo para PDF: {e}")
+            # Si hay error con el logo, mostrar solo el nombre de la empresa
+            p.setFont("Helvetica-Bold", 24)
+            p.setFillColor(colors.white)
+            p.drawString(margin, height - margin - 0.5*inch, trabajo.empresa.nombre)
+            p.setFont("Helvetica", 12)
+            p.drawString(margin, height - margin - 0.8*inch, f"RUT: {trabajo.empresa.rut}")
         finally:
-            # Asegurar eliminación del archivo temporal
-             if logo_path_temp and os.path.exists(logo_path_temp):
-                  try:
-                       os.unlink(logo_path_temp)
-                  except OSError as e:
-                       print(f"Error eliminando archivo temporal de logo: {e}")
+            if logo_path_temp and os.path.exists(logo_path_temp):
+                try:
+                    os.unlink(logo_path_temp)
+                except OSError as e:
+                    print(f"Error eliminando archivo temporal de logo: {e}")
+    else:
+        # Si no hay logo, mostrar solo el nombre de la empresa
+        p.setFont("Helvetica-Bold", 24)
+        p.setFillColor(colors.white)
+        p.drawString(margin, height - margin - 0.5*inch, trabajo.empresa.nombre)
+        p.setFont("Helvetica", 12)
+        p.drawString(margin, height - margin - 0.8*inch, f"RUT: {trabajo.empresa.rut}")
 
+    # Título del reporte
+    p.setFont("Helvetica-Bold", 20)
+    p.setFillColor(colors.white)
+    p.drawCentredString(width/2, height - margin - 1.2*inch, "Reporte Diario de Trabajo")  # Subimos el título
 
-    # Títulos
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(margin, height - margin, "Reporte Diario de Trabajo")
+    # Línea separadora
+    p.setStrokeColor(colors.white)
+    p.setLineWidth(2)
+    p.line(margin, height - margin - 1.4*inch, width - margin, height - margin - 1.4*inch)  # Ajustamos la línea
 
-    y_position = height - margin - 0.5*inch
-    if trabajo.empresa:
-        p.setFont("Helvetica", 10)
-        p.drawString(margin, y_position, f"Empresa: {trabajo.empresa.nombre} (RUT: {trabajo.empresa.rut})")
-        y_position -= 0.25*inch
-
-    p.line(margin, y_position, width - margin, y_position)
+    # Sección de detalles principales
+    y_position = height - margin - 1.8*inch  # Ajustamos el espaciado después del título
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Detalles del Registro")
     y_position -= 0.4*inch
 
-    # Datos del trabajo
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(margin, y_position, "Detalles del Registro:")
-    y_position -= 0.3*inch
-
+    # Crear una tabla con bordes y fondos alternados
     data = [
         ("Fecha:", trabajo.fecha.strftime("%d/%m/%Y") if trabajo.fecha else "N/A"),
         ("Faena:", trabajo.faena.nombre if trabajo.faena else "N/A"),
@@ -1318,52 +1371,149 @@ def generar_pdf_trabajo(request, pk):
         ("Modelo:", trabajo.maquina.modelo if trabajo.maquina else "N/A"),
         ("Trabajo Realizado:", trabajo.trabajo),
         ("Tipo Medida:", trabajo.tipo_medida),
-        (f"{trabajo.tipo_medida} Inicial:", trabajo.horometro_inicial),
-        (f"{trabajo.tipo_medida} Final:", trabajo.horometro_final),
-        (f"Total {trabajo.tipo_medida}:", trabajo.total_horas),
-        ("Petróleo (Lts):", trabajo.petroleo_litros),
-        ("Tipo Aceite:", trabajo.aceite_tipo),
-        ("Aceite (Lts):", trabajo.aceite_litros),
+        (f"{trabajo.tipo_medida} Inicial:", str(trabajo.horometro_inicial)),
+        (f"{trabajo.tipo_medida} Final:", str(trabajo.horometro_final)),
+        (f"Total {trabajo.tipo_medida}:", str(trabajo.total_horas)),
+    ]
+
+    # Dibujar la tabla con estilo
+    line_height = 0.3 * inch
+    max_label_width = 2.5 * inch
+    value_start_x = margin + max_label_width + 0.2*inch
+    cell_width = width - 2*margin
+    cell_height = line_height
+
+    for i, (label, value) in enumerate(data):
+        # Fondo alternado para las filas
+        if i % 2 == 0:
+            p.setFillColor(light_gray)
+            p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=True, stroke=False)
+        
+        # Bordes de la celda
+        p.setStrokeColor(secondary_color)
+        p.setLineWidth(0.5)
+        p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=False, stroke=True)
+        
+        # Texto
+        p.setFont("Helvetica-Bold", 10)
+        p.setFillColor(primary_color)
+        p.drawString(margin + 0.1*inch, y_position - 0.2*inch, label)
+        
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.black)
+        p.drawString(value_start_x, y_position - 0.2*inch, str(value))
+        
+        y_position -= cell_height
+
+    # Sección de recursos
+    y_position -= 0.2*inch
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Recursos Utilizados")
+    y_position -= 0.4*inch
+
+    recursos_data = [
+        ("Petróleo (Lts):", str(trabajo.petroleo_litros) if trabajo.petroleo_litros else "N/A"),
+        ("Tipo Aceite:", trabajo.aceite_tipo if trabajo.aceite_tipo else "N/A"),
+        ("Aceite (Lts):", str(trabajo.aceite_litros) if trabajo.aceite_litros else "N/A"),
+    ]
+
+    for i, (label, value) in enumerate(recursos_data):
+        if i % 2 == 0:
+            p.setFillColor(light_gray)
+            p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=True, stroke=False)
+        
+        p.setStrokeColor(secondary_color)
+        p.setLineWidth(0.5)
+        p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=False, stroke=True)
+        
+        p.setFont("Helvetica-Bold", 10)
+        p.setFillColor(primary_color)
+        p.drawString(margin + 0.1*inch, y_position - 0.2*inch, label)
+        
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.black)
+        p.drawString(value_start_x, y_position - 0.2*inch, str(value))
+        
+        y_position -= cell_height
+
+    # Sección de personal
+    y_position -= 0.2*inch
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Personal")
+    y_position -= 0.4*inch
+
+    personal_data = [
         ("Supervisor:", trabajo.supervisor.get_full_name() if trabajo.supervisor else "N/A"),
         ("Trabajador:", trabajo.trabajador.get_full_name() if trabajo.trabajador else "N/A"),
         ("Estado:", trabajo.get_estado_display()),
     ]
 
-    p.setFont("Helvetica", 10)
-    line_height_pdf = 0.25 * inch
-    max_label_width = 2 * inch # Ancho para etiquetas
-    value_start_x = margin + max_label_width + 0.2*inch
-
-    for label, value in data:
-         p.drawString(margin, y_position, label)
-         p.drawString(value_start_x, y_position, str(value))
-         y_position -= line_height_pdf
-         # Salto de página si es necesario (simplificado)
-         if y_position < margin * 1.5:
-              p.showPage()
-              y_position = height - margin # Reiniciar Y en nueva página
+    for i, (label, value) in enumerate(personal_data):
+        if i % 2 == 0:
+            p.setFillColor(light_gray)
+            p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=True, stroke=False)
+        
+        p.setStrokeColor(secondary_color)
+        p.setLineWidth(0.5)
+        p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=False, stroke=True)
+        
+        p.setFont("Helvetica-Bold", 10)
+        p.setFillColor(primary_color)
+        p.drawString(margin + 0.1*inch, y_position - 0.2*inch, label)
+        
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.black)
+        p.drawString(value_start_x, y_position - 0.2*inch, str(value))
+        
+        y_position -= cell_height
 
     # Observaciones
-    y_position -= 0.2*inch # Espacio extra
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(margin, y_position, "Observaciones:")
-    y_position -= 0.3*inch
-    p.setFont("Helvetica", 10)
-    # Manejo de texto largo para observaciones
+    y_position -= 0.4*inch
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Observaciones")
+    y_position -= 0.4*inch
+
+    # Fondo para observaciones con más espacio y margen inferior
+    obs_height = 2*inch
+    obs_bottom_margin = 1.5*inch  # Aumentamos el margen inferior
+    p.setFillColor(light_gray)
+    p.rect(margin, y_position - obs_height, cell_width, obs_height, fill=True, stroke=False)
+    p.setStrokeColor(secondary_color)
+    p.setLineWidth(0.5)
+    p.rect(margin, y_position - obs_height, cell_width, obs_height, fill=False, stroke=True)
+
+    # Texto de observaciones
     from reportlab.platypus import Paragraph
-    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     styles = getSampleStyleSheet()
-    styleN = styles['Normal']
+    style = ParagraphStyle(
+        'CustomStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        leading=12,
+        textColor=colors.black,
+        spaceBefore=0.1*inch,
+        spaceAfter=0.1*inch,
+        leftIndent=0.1*inch,  # Añadimos sangría izquierda
+        rightIndent=0.1*inch  # Añadimos sangría derecha
+    )
     observaciones_text = trabajo.observaciones if trabajo.observaciones else "Sin observaciones."
-    obs_paragraph = Paragraph(observaciones_text, styleN)
-    w_obs, h_obs = obs_paragraph.wrapOn(p, width - 2*margin, height) # Ancho disponible
-    obs_paragraph.drawOn(p, margin, y_position - h_obs)
-    y_position -= (h_obs + 0.2*inch)
+    obs_paragraph = Paragraph(observaciones_text, style)
+    w_obs, h_obs = obs_paragraph.wrapOn(p, width - 2*margin - 0.2*inch, height)
+    obs_paragraph.drawOn(p, margin + 0.1*inch, y_position - h_obs - 0.1*inch)
 
-
-    # Pie de página
+    # Pie de página con línea separadora y más espacio
+    p.setStrokeColor(secondary_color)
+    p.setLineWidth(1)
+    p.line(margin, margin + 0.8*inch, width - margin, margin + 0.8*inch)  # Subimos la línea
+    
     p.setFont("Helvetica", 8)
-    p.drawCentredString(width / 2.0, margin * 0.5, f"Reporte generado el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {request.user.get_full_name()}")
+    p.setFillColor(secondary_color)
+    p.drawCentredString(width / 2.0, margin * 0.7,  # Ajustamos la posición del texto
+        f"Reporte generado el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {request.user.get_full_name()}")
 
     p.showPage()
     p.save()
