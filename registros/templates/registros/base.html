@@ -503,7 +503,15 @@
             </button>
             {% if user.is_authenticated %}
             <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'images/logo.jpeg' %}" alt="Logo">
+                {% if user.is_superuser %}
+                    <img src="{% static 'images/logo.jpeg' %}" alt="Logo">
+                {% else %}
+                    {% if user.perfil.empresa.logo %}
+                        <img src="{{ user.perfil.empresa.logo.url }}" alt="Logo {{ user.perfil.empresa.nombre }}" style="width: 30px; height: 30px; object-fit: contain;">
+                    {% else %}
+                        <img src="{% static 'images/logo.jpeg' %}" alt="Logo">
+                    {% endif %}
+                {% endif %}
                 Daily Report
             </a>
              <span class="text-white text-sm ms-3 d-none d-md-inline">Bienvenido, {{ user.get_full_name|default:user.username }}</span>
