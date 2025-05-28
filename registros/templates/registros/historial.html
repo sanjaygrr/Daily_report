@@ -53,7 +53,7 @@
                             <option value="">Todas las máquinas</option>
                             {% for maquina in maquinas %}
                                 <option value="{{ maquina.id }}" {% if request.GET.maquina == maquina.id|stringformat:"i" %}selected{% endif %}>
-                                    {{ maquina.nombre }}
+                                    {{ maquina.nombre }} {% if maquina.numero_serie %}({{ maquina.numero_serie }}){% endif %}
                                 </option>
                             {% endfor %}
                         </select>
@@ -131,7 +131,11 @@
             <tr>
                 <td><small>{{ trabajo.fecha|date:"d/m/Y" }}</small></td>
                 <td><small>{{ trabajo.faena.nombre|default:"---" }}</small></td>
-                <td><small>{{ trabajo.maquina.nombre|default:"---" }}</small></td>
+                <td><small>{{ trabajo.maquina.nombre|default:"---" }}</small>
+                    {% if trabajo.maquina.numero_serie %}
+                        <br><small class="text-muted">Código: {{ trabajo.maquina.numero_serie }}</small>
+                    {% endif %}
+                </td>
                 <td><small>{{ trabajo.trabajo }}</small></td>
                 <td>
                     <small>{{ trabajo.tipo_medida }}</small><br>
