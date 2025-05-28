@@ -1272,10 +1272,15 @@ def generar_pdf_trabajo(request, pk):
     secondary_color = colors.HexColor('#6c757d')  # Color secundario
     accent_color = colors.HexColor('#198754')  # Color de éxito
     light_gray = colors.HexColor('#f8f9fa')  # Color de fondo claro
+    dark_blue = colors.HexColor('#0a58ca')  # Color azul oscuro para gradiente
 
-    # Encabezado con fondo de color y gradiente
+    # Encabezado con gradiente
     p.setFillColor(primary_color)
     p.rect(0, height - 2.5*inch, width, 2.5*inch, fill=True, stroke=False)
+    
+    # Efecto de gradiente (simulado con rectángulos semitransparentes)
+    p.setFillColor(dark_blue)
+    p.rect(0, height - 2.5*inch, width, 0.5*inch, fill=True, stroke=False)
     
     # Logo y nombre de la empresa
     logo_path_temp = None
@@ -1287,13 +1292,19 @@ def generar_pdf_trabajo(request, pk):
                  temp_logo.write(logo_file.read())
             logo_file.close()
             
-            # Dibujar logo con fondo blanco y borde
+            # Dibujar logo con fondo blanco y sombra
             logo_width = 1.5*inch
             logo_height = 1.5*inch
             logo_x = margin
             logo_y = height - margin - logo_height
             
-            # Fondo blanco para el logo con sombra
+            # Sombra del logo
+            p.setFillColor(colors.HexColor('#00000020'))
+            p.rect(logo_x + 0.05*inch, logo_y - 0.05*inch, 
+                   logo_width + 0.2*inch, logo_height + 0.2*inch, 
+                   fill=True, stroke=False)
+            
+            # Fondo blanco para el logo
             p.setFillColor(colors.white)
             p.rect(logo_x - 0.1*inch, logo_y - 0.1*inch, 
                    logo_width + 0.2*inch, logo_height + 0.2*inch, 
@@ -1311,8 +1322,13 @@ def generar_pdf_trabajo(request, pk):
                        width=logo_width, height=logo_height, 
                        preserveAspectRatio=True, mask='auto')
             
-            # Nombre de la empresa al lado del logo
+            # Nombre de la empresa al lado del logo con sombra de texto
             p.setFont("Helvetica-Bold", 24)
+            p.setFillColor(colors.HexColor('#00000040'))
+            p.drawString(logo_x + logo_width + 0.32*inch, 
+                        height - margin - 0.48*inch, 
+                        trabajo.empresa.nombre)
+            
             p.setFillColor(colors.white)
             p.drawString(logo_x + logo_width + 0.3*inch, 
                         height - margin - 0.5*inch, 
@@ -1320,6 +1336,7 @@ def generar_pdf_trabajo(request, pk):
             
             # RUT de la empresa debajo del nombre
             p.setFont("Helvetica", 12)
+            p.setFillColor(colors.HexColor('#ffffffcc'))  # Blanco semitransparente
             p.drawString(logo_x + logo_width + 0.3*inch, 
                         height - margin - 0.8*inch, 
                         f"RUT: {trabajo.empresa.rut}")
@@ -1331,6 +1348,7 @@ def generar_pdf_trabajo(request, pk):
             p.setFillColor(colors.white)
             p.drawString(margin, height - margin - 0.5*inch, trabajo.empresa.nombre)
             p.setFont("Helvetica", 12)
+            p.setFillColor(colors.HexColor('#ffffffcc'))
             p.drawString(margin, height - margin - 0.8*inch, f"RUT: {trabajo.empresa.rut}")
         finally:
             if logo_path_temp and os.path.exists(logo_path_temp):
@@ -1344,17 +1362,23 @@ def generar_pdf_trabajo(request, pk):
         p.setFillColor(colors.white)
         p.drawString(margin, height - margin - 0.5*inch, trabajo.empresa.nombre)
         p.setFont("Helvetica", 12)
+        p.setFillColor(colors.HexColor('#ffffffcc'))
         p.drawString(margin, height - margin - 0.8*inch, f"RUT: {trabajo.empresa.rut}")
 
-    # Título del reporte
+    # Título del reporte con sombra
     p.setFont("Helvetica-Bold", 20)
+    p.setFillColor(colors.HexColor('#00000040'))
+    p.drawCentredString(width/2 + 0.02*inch, height - margin - 1.18*inch, "Reporte Diario de Trabajo")
     p.setFillColor(colors.white)
-    p.drawCentredString(width/2, height - margin - 1.2*inch, "Reporte Diario de Trabajo")  # Subimos el título
+    p.drawCentredString(width/2, height - margin - 1.2*inch, "Reporte Diario de Trabajo")
 
-    # Línea separadora
-    p.setStrokeColor(colors.white)
+    # Línea separadora con efecto de gradiente
+    p.setStrokeColor(colors.HexColor('#ffffff80'))  # Blanco semitransparente
     p.setLineWidth(2)
-    p.line(margin, height - margin - 1.4*inch, width - margin, height - margin - 1.4*inch)  # Ajustamos la línea
+    p.line(margin, height - margin - 1.4*inch, width - margin, height - margin - 1.4*inch)
+    p.setStrokeColor(colors.white)
+    p.setLineWidth(1)
+    p.line(margin, height - margin - 1.41*inch, width - margin, height - margin - 1.41*inch)
 
     # Sección de detalles principales
     y_position = height - margin - 1.8*inch  # Ajustamos el espaciado después del título

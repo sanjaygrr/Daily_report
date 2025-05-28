@@ -141,31 +141,66 @@
              height: 30px;
          }
         .logout-form {
-            display: inline-block;
+            display: flex;
+            align-items: center;
+            height: 100%;
             margin: 0;
             padding: 0;
         }
         .logout-form button {
-             border: none;
-             background: none;
-             color: white;
-             padding: 0.5rem 1rem;
-             text-decoration: none;
-             cursor: pointer;
-             background-color: #ffc107;
-             color: #000;
-             border-radius: 5px;
-         }
+            border: none;
+            background: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff4d4d 0%, #ff0000 100%);
+            color: white;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .logout-form button:hover {
-             background-color: #e0a800;
-         }
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .btn-outline-warning {
+            padding: 0.35rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .btn-outline-warning:hover {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            color: white;
+        }
         .user-info {
-             color: white;
-             font-size: 14px;
-             border-left: 1px solid #333;
-             padding-left: 15px;
-             margin-left: 15px;
-         }
+            color: white;
+            font-size: 14px;
+            border-left: 1px solid rgba(255,255,255,0.2);
+            padding-left: 15px;
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
          .dropdown-toggle::after {
              display: none;
          }
@@ -272,16 +307,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .logout-form button {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.9rem;
-        }
-
-        .btn-outline-warning {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.9rem;
+            height: 100%;
         }
 
         @media (max-width: 768px) {
@@ -293,16 +319,16 @@
                 display: none !important;
             }
             
-            .logout-form button,
             .btn-outline-warning {
-                padding: 0.25rem 0.5rem;
+                padding: 0.3rem 0.7rem;
                 font-size: 0.85rem;
+                height: 30px;
             }
         }
 
         @media (max-width: 576px) {
             .navbar-actions {
-                gap: 5px;
+                gap: 6px;
             }
             
             .theme-toggle {
@@ -310,11 +336,36 @@
                 padding: 3px 8px;
             }
             
-            .logout-form button,
             .btn-outline-warning {
-                padding: 0.2rem 0.4rem;
+                padding: 0.25rem 0.6rem;
                 font-size: 0.8rem;
+                height: 28px;
             }
+        }
+
+        .sidebar .nav-link.logout-link {
+            color: #818181;
+            background: none;
+            border-radius: 0;
+            margin: 0;
+            padding: 15px 32px;
+            transition: all 0.3s ease;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 20px;
+        }
+
+        .sidebar .nav-link.logout-link:hover {
+            background: none;
+            color: #ff4d4d;
+            border-left: 4px solid #ff4d4d;
+        }
+
+        .sidebar .nav-link.logout-link i {
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar .nav-link.logout-link:hover i {
+            transform: translateX(3px);
         }
     </style>
 </head>
@@ -354,12 +405,6 @@
                         ({{ user.groups.first.name }})
                     {% endif %}
                 </div>
-                <form method="post" action="{% url 'logout' %}" class="logout-form">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-link btn-link">
-                        <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
-                    </button>
-                </form>
             {% else %}
                 <a class="btn btn-outline-warning" href="{% url 'login' %}">
                     <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
@@ -488,6 +533,15 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li>
 
             {% endif %}
+
+            <li class="nav-item">
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link logout-link">
+                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                    </button>
+                </form>
+            </li>
         </ul>
 
         {% else %}
