@@ -1126,7 +1126,7 @@ def pendientes(request):
 
 
 @login_required
-@require_POST # La aprobación debería ser una acción POST
+@require_POST
 def aprobar_trabajo(request, pk):
     trabajo = get_object_or_404(Trabajo, pk=pk)
     empresa_actual = get_user_empresa(request.user)
@@ -1141,16 +1141,57 @@ def aprobar_trabajo(request, pk):
 
     if not permiso_para_aprobar:
         messages.error(request,"No tienes permiso para aprobar este trabajo")
-        return redirect('pendientes') # O a donde corresponda
+        return redirect('pendientes')
 
     if trabajo.estado != 'pendiente':
          messages.warning(request, f"El trabajo ya está en estado '{trabajo.get_estado_display()}'.")
          return redirect('pendientes')
 
     try:
-        # Asume que 'aprobado' es el estado final
-        trabajo.estado = 'aprobado' # O 'completado' según tu modelo
+        # Información General
+        if request.POST.get('fecha'):
+            trabajo.fecha = request.POST.get('fecha')
+        if request.POST.get('faena'):
+            trabajo.faena_id = request.POST.get('faena')
+        if request.POST.get('maquina'):
+            trabajo.maquina_id = request.POST.get('maquina')
+        if request.POST.get('trabajo'):
+            trabajo.trabajo = request.POST.get('trabajo')
+
+        # Mediciones
+        if request.POST.get('tipo_medida'):
+            trabajo.tipo_medida = request.POST.get('tipo_medida')
+        if request.POST.get('horometro_inicial'):
+            trabajo.horometro_inicial = request.POST.get('horometro_inicial')
+        if request.POST.get('horometro_final'):
+            trabajo.horometro_final = request.POST.get('horometro_final')
+
+        # Recursos
+        if request.POST.get('petroleo_litros'):
+            trabajo.petroleo_litros = request.POST.get('petroleo_litros')
+        if request.POST.get('aceite_tipo'):
+            trabajo.aceite_tipo = request.POST.get('aceite_tipo')
+        if request.POST.get('aceite_litros'):
+            trabajo.aceite_litros = request.POST.get('aceite_litros')
+
+        # Personal
+        if request.POST.get('supervisor'):
+            trabajo.supervisor_id = request.POST.get('supervisor')
+        if request.POST.get('trabajador'):
+            trabajo.trabajador_id = request.POST.get('trabajador')
+
+        # Observaciones
+        if request.POST.get('observaciones'):
+            trabajo.observaciones = request.POST.get('observaciones')
+
+        # Calcular el total de horas
+        if trabajo.horometro_final and trabajo.horometro_inicial:
+            trabajo.total_horas = float(trabajo.horometro_final) - float(trabajo.horometro_inicial)
+        
+        # Cambiar el estado a aprobado
+        trabajo.estado = 'aprobado'
         trabajo.save()
+        
         messages.success(request, 'Trabajo aprobado exitosamente!')
     except Exception as e:
         messages.error(request, f'Error al aprobar trabajo: {str(e)}')

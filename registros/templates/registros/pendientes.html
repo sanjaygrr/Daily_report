@@ -204,12 +204,159 @@
                 
                 <!-- Botón de confirmación prominente -->
                 <div class="row mt-4">
-                    <div class="col-12 text-center">
+                    <div class="col-12">
                         <form action="{% url 'aprobar_trabajo' trabajo.pk %}" method="POST">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-check-circle me-2"></i>Confirmar y Aprobar Trabajo
-                            </button>
+                            
+                            <!-- Campos editables opcionales -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="editarDatos{{ trabajo.pk }}" onchange="toggleEdicion({{ trabajo.pk }})">
+                                        <label class="form-check-label" for="editarDatos{{ trabajo.pk }}">
+                                            <i class="fas fa-edit me-2"></i>Modificar datos antes de aprobar
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div id="camposEdicion{{ trabajo.pk }}" style="display: none;">
+                                    <!-- Información General -->
+                                    <div class="col-12 mb-3">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-clipboard me-2"></i>Información General
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Fecha</label>
+                                        <input type="date" class="form-control" name="fecha" value="{{ trabajo.fecha|date:'Y-m-d' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Faena</label>
+                                        <select class="form-select" name="faena">
+                                            <option value="">Seleccione una faena</option>
+                                            {% for faena in faenas %}
+                                                <option value="{{ faena.id }}" {% if trabajo.faena.id == faena.id %}selected{% endif %}>
+                                                    {{ faena.nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Máquina</label>
+                                        <select class="form-select" name="maquina">
+                                            <option value="">Seleccione una máquina</option>
+                                            {% for maquina in maquinas %}
+                                                <option value="{{ maquina.id }}" {% if trabajo.maquina.id == maquina.id %}selected{% endif %}>
+                                                    {{ maquina.nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Trabajo Realizado</label>
+                                        <input type="text" class="form-control" name="trabajo" value="{{ trabajo.trabajo }}">
+                                    </div>
+                                    
+                                    <!-- Mediciones -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-ruler me-2"></i>Mediciones
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Tipo de Medida</label>
+                                        <select class="form-select" name="tipo_medida">
+                                            <option value="Horómetro" {% if trabajo.tipo_medida == 'Horómetro' %}selected{% endif %}>Horómetro</option>
+                                            <option value="Kilómetros" {% if trabajo.tipo_medida == 'Kilómetros' %}selected{% endif %}>Kilómetros</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">{{ trabajo.tipo_medida }} Inicial</label>
+                                        <input type="number" step="0.01" class="form-control" name="horometro_inicial" value="{{ trabajo.horometro_inicial }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">{{ trabajo.tipo_medida }} Final</label>
+                                        <input type="number" step="0.01" class="form-control" name="horometro_final" value="{{ trabajo.horometro_final }}">
+                                    </div>
+                                    
+                                    <!-- Recursos -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-gas-pump me-2"></i>Recursos
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Litros de Petróleo</label>
+                                        <input type="number" step="0.01" class="form-control" name="petroleo_litros" value="{{ trabajo.petroleo_litros|default:'' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Tipo de Aceite</label>
+                                        <input type="text" class="form-control" name="aceite_tipo" value="{{ trabajo.aceite_tipo|default:'' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Litros de Aceite</label>
+                                        <input type="number" step="0.01" class="form-control" name="aceite_litros" value="{{ trabajo.aceite_litros|default:'' }}">
+                                    </div>
+                                    
+                                    <!-- Personal -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-users me-2"></i>Personal
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Supervisor</label>
+                                        <select class="form-select" name="supervisor">
+                                            <option value="">Seleccione un supervisor</option>
+                                            {% for supervisor in supervisores %}
+                                                <option value="{{ supervisor.id }}" {% if trabajo.supervisor.id == supervisor.id %}selected{% endif %}>
+                                                    {{ supervisor.get_full_name|default:supervisor.username }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Trabajador</label>
+                                        <select class="form-select" name="trabajador">
+                                            <option value="">Seleccione un trabajador</option>
+                                            {% for trabajador in trabajadores %}
+                                                <option value="{{ trabajador.id }}" {% if trabajo.trabajador.id == trabajador.id %}selected{% endif %}>
+                                                    {{ trabajador.get_full_name|default:trabajador.username }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Observaciones -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-comment-alt me-2"></i>Observaciones
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-12 mb-3">
+                                        <textarea class="form-control" name="observaciones" rows="3">{{ trabajo.observaciones|default:'' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check-circle me-2"></i>Confirmar y Aprobar Trabajo
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -221,6 +368,19 @@
     </div>
 </div>
 {% endfor %}
+
+<script>
+function toggleEdicion(trabajoId) {
+    const checkbox = document.getElementById('editarDatos' + trabajoId);
+    const campos = document.getElementById('camposEdicion' + trabajoId);
+    
+    if (checkbox.checked) {
+        campos.style.display = 'block';
+    } else {
+        campos.style.display = 'none';
+    }
+}
+</script>
 
 <style>
 /* Estilos para asegurar que se centre correctamente y más padding a la derecha */
