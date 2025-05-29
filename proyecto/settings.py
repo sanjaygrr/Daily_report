@@ -150,9 +150,9 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Configuración de correo para recuperación de contraseña
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'TU_CORREO@gmail.com'  # Cambia esto por tu correo real
-EMAIL_HOST_PASSWORD = 'TU_CONTRASEÑA_DE_APLICACION'  # Cambia esto por tu contraseña de aplicación
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'desarrollo@audiobrasspa.cl')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '@Audiobra.015')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
