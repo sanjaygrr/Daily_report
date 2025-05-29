@@ -820,6 +820,36 @@
         });
     </script>
 
+    <!-- Script para overlay de No Pago -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si el usuario está autenticado y tiene un perfil con empresa
+            {% if user.is_authenticated and user.perfil and user.perfil.empresa %}
+                var noPagoFecha = "{{ user.perfil.empresa.no_pago_fecha|date:'c' }}";
+                if (noPagoFecha) {
+                    var fechaNoPago = new Date(noPagoFecha);
+                    var ahora = new Date();
+                    var diffTime = Math.abs(ahora - fechaNoPago);
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    var opacidad = Math.min(diffDays / 5, 1);
+                    if (opacidad > 0) {
+                        var overlay = document.createElement('div');
+                        overlay.style.position = 'fixed';
+                        overlay.style.top = '0';
+                        overlay.style.left = '0';
+                        overlay.style.width = '100%';
+                        overlay.style.height = '100%';
+                        overlay.style.backgroundColor = 'black';
+                        overlay.style.opacity = opacidad;
+                        overlay.style.zIndex = '9999';
+                        overlay.style.pointerEvents = 'none';
+                        document.body.appendChild(overlay);
+                    }
+                }
+            {% endif %}
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>

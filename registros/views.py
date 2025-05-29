@@ -16,7 +16,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import IntegrityError
 from django.utils import timezone
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.db.models import Q, Count, Prefetch, Sum
 from django.core.paginator import Paginator
 from django.core.files.storage import default_storage
@@ -1732,3 +1732,16 @@ def dashboard_admin(request):
     }
     
     return render(request, 'registros/dashboard_admin.html', context)
+
+@login_required
+def toggle_no_pago(request, empresa_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+    from registros.models import Empresa
+    empresa = Empresa.objects.get(pk=empresa_id)
+    if empresa.no_pago_fecha:
+        empresa.no_pago_fecha = None
+    else:
+        empresa.no_pago_fecha = timezone.now()
+    empresa.save()
+    return JsonResponse({'success': True, 'no_pago_fecha': empresa.no_pago_fecha})
