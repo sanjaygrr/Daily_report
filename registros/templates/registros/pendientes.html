@@ -3,108 +3,162 @@
 {% block title %}Trabajos Pendientes de Revisión{% endblock %}
 
 {% block content %}
-<!-- Card container con más padding a la derecha -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-header bg-warning text-white">
-        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Pendientes de Revisión</h5>
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">Pendientes de Revisión</h1>
+            <p class="text-muted mb-0">{{ page_obj.paginator.count }} trabajo{{ page_obj.paginator.count|pluralize }} pendiente{{ page_obj.paginator.count|pluralize }}</p>
+        </div>
+        <div class="badge bg-warning text-dark p-2">
+            <i class="fas fa-clock me-1"></i>Requieren aprobación
+        </div>
     </div>
-    <div class="card-body px-4 py-3"> <!-- Añadido más padding -->
-        <!-- Bloque para mostrar mensajes de Django (éxito, error, etc.) -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
 
-        <!-- TABLA COMPACTA con más margen a la derecha -->
-        <div class="table-responsive pe-3"> <!-- Padding extra a la derecha -->
-            <table class="table table-hover table-sm">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Faena</th>
-                        <th>Máquina</th>
-                        <th>Trabajo</th>
-                        <th>Medición</th>
-                        <th>Personal</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for trabajo in page_obj %}
-                    <tr>
-                        <td><small>{{ trabajo.fecha|date:"d/m/Y" }}</small></td>
-                        <td><small>{{ trabajo.faena.nombre|default:"---" }}</small></td>
-                        <td><small>{{ trabajo.maquina.nombre|default:"---" }}</small></td>
-                        <td><small>{{ trabajo.trabajo }}</small></td>
-                        <td>
-                            <small>{{ trabajo.tipo_medida }}</small><br>
-                            <small>Total: {{ trabajo.total_horas }}</small>
-                        </td>
-                        <td>
-                            <small>Supervisor: {{ trabajo.supervisor.username }}</small><br>
-                            <small>Trabajador: {{ trabajo.trabajador.username }}</small>
-                        </td>
-                        <td>
-                            <!-- Solo botón de ver detalles en la tabla -->
-                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detalleModal{{ trabajo.pk }}">
-                                <i class="fas fa-eye me-1"></i>Ver detalles
-                            </button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="alert alert-info mb-0">
-                                <i class="fas fa-info-circle me-2"></i>No hay trabajos pendientes de revisión en este momento.
+    <!-- Bloque para mostrar mensajes de Django (éxito, error, etc.) -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Grid de tarjetas -->
+    <div class="row g-3">
+        {% for trabajo in page_obj %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm hover-shadow border-warning">
+                    <div class="card-header bg-warning bg-opacity-10 border-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">{{ trabajo.fecha|date:"d/m/Y" }}</span>
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Información principal -->
+                        <div class="mb-3">
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-hard-hat me-1"></i>{{ trabajo.faena.nombre|default:"Sin faena" }}
+                            </h6>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-truck text-muted me-2"></i>
+                                <span class="text-truncate">{{ trabajo.maquina.nombre|default:"Sin máquina" }}</span>
                             </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                            <div class="border-start border-3 border-primary ps-2 mt-2">
+                                <small class="text-muted">Trabajo realizado:</small>
+                                <p class="mb-0 fw-medium">{{ trabajo.trabajo }}</p>
+                            </div>
+                        </div>
 
-        <!-- Paginación -->
-        {% if page_obj.paginator.num_pages > 1 %}
-        <div class="mt-4">
-            <nav aria-label="Paginación">
-                <ul class="pagination pagination-sm justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-                    {% endif %}
+                        <!-- Mediciones -->
+                        <div class="bg-light rounded p-2 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">
+                                    <i class="fas fa-tachometer-alt me-1"></i>{{ trabajo.tipo_medida }}
+                                </span>
+                                <span class="fw-bold">Total: {{ trabajo.total_horas }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Inicial: {{ trabajo.horometro_inicial }}</span>
+                                <span>Final: {{ trabajo.horometro_final }}</span>
+                            </div>
+                        </div>
 
-                    {% for i in page_obj.paginator.page_range %}
-                        {% if i == page_obj.number %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ i }}</span>
-                            </li>
-                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
-                            </li>
+                        <!-- Personal -->
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fas fa-user-tie text-muted me-2"></i>
+                                <small class="text-muted">Supervisor:</small>
+                                <span class="ms-auto small">{{ trabajo.supervisor.username }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user text-muted me-2"></i>
+                                <small class="text-muted">Trabajador:</small>
+                                <span class="ms-auto small">{{ trabajo.trabajador.username }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Recursos si existen -->
+                        {% if trabajo.petroleo_litros or trabajo.aceite_litros %}
+                        <div class="border-top pt-2 mb-3">
+                            <small class="text-muted">
+                                {% if trabajo.petroleo_litros %}
+                                    <i class="fas fa-gas-pump me-1"></i>Petróleo: {{ trabajo.petroleo_litros }}L
+                                {% endif %}
+                                {% if trabajo.aceite_litros %}
+                                    <span class="ms-2"><i class="fas fa-oil-can me-1"></i>Aceite: {{ trabajo.aceite_litros }}L</span>
+                                {% endif %}
+                            </small>
+                        </div>
                         {% endif %}
-                    {% endfor %}
 
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-        {% endif %}
+                        <!-- Botón de acción -->
+                        <button type="button" class="btn btn-warning btn-sm w-100" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#detalleModal{{ trabajo.pk }}">
+                            <i class="fas fa-eye me-2"></i>Revisar y Aprobar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                        <h5 class="text-muted">¡Todo al día!</h5>
+                        <p class="text-muted mb-0">No hay trabajos pendientes de revisión en este momento.</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
+
+    <!-- Paginación -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-4">
+        <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;&laquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;&laquo;</span></li>
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                {% endif %}
+
+                {% for i in page_obj.paginator.page_range %}
+                    {% if i == page_obj.number %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;&raquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Modales de detalles con botón prominente de aprobación -->
@@ -204,12 +258,159 @@
                 
                 <!-- Botón de confirmación prominente -->
                 <div class="row mt-4">
-                    <div class="col-12 text-center">
+                    <div class="col-12">
                         <form action="{% url 'aprobar_trabajo' trabajo.pk %}" method="POST">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-check-circle me-2"></i>Confirmar y Aprobar Trabajo
-                            </button>
+                            
+                            <!-- Campos editables opcionales -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="editarDatos{{ trabajo.pk }}" onchange="toggleEdicion({{ trabajo.pk }})">
+                                        <label class="form-check-label" for="editarDatos{{ trabajo.pk }}">
+                                            <i class="fas fa-edit me-2"></i>Modificar datos antes de aprobar
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div id="camposEdicion{{ trabajo.pk }}" style="display: none;">
+                                    <!-- Información General -->
+                                    <div class="col-12 mb-3">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-clipboard me-2"></i>Información General
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Fecha</label>
+                                        <input type="date" class="form-control" name="fecha" value="{{ trabajo.fecha|date:'Y-m-d' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Faena</label>
+                                        <select class="form-select" name="faena">
+                                            <option value="">Seleccione una faena</option>
+                                            {% for faena in faenas %}
+                                                <option value="{{ faena.id }}" {% if trabajo.faena.id == faena.id %}selected{% endif %}>
+                                                    {{ faena.nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Máquina</label>
+                                        <select class="form-select" name="maquina">
+                                            <option value="">Seleccione una máquina</option>
+                                            {% for maquina in maquinas %}
+                                                <option value="{{ maquina.id }}" {% if trabajo.maquina.id == maquina.id %}selected{% endif %}>
+                                                    {{ maquina.nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Trabajo Realizado</label>
+                                        <input type="text" class="form-control" name="trabajo" value="{{ trabajo.trabajo }}">
+                                    </div>
+                                    
+                                    <!-- Mediciones -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-ruler me-2"></i>Mediciones
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Tipo de Medida</label>
+                                        <select class="form-select" name="tipo_medida">
+                                            <option value="Horómetro" {% if trabajo.tipo_medida == 'Horómetro' %}selected{% endif %}>Horómetro</option>
+                                            <option value="Kilómetros" {% if trabajo.tipo_medida == 'Kilómetros' %}selected{% endif %}>Kilómetros</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">{{ trabajo.tipo_medida }} Inicial</label>
+                                        <input type="number" step="0.01" class="form-control" name="horometro_inicial" value="{{ trabajo.horometro_inicial }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">{{ trabajo.tipo_medida }} Final</label>
+                                        <input type="number" step="0.01" class="form-control" name="horometro_final" value="{{ trabajo.horometro_final }}">
+                                    </div>
+                                    
+                                    <!-- Recursos -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-gas-pump me-2"></i>Recursos
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Litros de Petróleo</label>
+                                        <input type="number" step="0.01" class="form-control" name="petroleo_litros" value="{{ trabajo.petroleo_litros|default:'' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Tipo de Aceite</label>
+                                        <input type="text" class="form-control" name="aceite_tipo" value="{{ trabajo.aceite_tipo|default:'' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Litros de Aceite</label>
+                                        <input type="number" step="0.01" class="form-control" name="aceite_litros" value="{{ trabajo.aceite_litros|default:'' }}">
+                                    </div>
+                                    
+                                    <!-- Personal -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-users me-2"></i>Personal
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Supervisor</label>
+                                        <select class="form-select" name="supervisor">
+                                            <option value="">Seleccione un supervisor</option>
+                                            {% for supervisor in supervisores %}
+                                                <option value="{{ supervisor.id }}" {% if trabajo.supervisor.id == supervisor.id %}selected{% endif %}>
+                                                    {{ supervisor.get_full_name|default:supervisor.username }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Trabajador</label>
+                                        <select class="form-select" name="trabajador">
+                                            <option value="">Seleccione un trabajador</option>
+                                            {% for trabajador in trabajadores %}
+                                                <option value="{{ trabajador.id }}" {% if trabajo.trabajador.id == trabajador.id %}selected{% endif %}>
+                                                    {{ trabajador.get_full_name|default:trabajador.username }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Observaciones -->
+                                    <div class="col-12 mb-3 mt-4">
+                                        <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                            <i class="fas fa-comment-alt me-2"></i>Observaciones
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-12 mb-3">
+                                        <textarea class="form-control" name="observaciones" rows="3">{{ trabajo.observaciones|default:'' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check-circle me-2"></i>Confirmar y Aprobar Trabajo
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -221,6 +422,19 @@
     </div>
 </div>
 {% endfor %}
+
+<script>
+function toggleEdicion(trabajoId) {
+    const checkbox = document.getElementById('editarDatos' + trabajoId);
+    const campos = document.getElementById('camposEdicion' + trabajoId);
+    
+    if (checkbox.checked) {
+        campos.style.display = 'block';
+    } else {
+        campos.style.display = 'none';
+    }
+}
+</script>
 
 <style>
 /* Estilos para asegurar que se centre correctamente y más padding a la derecha */

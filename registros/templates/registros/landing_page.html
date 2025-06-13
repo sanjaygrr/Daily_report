@@ -1,0 +1,149 @@
+{% extends 'registros/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="container-fluid p-0">
+    <div class="position-relative">
+        <img src="{% static 'images/login_image.jpeg' %}" class="w-100" style="height: 600px; object-fit: cover;" alt="Daily Report">
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.5);">
+            <div class="container h-100">
+                <div class="row h-100 align-items-center">
+                    <div class="col-md-8 text-white">
+                        <h1 class="display-3 fw-bold mb-4">Daily Report</h1>
+                        <p class="lead mb-4">Sistema integral de gestión para el control y seguimiento de operaciones industriales</p>
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Iniciar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Características Principales -->
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="display-5 mb-4">¿Por qué elegir Daily Report?</h2>
+            <p class="lead text-muted">Una solución completa para la gestión de tus operaciones</p>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-4 d-inline-flex">
+                            <i class="fas fa-truck fa-3x text-primary"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-center mb-3">Gestión de Maquinaria</h4>
+                    <p class="text-muted text-center">Control total de horómetros, mantenimientos y estado de la maquinaria en tiempo real.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-4 d-inline-flex">
+                            <i class="fas fa-chart-line fa-3x text-success"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-center mb-3">Reportes Detallados</h4>
+                    <p class="text-muted text-center">Genera informes detallados y estadísticas para una mejor toma de decisiones.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-4 d-inline-flex">
+                            <i class="fas fa-users fa-3x text-warning"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-center mb-3">Gestión de Equipos</h4>
+                    <p class="text-muted text-center">Coordina y supervisa el trabajo de tus equipos de manera eficiente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Roles del Sistema -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="display-5 mb-4">Roles del Sistema</h2>
+                <p class="lead text-muted">Adaptado a las necesidades de cada usuario</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-shield fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Administrador</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Gestión completa del sistema</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Control de usuarios</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Configuración del sistema</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-tie fa-3x text-success"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Supervisor</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Aprobación de trabajos</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Gestión de faenas</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Reportes de operación</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-hard-hat fa-3x text-warning"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Trabajador</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Registro de actividades</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Control de horómetros</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Reporte de consumos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h2 class="display-5 mb-4">¿Listo para comenzar?</h2>
+            <p class="lead text-muted mb-4">Únete a Daily Report y optimiza la gestión de tus operaciones</p>
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Iniciar Sesión</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+</style>
+{% endblock %} 

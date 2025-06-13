@@ -3,120 +3,229 @@
 {% block title %}Lista de Máquinas{% endblock %}
 
 {% block content %}
-<div class="card p-4">
-    <h1 class="mb-4 text-center">Máquinas</h1>
-
-    {# Botón "Nueva Máquina" Eliminado (como estaba en tu original) #}
-
-    <div class="table-responsive mb-3">
-        <table class="table table-striped table-bordered">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Nombre</th>
-                    <th>Modelo</th>
-                    {# <th>Estado</th> <--- COLUMNA ELIMINADA #}
-                    <th class="text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for maquina in maquinas_list %}
-                    <tr>
-                        <td>{{ maquina.nombre }}</td>
-                        <td>{{ maquina.modelo|default:"-" }}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#editarMaquinaModal{{ maquina.pk }}">
-                                <i class="fas fa-edit"></i><span class="d-none d-md-inline"> Editar</span>
-                            </button>
-                            <button class="btn btn-sm btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#eliminarMaquinaModal{{ maquina.pk }}">
-                                <i class="fas fa-trash"></i><span class="d-none d-md-inline"> Eliminar</span>
-                            </button>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        {# Ajustamos colspan de 4 a 3 porque eliminamos una columna #}
-                        <td colspan="3" class="text-center">No hay máquinas disponibles.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Máquinas</h1>
+        <a href="{% url 'crear_maquina' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
+            <span class="d-none d-sm-inline">Nueva Máquina</span>
+            <span class="d-sm-none">+</span>
+        </a>
     </div>
 
-    {# --- Definiciones de Modales --- #}
+    {# Grid de tarjetas para todas las pantallas #}
+    <div class="row g-3">
+        {% for maquina in maquinas_list %}
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="card h-100 shadow-sm hover-shadow">
+                    <div class="card-body">
+                        {# Encabezado con imagen y nombre #}
+                        <div class="d-flex align-items-center mb-3">
+                            {% if maquina.imagen %}
+                                <img src="{{ maquina.imagen.url }}" alt="{{ maquina.nombre }}" 
+                                     class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary me-3 d-flex align-items-center justify-content-center" 
+                                     style="width: 60px; height: 60px; min-width: 60px; min-height: 60px;">
+                                    <i class="fas fa-truck text-white fa-lg"></i>
+                                </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1 text-truncate">{{ maquina.nombre }}</h5>
+                                <p class="text-muted small mb-0">{{ maquina.empresa.nombre }}</p>
+                            </div>
+                        </div>
+                        
+                        {# Información de la máquina #}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small">
+                                    <i class="fas fa-cog me-1"></i> Modelo
+                                </span>
+                                <span class="small fw-medium">{{ maquina.modelo|default:"No especificado" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">
+                                    <i class="fas fa-barcode me-1"></i> Código
+                                </span>
+                                <span class="small fw-medium">{{ maquina.numero_serie|default:"No especificado" }}</span>
+                            </div>
+                            {% if maquina.fecha_adquisicion %}
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="text-muted small">
+                                    <i class="fas fa-calendar me-1"></i> Adquisición
+                                </span>
+                                <span class="small fw-medium">{{ maquina.fecha_adquisicion|date:"d/m/Y" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {# Botones de acción #}
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary flex-fill" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#detallesMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <span class="d-none d-sm-inline">Detalles</span>
+                                <span class="d-sm-none">Info</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning flex-fill" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editarMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-edit me-1"></i>
+                                <span class="d-none d-sm-inline">Editar</span>
+                                <span class="d-sm-none">Edit</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#eliminarMaquinaModal{{ maquina.pk }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-truck fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay máquinas disponibles</h5>
+                        <p class="text-muted mb-4">Comienza agregando tu primera máquina</p>
+                        <a href="{% url 'crear_maquina' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Agregar Máquina
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# --- Modales --- #}
     {% for maquina in maquinas_list %}
-        {# --- MODAL EDITAR MAQUINA --- #}
-        <div class="modal fade" id="editarMaquinaModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="editarMaquinaModalLabel{{ maquina.pk }}" aria-hidden="true">
+        {# Modal de Detalles #}
+        <div class="modal fade" id="detallesMaquinaModal{{ maquina.pk }}" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editarMaquinaModalLabel{{ maquina.pk }}">Editar Máquina: {{ maquina.nombre }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-truck me-2"></i>Detalles de la Máquina
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    {# Asegúrate que la URL 'editar_maquina' exista y acepte POST #}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center mb-4">
+                                {% if maquina.imagen %}
+                                    <img src="{{ maquina.imagen.url }}" alt="{{ maquina.nombre }}" class="img-fluid rounded">
+                                {% else %}
+                                    <div class="bg-light rounded p-4">
+                                        <i class="fas fa-truck fa-4x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <h4 class="mb-3">{{ maquina.nombre }}</h4>
+                                <dl class="row">
+                                    <dt class="col-sm-4">Empresa:</dt>
+                                    <dd class="col-sm-8">{{ maquina.empresa.nombre }}</dd>
+
+                                    <dt class="col-sm-4">Modelo:</dt>
+                                    <dd class="col-sm-8">{{ maquina.modelo|default:"No especificado" }}</dd>
+
+                                    <dt class="col-sm-4">Código:</dt>
+                                    <dd class="col-sm-8">{{ maquina.numero_serie|default:"No especificado" }}</dd>
+
+                                    <dt class="col-sm-4">Fecha Adquisición:</dt>
+                                    <dd class="col-sm-8">{{ maquina.fecha_adquisicion|date:"d/m/Y"|default:"No especificada" }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editarMaquinaModal{{ maquina.pk }}" data-bs-dismiss="modal">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Modal de Edición #}
+        <div class="modal fade" id="editarMaquinaModal{{ maquina.pk }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-edit me-2"></i>Editar Máquina
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
                     <form method="post" action="{% url 'editar_maquina' maquina.pk %}">
                         {% csrf_token %}
                         <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="edit_maquina_nombre_{{ maquina.pk }}" class="form-label">Nombre</label>
-                                <input type="text" class="form-control" id="edit_maquina_nombre_{{ maquina.pk }}" name="nombre" value="{{ maquina.nombre }}" required>
-                            </div>
                             <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_maquina_nombre_{{ maquina.pk }}" class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="edit_maquina_nombre_{{ maquina.pk }}" name="nombre" value="{{ maquina.nombre }}" required>
+                                </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="edit_maquina_modelo_{{ maquina.pk }}" class="form-label">Modelo</label>
                                     <input type="text" class="form-control" id="edit_maquina_modelo_{{ maquina.pk }}" name="modelo" value="{{ maquina.modelo|default:'' }}">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="edit_maquina_numero_serie_{{ maquina.pk }}" class="form-label">Número de Serie</label>
-                                    <input type="text" class="form-control" id="edit_maquina_numero_serie_{{ maquina.pk }}" name="numero_serie" value="{{ maquina.numero_serie|default:'' }}">
-                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
+                                    <label for="edit_maquina_numero_serie_{{ maquina.pk }}" class="form-label">Código</label>
+                                    <input type="text" class="form-control" id="edit_maquina_numero_serie_{{ maquina.pk }}" name="numero_serie" value="{{ maquina.numero_serie|default:'' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" class="form-label">Fecha Adquisición</label>
                                     <input type="date" class="form-control" id="edit_maquina_fecha_adquisicion_{{ maquina.pk }}" name="fecha_adquisicion" value="{{ maquina.fecha_adquisicion|date:'Y-m-d' }}">
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="edit_maquina_estado_{{ maquina.pk }}" class="form-label">Estado</label>
-                                    <select class="form-select" id="edit_maquina_estado_{{ maquina.pk }}" name="estado">
-                                        {# Opciones de estado eliminadas #}
-                                    </select>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Guardar Cambios
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        {# --- MODAL ELIMINAR MAQUINA (Sin cambios necesarios aquí) --- #}
-        <div class="modal fade" id="eliminarMaquinaModal{{ maquina.pk }}" tabindex="-1" aria-labelledby="eliminarMaquinaModalLabel{{ maquina.pk }}" aria-hidden="true">
-             <div class="modal-dialog">
-                 <div class="modal-content">
-                     <div class="modal-header">
-                         <h5 class="modal-title" id="eliminarMaquinaModalLabel{{ maquina.pk }}">Eliminar Máquina</h5>
-                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                     </div>
-                     <div class="modal-body">
-                         <p>¿Estás seguro de que deseas eliminar la máquina "{{ maquina.nombre }}"?</p>
-                     </div>
-                     <div class="modal-footer">
-                         {# Asegúrate que la URL 'eliminar_maquina' exista y acepte POST #}
-                         <form method="post" action="{% url 'eliminar_maquina' maquina.pk %}">
-                             {% csrf_token %}
-                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                             <button type="submit" class="btn btn-danger">Sí, eliminar</button>
-                         </form>
-                     </div>
-                 </div>
-             </div>
+        {# Modal de Eliminación #}
+        <div class="modal fade" id="eliminarMaquinaModal{{ maquina.pk }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-trash me-2"></i>Eliminar Máquina
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+                            <p>¿Estás seguro de que deseas eliminar la máquina "{{ maquina.nombre }}"?</p>
+                            <p class="text-muted">Esta acción no se puede deshacer.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <form method="post" action="{% url 'eliminar_maquina' maquina.pk %}">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>Sí, eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     {% endfor %}
-    {# --- FIN: Definiciones de Modales --- #}
-
 </div>
 {% endblock %}

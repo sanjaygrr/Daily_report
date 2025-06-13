@@ -153,3 +153,12 @@ AUTHENTICATION_BACKENDS = (
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Configuración de correo para recuperación de contraseña
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sanjaygr@gmail.com'
+EMAIL_HOST_PASSWORD = 'zkaododvautzzqfm'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

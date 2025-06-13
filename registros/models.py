@@ -29,6 +29,7 @@ class Empresa(models.Model):
     )
     fecha_creacion = models.DateTimeField(default=timezone.now, verbose_name="Fecha de creación")
     activa = models.BooleanField(default=True, verbose_name="Activa")
+    no_pago_fecha = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de activación de No Pago")
 
     class Meta:
         verbose_name = "Empresa"

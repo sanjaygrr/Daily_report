@@ -1,11 +1,12 @@
 # forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 import datetime
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 # Asegúrate de importar todos tus modelos aquí
 from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario
@@ -585,3 +586,27 @@ class TrabajoForm(forms.ModelForm):
             trabajo.save()
             self.save_m2m() # Necesario si el form tuviera M2M
         return trabajo
+
+class CustomPasswordResetForm(PasswordResetForm):
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        User = get_user_model()
+        users = User.objects.filter(email__iexact=email, is_active=True)
+        if not users.exists():
+            return email  # Django maneja esto de forma silenciosa
+        for user in users:
+            if not user.username or user.username.strip() == '':
+                raise forms.ValidationError("El usuario asociado a este correo no tiene RUT registrado.")
+        return email
+
+    def send_mail(self, subject_template_name, email_template_name, context, from_email, to_email, html_email_template_name=None):
+        # Usar nuestro template personalizado
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+        subject = render_to_string(subject_template_name, context).strip().replace('\n', '')
+        body = render_to_string(email_template_name, context)
+        email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+        if html_email_template_name:
+            html_email = render_to_string(html_email_template_name, context)
+            email_message.attach_alternative(html_email, 'text/html')
+        email_message.send()

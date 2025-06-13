@@ -41,8 +41,13 @@
                 </div>
                 <div class="mb-3">
                     <label for="id_password" class="form-label">Contraseña</label>
-                    <input type="password" name="password" id="id_password" class="form-control{% if form.password.errors %} is-invalid{% endif %}" 
-                           placeholder="Ingrese su contraseña" required>
+                    <div class="input-group" style="height: 38px;">
+                        <input type="password" name="password" id="id_password" class="form-control{% if form.password.errors %} is-invalid{% endif %}" 
+                               placeholder="Ingrese su contraseña" required style="height: 38px;">
+                        <button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword" style="margin-left: -1px; height: 70px; width: 38px; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; top: -15px;">
+                            <i class="fas fa-eye" style="position: relative; top: -2px;"></i>
+                        </button>
+                    </div>
                     {% if form.password.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.password.errors %}
@@ -58,6 +63,10 @@
                     <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                 </button>
             </form>
+            
+            <div class="mt-3 text-center">
+                <a href="{% url 'password_reset' %}" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+            </div>
             
             <div class="mt-3 text-center">
                 <small class="text-muted d-block">Daily Report © {{ "now"|date:"Y" }}</small>
@@ -206,6 +215,55 @@
             margin: 0 1rem;
         }
     }
+
+    /* Estilos para el botón de mostrar/ocultar contraseña */
+    #togglePassword {
+        background-color: transparent;
+        border-color: var(--border-color);
+        color: var(--text-color);
+        z-index: 2;
+        min-width: 38px;
+        height: 38px !important;
+        position: relative;
+        top: -2px;
+    }
+    
+    #togglePassword i {
+        position: relative;
+        top: -2px;
+    }
+    
+    #id_password {
+        height: 38px !important;
+    }
+    
+    .input-group {
+        height: 38px !important;
+    }
+    
+    #togglePassword:hover {
+        background-color: rgba(0,0,0,0.05);
+        color: var(--text-color);
+    }
+    
+    [data-theme="dark"] #togglePassword {
+        background-color: transparent;
+        border-color: #545454;
+        color: #f8f9fa;
+    }
+    
+    [data-theme="dark"] #togglePassword:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: #f8f9fa;
+    }
+    
+    .input-group .form-control {
+        border-right: none;
+    }
+    
+    .input-group .btn {
+        border-left: none;
+    }
 </style>
 
 <script>
@@ -229,6 +287,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             form.classList.add('was-validated');
         }, false);
+    });
+
+    // Toggle password visibility
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#id_password');
+
+    togglePassword.addEventListener('click', function (e) {
+        // toggle the type attribute
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        
+        // toggle the eye icon
+        this.querySelector('i').classList.toggle('fa-eye');
+        this.querySelector('i').classList.toggle('fa-eye-slash');
     });
 });
 </script>

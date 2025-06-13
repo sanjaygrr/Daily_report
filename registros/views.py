@@ -16,8 +16,8 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import IntegrityError
 from django.utils import timezone
-from django.http import HttpResponse, HttpResponseForbidden
-from django.db.models import Q, Count, Prefetch
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.db.models import Q, Count, Prefetch, Sum
 from django.core.paginator import Paginator
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -87,6 +87,9 @@ def home(request):
         if empresa and empresa.logo:
             context['logo_empresa'] = empresa.logo.url
     return render(request, 'registros/home.html', context)
+
+def landing_page(request):
+    return render(request, 'registros/landing_page.html')
 
 # ---------------------- VISTAS DE EMPRESA ----------------------
 
@@ -670,6 +673,7 @@ def listar_maquinas(request):
     # Pasa la lista completa con la clave 'maquinas_list' que espera la plantilla
     context = {
         'maquinas_list': maquinas_list,
+        'now': timezone.now().date(),  # Agregamos la fecha actual para comparaciones
     }
     return render(request, 'registros/listar_maquinas.html', context)
 
@@ -1159,7 +1163,7 @@ def pendientes(request):
 
 
 @login_required
-@require_POST # La aprobación debería ser una acción POST
+@require_POST
 def aprobar_trabajo(request, pk):
     trabajo = get_object_or_404(Trabajo, pk=pk)
     empresa_actual = get_user_empresa(request.user)
@@ -1174,16 +1178,57 @@ def aprobar_trabajo(request, pk):
 
     if not permiso_para_aprobar:
         messages.error(request,"No tienes permiso para aprobar este trabajo")
-        return redirect('pendientes') # O a donde corresponda
+        return redirect('pendientes')
 
     if trabajo.estado != 'pendiente':
          messages.warning(request, f"El trabajo ya está en estado '{trabajo.get_estado_display()}'.")
          return redirect('pendientes')
 
     try:
-        # Asume que 'aprobado' es el estado final
-        trabajo.estado = 'aprobado' # O 'completado' según tu modelo
+        # Información General
+        if request.POST.get('fecha'):
+            trabajo.fecha = request.POST.get('fecha')
+        if request.POST.get('faena'):
+            trabajo.faena_id = request.POST.get('faena')
+        if request.POST.get('maquina'):
+            trabajo.maquina_id = request.POST.get('maquina')
+        if request.POST.get('trabajo'):
+            trabajo.trabajo = request.POST.get('trabajo')
+
+        # Mediciones
+        if request.POST.get('tipo_medida'):
+            trabajo.tipo_medida = request.POST.get('tipo_medida')
+        if request.POST.get('horometro_inicial'):
+            trabajo.horometro_inicial = request.POST.get('horometro_inicial')
+        if request.POST.get('horometro_final'):
+            trabajo.horometro_final = request.POST.get('horometro_final')
+
+        # Recursos
+        if request.POST.get('petroleo_litros'):
+            trabajo.petroleo_litros = request.POST.get('petroleo_litros')
+        if request.POST.get('aceite_tipo'):
+            trabajo.aceite_tipo = request.POST.get('aceite_tipo')
+        if request.POST.get('aceite_litros'):
+            trabajo.aceite_litros = request.POST.get('aceite_litros')
+
+        # Personal
+        if request.POST.get('supervisor'):
+            trabajo.supervisor_id = request.POST.get('supervisor')
+        if request.POST.get('trabajador'):
+            trabajo.trabajador_id = request.POST.get('trabajador')
+
+        # Observaciones
+        if request.POST.get('observaciones'):
+            trabajo.observaciones = request.POST.get('observaciones')
+
+        # Calcular el total de horas
+        if trabajo.horometro_final and trabajo.horometro_inicial:
+            trabajo.total_horas = float(trabajo.horometro_final) - float(trabajo.horometro_inicial)
+        
+        # Cambiar el estado a aprobado
+        trabajo.estado = 'aprobado'
         trabajo.save()
+        
         messages.success(request, 'Trabajo aprobado exitosamente!')
     except Exception as e:
         messages.error(request, f'Error al aprobar trabajo: {str(e)}')
@@ -1293,65 +1338,141 @@ def generar_pdf_trabajo(request, pk):
     if request.user.is_superuser:
          permiso_para_ver = True
     elif trabajo.empresa == user_empresa:
-         # Asume que cualquier usuario de la empresa puede ver el PDF
          permiso_para_ver = True
-         # Podrías restringir más por rol si es necesario
 
     if not permiso_para_ver:
         messages.error(request, "No tienes permiso para generar este reporte.")
-        # Redirigir a historial o home podría ser mejor que Forbidden
         return redirect('historial')
 
     response = HttpResponse(content_type='application/pdf')
     filename = f"Reporte_{trabajo.faena.nombre if trabajo.faena else 'SinFaena'}_{trabajo.fecha.strftime('%Y%m%d')}.pdf"
-    response['Content-Disposition'] = f'inline; filename="{filename}"' # inline para ver en navegador
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
     margin = inch
 
-    # Logo (manejo seguro de archivos)
+    # Configuración de colores
+    primary_color = colors.HexColor('#0d6efd')  # Color primario de Bootstrap
+    secondary_color = colors.HexColor('#6c757d')  # Color secundario
+    accent_color = colors.HexColor('#198754')  # Color de éxito
+    light_gray = colors.HexColor('#f8f9fa')  # Color de fondo claro
+    dark_blue = colors.HexColor('#0a58ca')  # Color azul oscuro para gradiente
+
+    # Encabezado con gradiente
+    p.setFillColor(primary_color)
+    p.rect(0, height - 2.5*inch, width, 2.5*inch, fill=True, stroke=False)
+    
+    # Efecto de gradiente (simulado con rectángulos semitransparentes)
+    p.setFillColor(dark_blue)
+    p.rect(0, height - 2.5*inch, width, 0.5*inch, fill=True, stroke=False)
+    
+    # Logo y nombre de la empresa
     logo_path_temp = None
     if trabajo.empresa and trabajo.empresa.logo:
         try:
             logo_file = default_storage.open(trabajo.empresa.logo.name)
-            # Crear archivo temporal seguro
-            fd, logo_path_temp = tempfile.mkstemp(suffix=".png") # Asume png o ajusta
+            fd, logo_path_temp = tempfile.mkstemp(suffix=".png")
             with os.fdopen(fd, 'wb') as temp_logo:
                  temp_logo.write(logo_file.read())
             logo_file.close()
-            # Dibujar imagen
-            p.drawImage(logo_path_temp, width - margin - 1.5*inch, height - margin - 0.5*inch,
-                         width=1.5*inch, height=0.5*inch, preserveAspectRatio=True, mask='auto')
+            
+            # Dibujar logo con fondo blanco y sombra
+            logo_width = 1.5*inch
+            logo_height = 1.5*inch
+            logo_x = margin
+            logo_y = height - margin - logo_height
+            
+            # Sombra del logo
+            p.setFillColor(colors.HexColor('#00000020'))
+            p.rect(logo_x + 0.05*inch, logo_y - 0.05*inch, 
+                   logo_width + 0.2*inch, logo_height + 0.2*inch, 
+                   fill=True, stroke=False)
+            
+            # Fondo blanco para el logo
+            p.setFillColor(colors.white)
+            p.rect(logo_x - 0.1*inch, logo_y - 0.1*inch, 
+                   logo_width + 0.2*inch, logo_height + 0.2*inch, 
+                   fill=True, stroke=False)
+            
+            # Borde para el logo
+            p.setStrokeColor(colors.white)
+            p.setLineWidth(2)
+            p.rect(logo_x - 0.1*inch, logo_y - 0.1*inch, 
+                   logo_width + 0.2*inch, logo_height + 0.2*inch, 
+                   fill=False, stroke=True)
+            
+            # Dibujar el logo
+            p.drawImage(logo_path_temp, logo_x, logo_y,
+                       width=logo_width, height=logo_height, 
+                       preserveAspectRatio=True, mask='auto')
+            
+            # Nombre de la empresa al lado del logo con sombra de texto
+            p.setFont("Helvetica-Bold", 24)
+            p.setFillColor(colors.HexColor('#00000040'))
+            p.drawString(logo_x + logo_width + 0.32*inch, 
+                        height - margin - 0.48*inch, 
+                        trabajo.empresa.nombre)
+            
+            p.setFillColor(colors.white)
+            p.drawString(logo_x + logo_width + 0.3*inch, 
+                        height - margin - 0.5*inch, 
+                        trabajo.empresa.nombre)
+            
+            # RUT de la empresa debajo del nombre
+            p.setFont("Helvetica", 12)
+            p.setFillColor(colors.HexColor('#ffffffcc'))  # Blanco semitransparente
+            p.drawString(logo_x + logo_width + 0.3*inch, 
+                        height - margin - 0.8*inch, 
+                        f"RUT: {trabajo.empresa.rut}")
+            
         except Exception as e:
             print(f"Error al procesar logo para PDF: {e}")
+            # Si hay error con el logo, mostrar solo el nombre de la empresa
+            p.setFont("Helvetica-Bold", 24)
+            p.setFillColor(colors.white)
+            p.drawString(margin, height - margin - 0.5*inch, trabajo.empresa.nombre)
+            p.setFont("Helvetica", 12)
+            p.setFillColor(colors.HexColor('#ffffffcc'))
+            p.drawString(margin, height - margin - 0.8*inch, f"RUT: {trabajo.empresa.rut}")
         finally:
-            # Asegurar eliminación del archivo temporal
-             if logo_path_temp and os.path.exists(logo_path_temp):
-                  try:
-                       os.unlink(logo_path_temp)
-                  except OSError as e:
-                       print(f"Error eliminando archivo temporal de logo: {e}")
+            if logo_path_temp and os.path.exists(logo_path_temp):
+                try:
+                    os.unlink(logo_path_temp)
+                except OSError as e:
+                    print(f"Error eliminando archivo temporal de logo: {e}")
+    else:
+        # Si no hay logo, mostrar solo el nombre de la empresa
+        p.setFont("Helvetica-Bold", 24)
+        p.setFillColor(colors.white)
+        p.drawString(margin, height - margin - 0.5*inch, trabajo.empresa.nombre)
+        p.setFont("Helvetica", 12)
+        p.setFillColor(colors.HexColor('#ffffffcc'))
+        p.drawString(margin, height - margin - 0.8*inch, f"RUT: {trabajo.empresa.rut}")
 
+    # Título del reporte con sombra
+    p.setFont("Helvetica-Bold", 20)
+    p.setFillColor(colors.HexColor('#00000040'))
+    p.drawCentredString(width/2 + 0.02*inch, height - margin - 1.18*inch, "Reporte Diario de Trabajo")
+    p.setFillColor(colors.white)
+    p.drawCentredString(width/2, height - margin - 1.2*inch, "Reporte Diario de Trabajo")
 
-    # Títulos
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(margin, height - margin, "Reporte Diario de Trabajo")
+    # Línea separadora con efecto de gradiente
+    p.setStrokeColor(colors.HexColor('#ffffff80'))  # Blanco semitransparente
+    p.setLineWidth(2)
+    p.line(margin, height - margin - 1.4*inch, width - margin, height - margin - 1.4*inch)
+    p.setStrokeColor(colors.white)
+    p.setLineWidth(1)
+    p.line(margin, height - margin - 1.41*inch, width - margin, height - margin - 1.41*inch)
 
-    y_position = height - margin - 0.5*inch
-    if trabajo.empresa:
-        p.setFont("Helvetica", 10)
-        p.drawString(margin, y_position, f"Empresa: {trabajo.empresa.nombre} (RUT: {trabajo.empresa.rut})")
-        y_position -= 0.25*inch
-
-    p.line(margin, y_position, width - margin, y_position)
+    # Sección de detalles principales
+    y_position = height - margin - 1.8*inch  # Ajustamos el espaciado después del título
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Detalles del Registro")
     y_position -= 0.4*inch
 
-    # Datos del trabajo
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(margin, y_position, "Detalles del Registro:")
-    y_position -= 0.3*inch
-
+    # Crear una tabla con bordes y fondos alternados
     data = [
         ("Fecha:", trabajo.fecha.strftime("%d/%m/%Y") if trabajo.fecha else "N/A"),
         ("Faena:", trabajo.faena.nombre if trabajo.faena else "N/A"),
@@ -1359,53 +1480,312 @@ def generar_pdf_trabajo(request, pk):
         ("Modelo:", trabajo.maquina.modelo if trabajo.maquina else "N/A"),
         ("Trabajo Realizado:", trabajo.trabajo),
         ("Tipo Medida:", trabajo.tipo_medida),
-        (f"{trabajo.tipo_medida} Inicial:", trabajo.horometro_inicial),
-        (f"{trabajo.tipo_medida} Final:", trabajo.horometro_final),
-        (f"Total {trabajo.tipo_medida}:", trabajo.total_horas),
-        ("Petróleo (Lts):", trabajo.petroleo_litros),
-        ("Tipo Aceite:", trabajo.aceite_tipo),
-        ("Aceite (Lts):", trabajo.aceite_litros),
+        (f"{trabajo.tipo_medida} Inicial:", str(trabajo.horometro_inicial)),
+        (f"{trabajo.tipo_medida} Final:", str(trabajo.horometro_final)),
+        (f"Total {trabajo.tipo_medida}:", str(trabajo.total_horas)),
+    ]
+
+    # Dibujar la tabla con estilo
+    line_height = 0.3 * inch
+    max_label_width = 2.5 * inch
+    value_start_x = margin + max_label_width + 0.2*inch
+    cell_width = width - 2*margin
+    cell_height = line_height
+
+    for i, (label, value) in enumerate(data):
+        # Fondo alternado para las filas
+        if i % 2 == 0:
+            p.setFillColor(light_gray)
+            p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=True, stroke=False)
+        
+        # Bordes de la celda
+        p.setStrokeColor(secondary_color)
+        p.setLineWidth(0.5)
+        p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=False, stroke=True)
+        
+        # Texto
+        p.setFont("Helvetica-Bold", 10)
+        p.setFillColor(primary_color)
+        p.drawString(margin + 0.1*inch, y_position - 0.2*inch, label)
+        
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.black)
+        p.drawString(value_start_x, y_position - 0.2*inch, str(value))
+        
+        y_position -= cell_height
+
+    # Sección de recursos
+    y_position -= 0.2*inch
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Recursos Utilizados")
+    y_position -= 0.4*inch
+
+    recursos_data = [
+        ("Petróleo (Lts):", str(trabajo.petroleo_litros) if trabajo.petroleo_litros else "N/A"),
+        ("Tipo Aceite:", trabajo.aceite_tipo if trabajo.aceite_tipo else "N/A"),
+        ("Aceite (Lts):", str(trabajo.aceite_litros) if trabajo.aceite_litros else "N/A"),
+    ]
+
+    for i, (label, value) in enumerate(recursos_data):
+        if i % 2 == 0:
+            p.setFillColor(light_gray)
+            p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=True, stroke=False)
+        
+        p.setStrokeColor(secondary_color)
+        p.setLineWidth(0.5)
+        p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=False, stroke=True)
+        
+        p.setFont("Helvetica-Bold", 10)
+        p.setFillColor(primary_color)
+        p.drawString(margin + 0.1*inch, y_position - 0.2*inch, label)
+        
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.black)
+        p.drawString(value_start_x, y_position - 0.2*inch, str(value))
+        
+        y_position -= cell_height
+
+    # Sección de personal
+    y_position -= 0.2*inch
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Personal")
+    y_position -= 0.4*inch
+
+    personal_data = [
         ("Supervisor:", trabajo.supervisor.get_full_name() if trabajo.supervisor else "N/A"),
         ("Trabajador:", trabajo.trabajador.get_full_name() if trabajo.trabajador else "N/A"),
         ("Estado:", trabajo.get_estado_display()),
     ]
 
-    p.setFont("Helvetica", 10)
-    line_height_pdf = 0.25 * inch
-    max_label_width = 2 * inch # Ancho para etiquetas
-    value_start_x = margin + max_label_width + 0.2*inch
-
-    for label, value in data:
-         p.drawString(margin, y_position, label)
-         p.drawString(value_start_x, y_position, str(value))
-         y_position -= line_height_pdf
-         # Salto de página si es necesario (simplificado)
-         if y_position < margin * 1.5:
-              p.showPage()
-              y_position = height - margin # Reiniciar Y en nueva página
+    for i, (label, value) in enumerate(personal_data):
+        if i % 2 == 0:
+            p.setFillColor(light_gray)
+            p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=True, stroke=False)
+        
+        p.setStrokeColor(secondary_color)
+        p.setLineWidth(0.5)
+        p.rect(margin, y_position - cell_height, cell_width, cell_height, fill=False, stroke=True)
+        
+        p.setFont("Helvetica-Bold", 10)
+        p.setFillColor(primary_color)
+        p.drawString(margin + 0.1*inch, y_position - 0.2*inch, label)
+        
+        p.setFont("Helvetica", 10)
+        p.setFillColor(colors.black)
+        p.drawString(value_start_x, y_position - 0.2*inch, str(value))
+        
+        y_position -= cell_height
 
     # Observaciones
-    y_position -= 0.2*inch # Espacio extra
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(margin, y_position, "Observaciones:")
-    y_position -= 0.3*inch
-    p.setFont("Helvetica", 10)
-    # Manejo de texto largo para observaciones
+    y_position -= 0.4*inch
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(primary_color)
+    p.drawString(margin, y_position, "Observaciones")
+    y_position -= 0.4*inch
+
+    # Fondo para observaciones con más espacio y margen inferior
+    obs_height = 2*inch
+    obs_bottom_margin = 1.5*inch  # Aumentamos el margen inferior
+    p.setFillColor(light_gray)
+    p.rect(margin, y_position - obs_height, cell_width, obs_height, fill=True, stroke=False)
+    p.setStrokeColor(secondary_color)
+    p.setLineWidth(0.5)
+    p.rect(margin, y_position - obs_height, cell_width, obs_height, fill=False, stroke=True)
+
+    # Texto de observaciones
     from reportlab.platypus import Paragraph
-    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     styles = getSampleStyleSheet()
-    styleN = styles['Normal']
+    style = ParagraphStyle(
+        'CustomStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        leading=12,
+        textColor=colors.black,
+        spaceBefore=0.1*inch,
+        spaceAfter=0.1*inch,
+        leftIndent=0.1*inch,  # Añadimos sangría izquierda
+        rightIndent=0.1*inch  # Añadimos sangría derecha
+    )
     observaciones_text = trabajo.observaciones if trabajo.observaciones else "Sin observaciones."
-    obs_paragraph = Paragraph(observaciones_text, styleN)
-    w_obs, h_obs = obs_paragraph.wrapOn(p, width - 2*margin, height) # Ancho disponible
-    obs_paragraph.drawOn(p, margin, y_position - h_obs)
-    y_position -= (h_obs + 0.2*inch)
+    obs_paragraph = Paragraph(observaciones_text, style)
+    w_obs, h_obs = obs_paragraph.wrapOn(p, width - 2*margin - 0.2*inch, height)
+    obs_paragraph.drawOn(p, margin + 0.1*inch, y_position - h_obs - 0.1*inch)
 
-
-    # Pie de página
+    # Pie de página con línea separadora y más espacio
+    p.setStrokeColor(secondary_color)
+    p.setLineWidth(1)
+    p.line(margin, margin + 0.8*inch, width - margin, margin + 0.8*inch)  # Subimos la línea
+    
     p.setFont("Helvetica", 8)
-    p.drawCentredString(width / 2.0, margin * 0.5, f"Reporte generado el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {request.user.get_full_name()}")
+    p.setFillColor(secondary_color)
+    p.drawCentredString(width / 2.0, margin * 0.7,  # Ajustamos la posición del texto
+        f"Reporte generado el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {request.user.get_full_name()}")
 
     p.showPage()
     p.save()
     return response
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='Admin').exists())
+def dashboard_admin(request):
+    # Obtener la empresa del usuario
+    empresa = get_user_empresa(request.user)
+    if not empresa:
+        messages.error(request, "No se encontró una empresa asociada a su usuario.")
+        return redirect('home')
+
+    # Conteo de usuarios
+    usuarios_count = PerfilUsuario.objects.filter(empresa=empresa).count()
+    
+    # Conteo de máquinas
+    maquina_count = Maquina.objects.filter(empresa=empresa).count()
+    
+    # Conteo de faenas
+    faena_count = Faena.objects.filter(empresa=empresa).count()
+    
+    # Conteo de trabajos
+    trabajo_count = Trabajo.objects.filter(empresa=empresa).count()
+    
+    # Obtener faenas activas
+    faenas_activas = Faena.objects.filter(
+        empresa=empresa, 
+        estado='activa'
+    ).order_by('-fecha_inicio')[:5]
+    
+    # Obtener trabajos por mes para el gráfico de evolución (últimos 6 meses)
+    from django.db.models.functions import TruncMonth
+    from datetime import datetime, timedelta
+    
+    fecha_fin = datetime.now().date() + timedelta(days=1)
+    fecha_inicio = (datetime.now() - timedelta(days=180)).date()
+    
+    trabajos_por_mes = Trabajo.objects.filter(
+        empresa=empresa,
+        fecha__gte=fecha_inicio,
+        fecha__lt=fecha_fin
+    ).annotate(
+        mes=TruncMonth('fecha')
+    ).values('mes').annotate(
+        cantidad=Count('id')
+    ).order_by('mes')
+    
+    # Preparar datos para el gráfico
+    etiquetas_meses = []
+    datos_trabajos = []
+    
+    meses_map = {}
+    current_date = fecha_inicio.replace(day=1)
+    while current_date < fecha_fin:
+        month_name = current_date.strftime("%b %Y")
+        meses_map[month_name] = 0
+        etiquetas_meses.append(month_name)
+        current_date = (current_date.replace(day=28) + timedelta(days=4)).replace(day=1)
+    
+    for item in trabajos_por_mes:
+        month_name = item['mes'].strftime("%b %Y")
+        meses_map[month_name] = item['cantidad']
+    
+    for month in etiquetas_meses:
+        datos_trabajos.append(meses_map.get(month, 0))
+    
+    # Obtener las máquinas más utilizadas
+    maquinas_mas_usadas = Trabajo.objects.filter(
+        empresa=empresa
+    ).values(
+        'maquina__nombre'
+    ).annotate(
+        cantidad=Count('id')
+    ).order_by('-cantidad')[:5]
+    
+    # Obtener distribución de usuarios por rol
+    user_roles = []
+    
+    # Contar usuarios por rol
+    for grupo in Group.objects.all():
+        count = User.objects.filter(
+            groups=grupo,
+            perfil__empresa=empresa
+        ).count()
+        
+        if count > 0:
+            user_roles.append({
+                'groups__name': grupo.name,
+                'user_count': count
+            })
+    
+    # Añadir usuarios sin rol
+    sin_rol_count = User.objects.filter(
+        perfil__empresa=empresa,
+        groups__isnull=True
+    ).count()
+    
+    if sin_rol_count > 0:
+        user_roles.append({
+            'groups__name': 'Sin Rol Asignado',
+            'user_count': sin_rol_count
+        })
+
+    # Obtener trabajos pendientes
+    trabajos_pendientes = Trabajo.objects.filter(
+        empresa=empresa,
+        estado='pendiente'
+    ).select_related('faena', 'maquina', 'trabajador').order_by('-fecha')[:5]
+
+    # Obtener estadísticas de trabajos por estado
+    trabajos_por_estado = Trabajo.objects.filter(
+        empresa=empresa
+    ).values('estado').annotate(
+        cantidad=Count('id')
+    )
+
+    # Obtener consumo total de recursos
+    consumo_recursos = Trabajo.objects.filter(
+        empresa=empresa,
+        fecha__gte=fecha_inicio
+    ).aggregate(
+        total_petroleo=Sum('petroleo_litros'),
+        total_aceite=Sum('aceite_litros'),
+        total_horas=Sum('total_horas')
+    )
+
+    # Obtener trabajos recientes
+    trabajos_recientes = Trabajo.objects.filter(
+        empresa=empresa
+    ).select_related(
+        'faena', 'maquina', 'trabajador', 'supervisor'
+    ).order_by('-fecha')[:5]
+    
+    context = {
+        'empresa': empresa,
+        'usuarios_count': usuarios_count,
+        'maquina_count': maquina_count,
+        'faena_count': faena_count,
+        'trabajo_count': trabajo_count,
+        'faenas_activas': faenas_activas,
+        'etiquetas_meses': etiquetas_meses,
+        'datos_trabajos': datos_trabajos,
+        'maquinas_mas_usadas': maquinas_mas_usadas,
+        'user_roles': user_roles,
+        'trabajos_pendientes': trabajos_pendientes,
+        'trabajos_por_estado': trabajos_por_estado,
+        'consumo_recursos': consumo_recursos,
+        'trabajos_recientes': trabajos_recientes
+    }
+    
+    return render(request, 'registros/dashboard_admin.html', context)
+
+@login_required
+def toggle_no_pago(request, empresa_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+    from registros.models import Empresa
+    empresa = Empresa.objects.get(pk=empresa_id)
+    if empresa.no_pago_fecha:
+        empresa.no_pago_fecha = None
+    else:
+        empresa.no_pago_fecha = timezone.now()
+    empresa.save()
+    return JsonResponse({'success': True, 'no_pago_fecha': empresa.no_pago_fecha})

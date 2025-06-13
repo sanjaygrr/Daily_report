@@ -11,7 +11,7 @@
                 <div class="card-body p-0">
                     <div class="row g-0">
                         <div class="col-md-6">
-                            <img src="{% static 'images/login_image.jpeg' %}" class="img-fluid h-100" style="object-fit: cover;" alt="Daily Report">
+                            <img src="{% static 'images/login_image.jpeg' %}" class="img-fluid home-main-img" alt="Daily Report">
                         </div>
                         <div class="col-md-6 d-flex align-items-center bg-gradient-primary">
                             <div class="p-4 p-md-5 text-white">
@@ -74,6 +74,74 @@
 <style>
 .bg-gradient-primary {
     background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+/* Imagen principal home */
+.home-main-img {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+    background: #fff !important;
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .card {
+        margin: 0 0.5rem;
+    }
+    
+    .row.g-0 {
+        flex-direction: column;
+    }
+    
+    .col-md-6 {
+        width: 100%;
+    }
+    
+    .home-main-img {
+        width: 100% !important;
+        height: auto !important;
+        object-fit: contain !important;
+        background: #fff !important;
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-bottom: 0;
+        display: block;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+    }
+    
+    .display-5 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .lead {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    p {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .p-4.p-md-5 {
+        padding: 0.75rem !important;
+    }
+    
+    .bg-gradient-primary {
+        min-height: auto !important;
+    }
 }
 </style>
 {% endblock %}

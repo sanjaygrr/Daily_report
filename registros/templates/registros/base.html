@@ -25,10 +25,33 @@
             margin-left: 0;
             transition: margin-left 0.3s;
             padding-top: 70px;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         .content-shifted {
             margin-left: 250px;
         }
+        
+        /* Ajuste para pantallas grandes cuando el sidebar está abierto */
+        @media (min-width: 769px) {
+            .content-shifted {
+                max-width: calc(100% - 250px);
+            }
+        }
+        
+        /* Ajuste para el container dentro del content */
+        .content .container {
+            max-width: 100%;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        @media (min-width: 1200px) {
+            .content .container {
+                max-width: 1140px;
+            }
+        }
+        
         footer {
             flex-shrink: 0;
             transition: margin-left 0.3s;
@@ -141,31 +164,66 @@
              height: 30px;
          }
         .logout-form {
-            display: inline-block;
+            display: flex;
+            align-items: center;
+            height: 100%;
             margin: 0;
             padding: 0;
         }
         .logout-form button {
-             border: none;
-             background: none;
-             color: white;
-             padding: 0.5rem 1rem;
-             text-decoration: none;
-             cursor: pointer;
-             background-color: #ffc107;
-             color: #000;
-             border-radius: 5px;
-         }
+            border: none;
+            background: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff4d4d 0%, #ff0000 100%);
+            color: white;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .logout-form button:hover {
-             background-color: #e0a800;
-         }
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .btn-outline-warning {
+            padding: 0.35rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .btn-outline-warning:hover {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            color: white;
+        }
         .user-info {
-             color: white;
-             font-size: 14px;
-             border-left: 1px solid #333;
-             padding-left: 15px;
-             margin-left: 15px;
-         }
+            color: white;
+            font-size: 14px;
+            border-left: 1px solid rgba(255,255,255,0.2);
+            padding-left: 15px;
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
          .dropdown-toggle::after {
              display: none;
          }
@@ -272,16 +330,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .logout-form button {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.9rem;
-        }
-
-        .btn-outline-warning {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.9rem;
+            height: 100%;
         }
 
         @media (max-width: 768px) {
@@ -293,16 +342,16 @@
                 display: none !important;
             }
             
-            .logout-form button,
             .btn-outline-warning {
-                padding: 0.25rem 0.5rem;
+                padding: 0.3rem 0.7rem;
                 font-size: 0.85rem;
+                height: 30px;
             }
         }
 
         @media (max-width: 576px) {
             .navbar-actions {
-                gap: 5px;
+                gap: 6px;
             }
             
             .theme-toggle {
@@ -310,11 +359,138 @@
                 padding: 3px 8px;
             }
             
-            .logout-form button,
             .btn-outline-warning {
-                padding: 0.2rem 0.4rem;
+                padding: 0.25rem 0.6rem;
                 font-size: 0.8rem;
+                height: 28px;
             }
+        }
+
+        .sidebar .nav-link.logout-link {
+            color: #818181;
+            background: none;
+            border-radius: 0;
+            margin: 0;
+            padding: 15px 32px;
+            transition: all 0.3s ease;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 20px;
+        }
+
+        .sidebar .nav-link.logout-link:hover {
+            background: none;
+            color: #ff4d4d;
+            border-left: 4px solid #ff4d4d;
+        }
+
+        .sidebar .nav-link.logout-link i {
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar .nav-link.logout-link:hover i {
+            transform: translateX(3px);
+        }
+        
+        /* Mejoras para tablas responsivas */
+        .table-responsive {
+            margin-left: -15px;
+            margin-right: -15px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        /* En pantallas grandes, limitar el ancho del contenido */
+        @media (min-width: 1400px) {
+            .content .container-fluid {
+                max-width: 1320px;
+                margin: 0 auto;
+            }
+        }
+        
+        /* Ajustes para evitar desbordamiento */
+        .card {
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Mejorar visualización de tablas */
+        .table th {
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        /* Ajustar botones en grupos */
+        .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+        }
+        
+        /* En pantallas medianas, mostrar tabla pero con scroll si es necesario */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            .table {
+                min-width: 600px;
+            }
+        }
+        
+        /* Estilos para tarjetas mejoradas */
+        .hover-shadow {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        
+        .hover-shadow:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+        }
+        
+        .bg-opacity-10 {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .fw-medium {
+            font-weight: 500;
+        }
+        
+        /* Mejorar apariencia de badges */
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+        
+        /* Ajustar altura de tarjetas en grid */
+        .card.h-100 {
+            min-height: 280px;
+        }
+        
+        /* Estilos para tarjetas con borde de advertencia */
+        .border-warning {
+            border-color: #ffc107 !important;
+            border-width: 2px !important;
+        }
+        
+        .bg-opacity-10 {
+            --bs-bg-opacity: .1;
+        }
+        
+        /* Mejoras para el contador de pendientes */
+        .text-truncate {
+            max-width: 100%;
+        }
+        
+        /* Mejorar visualización de recursos en tarjetas */
+        .border-start.border-3 {
+            border-width: 3px !important;
         }
     </style>
 </head>
@@ -327,7 +503,15 @@
             </button>
             {% if user.is_authenticated %}
             <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'images/logo.jpeg' %}" alt="Logo">
+                {% if user.is_superuser %}
+                    <img src="{% static 'images/logo.jpeg' %}" alt="Logo">
+                {% else %}
+                    {% if user.perfil.empresa.logo %}
+                        <img src="{{ user.perfil.empresa.logo.url }}" alt="Logo {{ user.perfil.empresa.nombre }}" style="width: 30px; height: 30px; object-fit: contain;">
+                    {% else %}
+                        <img src="{% static 'images/logo.jpeg' %}" alt="Logo">
+                    {% endif %}
+                {% endif %}
                 Daily Report
             </a>
              <span class="text-white text-sm ms-3 d-none d-md-inline">Bienvenido, {{ user.get_full_name|default:user.username }}</span>
@@ -354,12 +538,6 @@
                         ({{ user.groups.first.name }})
                     {% endif %}
                 </div>
-                <form method="post" action="{% url 'logout' %}" class="logout-form">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-link btn-link">
-                        <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
-                    </button>
-                </form>
             {% else %}
                 <a class="btn btn-outline-warning" href="{% url 'login' %}">
                     <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
@@ -414,6 +592,11 @@
 
             {% elif user|user_is_in_group:"Admin" %}
                  {# Admin VE TODO MENOS Empresas (según nuevo requisito) #}
+                 <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard_admin' %}">
+                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                    </a>
+                 </li>
                  <li class="nav-item dropdown">
                     <a class="nav-link" href="#trabajosMenuAdmin" data-bs-toggle="collapse" aria-expanded="false">
                         <i class="fas fa-clipboard-check me-2"></i>Trabajos
@@ -483,6 +666,15 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'historial' %}"><i class="fas fa-history me-2"></i>Historial</a></li>
 
             {% endif %}
+
+            <li class="nav-item">
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link logout-link">
+                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                    </button>
+                </form>
+            </li>
         </ul>
 
         {% else %}
@@ -501,8 +693,10 @@
         {% endif %}
     </div>
 
-    <main class="container-fluid mt-3 mb-5 content" id="main-content">
-        {% block content %}{% endblock %}
+    <main class="content" id="main-content">
+        <div class="container-fluid px-3 px-md-4">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
     <footer class="bg-dark text-white text-center p-3" id="footer">
@@ -623,6 +817,36 @@
                      }
                  });
              });
+        });
+    </script>
+
+    <!-- Script para overlay de No Pago -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si el usuario está autenticado y tiene un perfil con empresa
+            {% if user.is_authenticated and user.perfil and user.perfil.empresa %}
+                var noPagoFecha = "{{ user.perfil.empresa.no_pago_fecha|date:'c' }}";
+                if (noPagoFecha) {
+                    var fechaNoPago = new Date(noPagoFecha);
+                    var ahora = new Date();
+                    var diffTime = Math.abs(ahora - fechaNoPago);
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    var opacidad = Math.min(diffDays / 5, 1);
+                    if (opacidad > 0) {
+                        var overlay = document.createElement('div');
+                        overlay.style.position = 'fixed';
+                        overlay.style.top = '0';
+                        overlay.style.left = '0';
+                        overlay.style.width = '100%';
+                        overlay.style.height = '100%';
+                        overlay.style.backgroundColor = 'black';
+                        overlay.style.opacity = opacidad;
+                        overlay.style.zIndex = '9999';
+                        overlay.style.pointerEvents = 'none';
+                        document.body.appendChild(overlay);
+                    }
+                }
+            {% endif %}
         });
     </script>
 
