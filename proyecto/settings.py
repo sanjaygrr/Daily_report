@@ -79,9 +79,15 @@ WSGI_APPLICATION = 'proyecto.wsgi.application'
 
 # Database
 
+# Configura la base de datos. Por defecto usa SQLite para facilitar el desarrollo
+# local si la variable de entorno DATABASE_URL no está definida.
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL')
+        default=config(
+            'DATABASE_URL',
+            default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}'
+        )
     )
 }
 

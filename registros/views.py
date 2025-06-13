@@ -1002,16 +1002,26 @@ def historial(request):
         'empresa', 'faena', 'maquina', 'supervisor', 'trabajador'
     )
 
-    # Filtrar por empresa del usuario si no es superusuario
+    # ---- Filtrado por empresa y rol ----
     if not request.user.is_superuser:
         empresa_actual = get_user_empresa(request.user)
+
+        # Primero, limitar a la empresa correspondiente
         if empresa_actual:
             trabajos_query = trabajos_query.filter(empresa=empresa_actual)
         else:
-            # Si no es SU y no tiene empresa, no ve trabajos
+            # Sin empresa asociada ⇒ no ve nada
             trabajos_query = Trabajo.objects.none()
+
+        # Segundo, limitar según el rol del usuario
+        if request.user.groups.filter(name='Trabajador').exists():
+            trabajos_query = trabajos_query.filter(trabajador=request.user)
+        elif request.user.groups.filter(name='Supervisor').exists():
+            trabajos_query = trabajos_query.filter(supervisor=request.user)
+        # Los Admin de la empresa ven todo lo de la empresa (sin filtro extra)
     else:
-        empresa_actual = None  # Para uso en los filtros más adelante
+        # Superusuario: sin restricciones
+        empresa_actual = None
 
     # Aplicamos filtros manualmente basados en los parámetros GET
     # FECHA: corregimos para asegurar que funcione correctamente
@@ -1044,9 +1054,16 @@ def historial(request):
         estado = request.GET['estado']
         trabajos_query = trabajos_query.filter(estado=estado)
 
-    # Obtener datos para los filtros dropdown
-    # Filtrar listas según la empresa del usuario
-    if empresa_actual:
+    # ---------------- Dropdowns ----------------
+    if request.user.is_superuser:
+        # Superusuario: todos
+        faenas = Faena.objects.all().order_by('nombre')
+        maquinas = Maquina.objects.all().order_by('nombre')
+        supervisores = User.objects.filter(groups__name='Supervisor').order_by('username')
+        trabajadores = User.objects.filter(groups__name='Trabajador').order_by('username')
+
+    elif request.user.groups.filter(name='Admin').exists():
+        # Admin de empresa: todo dentro de su empresa
         faenas = Faena.objects.filter(empresa=empresa_actual).order_by('nombre')
         maquinas = Maquina.objects.filter(empresa=empresa_actual).order_by('nombre')
         supervisores = User.objects.filter(
@@ -1057,12 +1074,27 @@ def historial(request):
             groups__name='Trabajador',
             perfil__empresa=empresa_actual
         ).order_by('username')
+
+    elif request.user.groups.filter(name='Supervisor').exists():
+        # Supervisor: solo elementos relacionados a sus propios trabajos
+        faena_ids = trabajos_query.values_list('faena_id', flat=True).distinct()
+        maquina_ids = trabajos_query.values_list('maquina_id', flat=True).distinct()
+        trabajador_ids = trabajos_query.values_list('trabajador_id', flat=True).distinct()
+
+        faenas = Faena.objects.filter(id__in=faena_ids).order_by('nombre')
+        maquinas = Maquina.objects.filter(id__in=maquina_ids).order_by('nombre')
+        supervisores = User.objects.filter(id=request.user.id)  # Solo él mismo
+        trabajadores = User.objects.filter(id__in=trabajador_ids).order_by('username')
+
     else:
-        # Si es superusuario o no hay empresa, mostrar todos
-        faenas = Faena.objects.all().order_by('nombre')
-        maquinas = Maquina.objects.all().order_by('nombre')
-        supervisores = User.objects.filter(groups__name='Supervisor').order_by('username')
-        trabajadores = User.objects.filter(groups__name='Trabajador').order_by('username')
+        # Trabajador (u otro rol): elementos propios
+        faena_ids = trabajos_query.values_list('faena_id', flat=True).distinct()
+        maquina_ids = trabajos_query.values_list('maquina_id', flat=True).distinct()
+
+        faenas = Faena.objects.filter(id__in=faena_ids).order_by('nombre')
+        maquinas = Maquina.objects.filter(id__in=maquina_ids).order_by('nombre')
+        supervisores = User.objects.filter(groups__name='Supervisor', perfil__empresa=empresa_actual).order_by('username') if empresa_actual else User.objects.none()
+        trabajadores = User.objects.filter(id=request.user.id)
 
     # Ordenar después de filtrar
     trabajos_query = trabajos_query.order_by('-fecha', '-id')
@@ -1094,19 +1126,24 @@ def historial(request):
 def pendientes(request):
     trabajos_query = Trabajo.objects.select_related(
         'empresa', 'faena', 'maquina', 'supervisor', 'trabajador'
-    ).filter(estado='pendiente') # Asume estado='pendiente'
+    ).filter(estado='pendiente')
 
-    # Permisos: ¿Quién ve pendientes? Supervisores de su empresa, Admins, SU?
     if not request.user.is_superuser:
         empresa_actual = get_user_empresa(request.user)
-        if empresa_actual and request.user.groups.filter(name__in=['Admin', 'Supervisor']).exists():
-             trabajos_query = trabajos_query.filter(empresa=empresa_actual)
-             # Supervisor sólo ve los asignados a él?
-             # if request.user.groups.filter(name='Supervisor').exists():
-             #     trabajos_query = trabajos_query.filter(supervisor=request.user)
-        else:
-             trabajos_query = Trabajo.objects.none() # Otros roles o sin empresa no ven pendientes
 
+        # Limitar a la empresa del usuario
+        if empresa_actual:
+            trabajos_query = trabajos_query.filter(empresa=empresa_actual)
+        else:
+            trabajos_query = Trabajo.objects.none()
+
+        # Rol específico
+        if request.user.groups.filter(name='Trabajador').exists():
+            # Normalmente un trabajador no aprueba pendientes, pero restringimos igual
+            trabajos_query = trabajos_query.filter(trabajador=request.user)
+        elif request.user.groups.filter(name='Supervisor').exists():
+            trabajos_query = trabajos_query.filter(supervisor=request.user)
+        # Admin ve todos los pendientes de su empresa
 
     trabajos_ordenados = trabajos_query.order_by('fecha', 'id') # Ejemplo
 
@@ -1164,10 +1201,17 @@ def export_historial_xlsx(request):
 
     if not request.user.is_superuser:
         empresa_actual = get_user_empresa(request.user)
+
         if empresa_actual:
             trabajos_query = trabajos_query.filter(empresa=empresa_actual)
         else:
             trabajos_query = Trabajo.objects.none()
+
+        # Filtro extra por rol
+        if request.user.groups.filter(name='Trabajador').exists():
+            trabajos_query = trabajos_query.filter(trabajador=request.user)
+        elif request.user.groups.filter(name='Supervisor').exists():
+            trabajos_query = trabajos_query.filter(supervisor=request.user)
 
     trabajo_filter = TrabajoFilter(request.GET, queryset=trabajos_query)
     trabajos_filtrados = trabajo_filter.qs.order_by('-fecha', '-id') # Mismo orden que historial
