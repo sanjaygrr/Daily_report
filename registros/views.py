@@ -24,6 +24,7 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
+from decimal import Decimal
 
 from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario # Asegúrate que PerfilUsuario esté aquí
 from .forms import (
@@ -568,12 +569,25 @@ def eliminar_usuario(request, pk):
 
     try:
         username = usuario_a_eliminar.username
+
+        # Desasociar referencias en modelos que podrían tener on_delete=SET_NULL
+        from registros.models import Trabajo, Faena, Empresa
+
+        Trabajo.objects.filter(supervisor=usuario_a_eliminar).update(supervisor=None)
+        Trabajo.objects.filter(trabajador=usuario_a_eliminar).update(trabajador=None)
+        Trabajo.objects.filter(creado_por=usuario_a_eliminar).update(creado_por=None)
+
+        Faena.objects.filter(responsable=usuario_a_eliminar).update(responsable=None)
+        Empresa.objects.filter(administrador=usuario_a_eliminar).update(administrador=None)
+
         # Eliminar perfil antes que el usuario
         if hasattr(usuario_a_eliminar, 'perfil'):
             try:
                 usuario_a_eliminar.perfil.delete()
             except PerfilUsuario.DoesNotExist:
-                pass # No había perfil, no hay problema
+                pass # No había perfil
+
+        # Finalmente eliminar el usuario
         usuario_a_eliminar.delete()
         messages.success(request, f'Usuario "{username}" eliminado exitosamente!')
     except Exception as e:
@@ -1155,9 +1169,54 @@ def pendientes(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # ---------------- Dropdowns ----------------
+    if request.user.is_superuser:
+        faenas = Faena.objects.all().order_by('nombre')
+        maquinas = Maquina.objects.all().order_by('nombre')
+        supervisores = User.objects.filter(groups__name='Supervisor').order_by('username')
+        trabajadores = User.objects.filter(groups__name='Trabajador').order_by('username')
+
+    elif request.user.groups.filter(name='Admin').exists():
+        empresa_actual = get_user_empresa(request.user)
+        faenas = Faena.objects.filter(empresa=empresa_actual).order_by('nombre')
+        maquinas = Maquina.objects.filter(empresa=empresa_actual).order_by('nombre')
+        supervisores = User.objects.filter(
+            groups__name='Supervisor',
+            perfil__empresa=empresa_actual
+        ).order_by('username')
+        trabajadores = User.objects.filter(
+            groups__name='Trabajador',
+            perfil__empresa=empresa_actual
+        ).order_by('username')
+
+    elif request.user.groups.filter(name='Supervisor').exists():
+        # Supervisor: solo elementos relacionados a sus propios trabajos pendientes
+        faena_ids = trabajos_query.values_list('faena_id', flat=True).distinct()
+        maquina_ids = trabajos_query.values_list('maquina_id', flat=True).distinct()
+        trabajador_ids = trabajos_query.values_list('trabajador_id', flat=True).distinct()
+
+        faenas = Faena.objects.filter(id__in=faena_ids).order_by('nombre')
+        maquinas = Maquina.objects.filter(id__in=maquina_ids).order_by('nombre')
+        supervisores = User.objects.filter(id=request.user.id)  # Solo él mismo
+        trabajadores = User.objects.filter(id__in=trabajador_ids).order_by('username')
+
+    else:
+        # Trabajador u otro rol: elementos propios
+        faena_ids = trabajos_query.values_list('faena_id', flat=True).distinct()
+        maquina_ids = trabajos_query.values_list('maquina_id', flat=True).distinct()
+
+        faenas = Faena.objects.filter(id__in=faena_ids).order_by('nombre')
+        maquinas = Maquina.objects.filter(id__in=maquina_ids).order_by('nombre')
+        supervisores = User.objects.filter(groups__name='Supervisor', perfil__empresa=get_user_empresa(request.user)).order_by('username')
+        trabajadores = User.objects.filter(id=request.user.id)
+
     context = {
         'page_obj': page_obj,
-        'trabajos': page_obj.object_list # Pasar la lista para iterar en template
+        'trabajos': page_obj.object_list, # Pasar la lista para iterar en template
+        'faenas': faenas,
+        'maquinas': maquinas,
+        'supervisores': supervisores,
+        'trabajadores': trabajadores
     }
     return render(request, 'registros/pendientes.html', context)
 
@@ -1199,9 +1258,15 @@ def aprobar_trabajo(request, pk):
         if request.POST.get('tipo_medida'):
             trabajo.tipo_medida = request.POST.get('tipo_medida')
         if request.POST.get('horometro_inicial'):
-            trabajo.horometro_inicial = request.POST.get('horometro_inicial')
+            try:
+                trabajo.horometro_inicial = Decimal(str(request.POST.get('horometro_inicial')))
+            except Exception:
+                trabajo.horometro_inicial = None
         if request.POST.get('horometro_final'):
-            trabajo.horometro_final = request.POST.get('horometro_final')
+            try:
+                trabajo.horometro_final = Decimal(str(request.POST.get('horometro_final')))
+            except Exception:
+                trabajo.horometro_final = None
 
         # Recursos
         if request.POST.get('petroleo_litros'):
@@ -1222,8 +1287,11 @@ def aprobar_trabajo(request, pk):
             trabajo.observaciones = request.POST.get('observaciones')
 
         # Calcular el total de horas
-        if trabajo.horometro_final and trabajo.horometro_inicial:
-            trabajo.total_horas = float(trabajo.horometro_final) - float(trabajo.horometro_inicial)
+        if trabajo.horometro_final is not None and trabajo.horometro_inicial is not None:
+            try:
+                trabajo.total_horas = trabajo.horometro_final - trabajo.horometro_inicial
+            except Exception:
+                trabajo.total_horas = None
         
         # Cambiar el estado a aprobado
         trabajo.estado = 'aprobado'

@@ -384,14 +384,16 @@ class Trabajo(models.Model):
     supervisor = models.ForeignKey(
         User,
         related_name='trabajos_supervisados',
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+        null=True,
         limit_choices_to={'groups__name': 'Supervisor'},
         verbose_name="Supervisor"
     )
     trabajador = models.ForeignKey(
         User,
         related_name='trabajos_realizados',
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+        null=True,
         verbose_name="Trabajador"
     )
     estado = models.CharField(
