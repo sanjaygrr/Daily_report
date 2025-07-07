@@ -338,8 +338,8 @@ document.addEventListener('DOMContentLoaded', function() {
     usernameForm.addEventListener('submit', function () {
         const value = usernameInput.value.trim();
         if (!/[a-jl-zA-JL-Z]/.test(value)) {
-            // Es RUT: quitar puntos y guion para enviarlo limpio
-            usernameInput.value = value.replace(/[^0-9kK]/g, '').toUpperCase();
+            // Es RUT: quitar solo los puntos (mantener el guion) para coincidir con el formato almacenado
+            usernameInput.value = value.replace(/\./g, '').toUpperCase();
         }
     });
 });
