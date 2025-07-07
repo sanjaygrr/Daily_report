@@ -302,6 +302,46 @@ document.addEventListener('DOMContentLoaded', function() {
         this.querySelector('i').classList.toggle('fa-eye');
         this.querySelector('i').classList.toggle('fa-eye-slash');
     });
+
+    // --- Formateo visual de RUT ---
+    const usernameInput = document.getElementById('id_username');
+    const usernameForm = document.querySelector('form.needs-validation');
+
+    // Formatear al perder el foco (solo visual)
+    usernameInput.addEventListener('blur', function () {
+        const rawValue = this.value.trim();
+        // Si contiene letras distintas de k/K, se asume superadmin y no se formatea
+        if (/[a-jl-zA-JL-Z]/.test(rawValue)) {
+            return; // dejar tal cual
+        }
+        // Limpiar caracteres no válidos
+        let clean = rawValue.replace(/[^0-9kK]/g, '').toUpperCase();
+        if (clean.length < 2) {
+            // Demasiado corto para formatear
+            this.value = clean;
+            return;
+        }
+        const dv = clean.slice(-1);
+        const cuerpo = clean.slice(0, -1);
+        // Insertar puntos cada 3 dígitos desde la derecha
+        let cuerpoFormateado = '';
+        for (let i = cuerpo.length - 1, len = 0; i >= 0; i--, len++) {
+            cuerpoFormateado = cuerpo[i] + cuerpoFormateado;
+            if (len % 3 === 2 && i !== 0) {
+                cuerpoFormateado = '.' + cuerpoFormateado;
+            }
+        }
+        this.value = `${cuerpoFormateado}-${dv}`;
+    });
+
+    // Antes de enviar el formulario, quitar formato si era RUT
+    usernameForm.addEventListener('submit', function () {
+        const value = usernameInput.value.trim();
+        if (!/[a-jl-zA-JL-Z]/.test(value)) {
+            // Es RUT: quitar puntos y guion para enviarlo limpio
+            usernameInput.value = value.replace(/[^0-9kK]/g, '').toUpperCase();
+        }
+    });
 });
 </script>
 {% endblock %}
