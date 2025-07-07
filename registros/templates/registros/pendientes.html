@@ -234,8 +234,10 @@
                     <div class="col-md-6">
                         <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-users me-2"></i>Personal</h6>
                         <dl class="row">
+                            {% if not request.user|user_is_in_group:'Supervisor' %}
                             <dt class="col-sm-4">Supervisor:</dt>
                             <dd class="col-sm-8">{{ trabajo.supervisor.get_full_name|default:trabajo.supervisor.username }}</dd>
+                            {% endif %}
                             
                             <dt class="col-sm-4">Trabajador:</dt>
                             <dd class="col-sm-8">{{ trabajo.trabajador.get_full_name|default:trabajo.trabajador.username }}</dd>
@@ -369,6 +371,7 @@
                                         </h6>
                                     </div>
                                     
+                                    {% if not request.user|user_is_in_group:'Supervisor' %}
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Supervisor</label>
                                         <select class="form-select" name="supervisor">
@@ -380,6 +383,7 @@
                                             {% endfor %}
                                         </select>
                                     </div>
+                                    {% endif %}
                                     
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Trabajador</label>
