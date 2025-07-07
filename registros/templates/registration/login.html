@@ -339,7 +339,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Antes de enviar el formulario, restaurar el valor original ingresado (sin formateo visual)
     usernameForm.addEventListener('submit', function () {
         if (usernameInput.dataset.raw) {
-            usernameInput.value = usernameInput.dataset.raw.trim();
+            // Enviar RUT sin puntos ni guion, solo números y K/k si aplica
+            usernameInput.value = usernameInput.dataset.raw.replace(/[^0-9kK]/g, '').toUpperCase();
         }
     });
 });
