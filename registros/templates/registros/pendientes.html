@@ -43,7 +43,7 @@
                             </h6>
                             <div class="d-flex align-items-center mb-2">
                                 <i class="fas fa-truck text-muted me-2"></i>
-                                <span class="text-truncate">{{ trabajo.maquina.nombre|default:"Sin máquina" }}</span>
+                                <span class="text-truncate">{{ trabajo.maquina.nombre|default:"Sin máquina" }}{% if trabajo.maquina.numero_serie %} ({{ trabajo.maquina.numero_serie }}){% endif %}</span>
                             </div>
                             <div class="border-start border-3 border-primary ps-2 mt-2">
                                 <small class="text-muted">Trabajo realizado:</small>
@@ -188,6 +188,9 @@
                             
                             <dt class="col-sm-4">Máquina:</dt>
                             <dd class="col-sm-8">{{ trabajo.maquina.nombre|default:"No especificada" }}
+                                {% if trabajo.maquina.numero_serie %}
+                                <small class="text-muted d-block">Código: {{ trabajo.maquina.numero_serie }}</small>
+                                {% endif %}
                                 {% if trabajo.maquina.modelo %}
                                 <small class="text-muted d-block">Modelo: {{ trabajo.maquina.modelo }}</small>
                                 {% endif %}
