@@ -1,4 +1,5 @@
 {% extends 'registros/base.html' %}
+{% load custom_filters %}
 
 {% block title %}Trabajos Pendientes de Revisión{% endblock %}
 
@@ -43,7 +44,16 @@
                             </h6>
                             <div class="d-flex align-items-center mb-2">
                                 <i class="fas fa-truck text-muted me-2"></i>
-                                <span class="text-truncate">{{ trabajo.maquina.nombre|default:"Sin máquina" }}{% if trabajo.maquina.numero_serie %} ({{ trabajo.maquina.numero_serie }}){% endif %}</span>
+                                <div>
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;">{{ trabajo.maquina.nombre|default:"Sin máquina" }}
+                                        {% if trabajo.maquina.numero_serie %}
+                                            ({{ trabajo.maquina.numero_serie }})
+                                        {% endif %}
+                                    </span>
+                                    {% if trabajo.maquina.numero_serie %}
+                                        <small class="text-muted d-block">Código: {{ trabajo.maquina.numero_serie }}</small>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="border-start border-3 border-primary ps-2 mt-2">
                                 <small class="text-muted">Trabajo realizado:</small>
@@ -309,7 +319,7 @@
                                             <option value="">Seleccione una máquina</option>
                                             {% for maquina in maquinas %}
                                                 <option value="{{ maquina.id }}" {% if trabajo.maquina.id == maquina.id %}selected{% endif %}>
-                                                    {{ maquina.nombre }}
+                                                    {{ maquina.nombre }}{% if maquina.numero_serie %} ({{ maquina.numero_serie }}){% endif %}
                                                 </option>
                                             {% endfor %}
                                         </select>
