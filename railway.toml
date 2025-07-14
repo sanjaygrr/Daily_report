@@ -1,0 +1,23 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "gunicorn proyecto.wsgi --bind 0.0.0.0:$PORT"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[variables]
+DATABASE_URL = "postgresql://postgres:WObyFTcYrpUmyrgzonsPspZTqHrNmPtD@turntable.proxy.rlwy.net:29028/railway"
+SECRET_KEY = "django-insecure-ma(f59vg9#(79t-35go=5a^*n2)z^z1&ida@_&4o_y(#$hy8m9"
+DEBUG = "False"
+ALLOWED_HOSTS = "*.railway.app,*.up.railway.app"
+CSRF_TRUSTED_ORIGINS = "https://*.railway.app,https://*.up.railway.app"
+SESSION_COOKIE_SECURE = "True"
+CSRF_COOKIE_SECURE = "True"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = "587"
+EMAIL_USE_TLS = "True"
+EMAIL_HOST_USER = "sanjaygr@gmail.com"
+EMAIL_HOST_PASSWORD = "zkaododvautzzqfm" 
