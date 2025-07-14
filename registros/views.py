@@ -23,6 +23,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.contrib.auth.models import User, Group
+from django.contrib.auth import logout
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from decimal import Decimal
 
@@ -595,13 +596,81 @@ def eliminar_usuario(request, pk):
 
     return redirect('listar_usuarios')
 
-@login_required
-@require_POST # Esta vista parece diseñada para procesar datos de la tabla editable
+@require_POST # Esta vista maneja la edición en línea de usuarios
 def guardar_cambios_usuarios(request):
-    # Esta vista necesita lógica más compleja si se usa para editar en línea
-    # Se debe iterar sobre los datos POST para identificar qué usuario y qué campo cambiar
-    # Por ahora, solo un mensaje y redirección
-    messages.info(request, "Funcionalidad 'Guardar Cambios Múltiples' no implementada completamente en la vista.")
+    pk_list = request.POST.getlist('pk')
+    pk_str = pk_list[0] if pk_list else request.POST.get('guardar_usuario')
+    if not pk_str:
+        messages.error(request, "No se encontró usuario a guardar.")
+        return redirect('listar_usuarios')
+
+    try:
+        pk = int(pk_str)
+    except ValueError:
+        messages.error(request, "ID de usuario inválido.")
+        return redirect('listar_usuarios')
+
+    usuario = get_object_or_404(User, pk=pk)
+    empresa_actual = get_user_empresa(request.user)
+
+    # Permisos: superuser o Admin de la misma empresa
+    tiene_permiso = request.user.is_superuser
+    if not tiene_permiso and empresa_actual:
+        if hasattr(usuario, 'perfil') and usuario.perfil and usuario.perfil.empresa == empresa_actual:
+            if request.user.groups.filter(name='Admin').exists():
+                tiene_permiso = True
+
+    if not tiene_permiso:
+        messages.error(request, "No tienes permiso para editar a este usuario.")
+        return redirect('listar_usuarios')
+
+    # Obtener datos del formulario
+    username_key = f'username_{pk}'
+    username = request.POST.get(username_key)
+    if username is None:
+        # El usuario pudo presionar Enter dentro del input, obtener pk del propio nombre del campo
+        for key in request.POST.keys():
+            if key.startswith('username_') and request.POST.get(key):
+                pk = int(key.split('_')[1])
+                username = request.POST.get(key)
+                # Actualizar variables de otros campos a usar después
+                break
+    if username is None:
+        messages.error(request, "Datos del usuario no encontrados en el formulario.")
+        return redirect('listar_usuarios')
+    username = username.strip()
+    # Ahora recuperar el resto de campos con el pk (posiblemente actualizado)
+    first_name = request.POST.get(f'first_name_{pk}', '').strip()
+    last_name = request.POST.get(f'last_name_{pk}', '').strip()
+    email = request.POST.get(f'email_{pk}', '').strip()
+    group_id = request.POST.get(f'group_{pk}')
+
+    # Normalizar RUT (username) quitando puntos/guion por consistencia
+    username_clean = username.replace('.', '').replace('-', '').upper()
+
+    try:
+        # Validaciones simples
+        if User.objects.exclude(pk=pk).filter(username=username_clean).exists():
+            messages.error(request, f"El RUT {username} ya está registrado en otro usuario.")
+            return redirect('listar_usuarios')
+
+        usuario.username = username_clean
+        usuario.first_name = first_name
+        usuario.last_name = last_name
+        usuario.email = email
+
+        if group_id:
+            try:
+                grupo = Group.objects.get(pk=group_id)
+                usuario.groups.set([grupo])
+            except Group.DoesNotExist:
+                pass
+
+        usuario.save()
+        messages.success(request, f"Usuario {username} actualizado correctamente.")
+    except Exception as e:
+        messages.error(request, f"Error al actualizar usuario: {e}")
+
     return redirect('listar_usuarios')
 
 

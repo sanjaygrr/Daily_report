@@ -22,11 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-SECRET_KEY = 'django-insecure-ma(f59vg9#(79t-35go=5a^*n2)z^z1&ida@_&4o_y(#$hy8m9'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-ma(f59vg9#(79t-35go=5a^*n2)z^z1&ida@_&4o_y(#$hy8m9')
 
-DEBUG = False
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 
 
 # Application definition
@@ -79,17 +79,21 @@ WSGI_APPLICATION = 'proyecto.wsgi.application'
 
 # Database
 
-# Configura la base de datos. Por defecto usa SQLite para facilitar el desarrollo
-# local si la variable de entorno DATABASE_URL no está definida.
-
+# Configura la base de datos para Railway PostgreSQL
 DATABASES = {
     'default': dj_database_url.config(
         default=config(
             'DATABASE_URL',
-            default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}'
+            default='postgresql://postgres:WObyFTcYrpUmyrgzonsPspZTqHrNmPtD@turntable.proxy.rlwy.net:29028/railway'
         )
     )
 }
+
+# Configuración adicional para PostgreSQL
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
 
 
 # Password validation
@@ -112,9 +116,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-cl'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Santiago'
 
 USE_I18N = True
 
@@ -156,9 +160,18 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Configuración de correo para recuperación de contraseña
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'sanjaygr@gmail.com'
-EMAIL_HOST_PASSWORD = 'zkaododvautzzqfm'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='sanjaygr@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='zkaododvautzzqfm')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Configuración de seguridad para producción
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

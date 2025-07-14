@@ -11,4 +11,37 @@
         <button type="submit" class="btn btn-primary">Registrar</button>
     </form>
 </div>
+
+<script>
+// Formateo visual y limpieza de RUT en el registro de usuarios
+(function(){
+    const form = document.querySelector('form.needs-validation');
+    const usernameInput = document.getElementById('id_username');
+    if(!usernameInput) return; // Por si cambia el nombre del campo
+
+    // Al perder foco: aplicar formato visual (puntos y guion)
+    usernameInput.addEventListener('blur', function(){
+        const raw = this.value.trim();
+        this.dataset.raw = raw; // Guardar original
+        if(/[a-jl-zA-JL-Z]/.test(raw)) return; // No formatear si contiene letras distintas de K/k
+        let clean = raw.replace(/[^0-9kK]/g,'').toUpperCase();
+        if(clean.length < 2){ this.value = clean; return; }
+        const dv = clean.slice(-1);
+        const cuerpo = clean.slice(0,-1);
+        let cuerpoFmt='';
+        for(let i=cuerpo.length-1, len=0; i>=0; i--, len++){
+            cuerpoFmt = cuerpo[i] + cuerpoFmt;
+            if(len%3===2 && i!==0) cuerpoFmt='.'+cuerpoFmt;
+        }
+        this.value = `${cuerpoFmt}-${dv}`;
+    });
+
+    // Antes de enviar: quitar puntos y guion
+    form.addEventListener('submit',function(){
+        if(usernameInput.dataset.raw){
+            usernameInput.value = usernameInput.dataset.raw.replace(/[^0-9kK]/g,'').toUpperCase();
+        }
+    });
+})();
+</script>
 {% endblock %}
