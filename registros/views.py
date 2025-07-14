@@ -23,9 +23,11 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-from django.contrib.auth import logout
+from django.contrib.auth import logout, authenticate, login
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from decimal import Decimal
+from django.contrib.auth.forms import AuthenticationForm
+from django.views.generic import View
 
 from .models import Trabajo, Maquina, Faena, Empresa, PerfilUsuario # Asegúrate que PerfilUsuario esté aquí
 from .forms import (
@@ -33,6 +35,34 @@ from .forms import (
     UserEditForm, EmpresaForm, EmpresaEditForm
 )
 from .filters import TrabajoFilter # Asegúrate que este filtro exista
+
+# ---------------------- VISTA DE LOGIN PERSONALIZADA ----------------------
+
+class CustomLoginView(View):
+    template_name = 'registration/login.html'
+    
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('home')
+        form = AuthenticationForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                next_url = request.GET.get('next', 'home')
+                return redirect(next_url)
+            else:
+                messages.error(request, 'Usuario o contraseña incorrectos.')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+        
+        return render(request, self.template_name, {'form': form})
 
 # ---------------------- HELPERS ----------------------
 def get_user_empresa(user):
