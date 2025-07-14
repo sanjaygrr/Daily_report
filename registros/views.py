@@ -52,7 +52,17 @@ class CustomLoginView(View):
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
+            
+            # Normalizar el username si parece ser un RUT
+            normalized_username = self.normalize_username(username)
+            
+            # Intentar autenticar con el username original primero (para superusuarios)
             user = authenticate(username=username, password=password)
+            
+            # Si falla y el username fue normalizado, intentar con el normalizado
+            if user is None and normalized_username != username:
+                user = authenticate(username=normalized_username, password=password)
+            
             if user is not None:
                 login(request, user)
                 next_url = request.GET.get('next', 'home')
@@ -63,6 +73,33 @@ class CustomLoginView(View):
             messages.error(request, 'Usuario o contraseña incorrectos.')
         
         return render(request, self.template_name, {'form': form})
+    
+    def normalize_username(self, username):
+        """
+        Normaliza el username si parece ser un RUT.
+        Si no es un RUT, devuelve el username original.
+        """
+        if not username:
+            return username
+        
+        # Quitar espacios y convertir a mayúsculas
+        username = username.strip().upper()
+        
+        # Si ya está en formato normalizado (solo números + K), devolver tal como está
+        if username.replace('K', '').isdigit() and len(username) >= 7:
+            return username
+        
+        # Si contiene puntos o guiones, normalizar
+        if '.' in username or '-' in username:
+            # Quitar puntos y guiones
+            normalized = username.replace('.', '').replace('-', '')
+            
+            # Verificar que sea un RUT válido (números + posible K al final)
+            if len(normalized) >= 7 and normalized[:-1].isdigit() and (normalized[-1].isdigit() or normalized[-1] == 'K'):
+                return normalized
+        
+        # Si no parece ser un RUT, devolver el username original
+        return username
 
 # ---------------------- HELPERS ----------------------
 def get_user_empresa(user):

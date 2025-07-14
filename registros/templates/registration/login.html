@@ -28,9 +28,15 @@
             <form method="post" class="needs-validation" novalidate>
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="id_username" class="form-label">RUT</label>
+                    <label for="id_username" class="form-label">Usuario o RUT</label>
                     <input type="text" name="username" id="id_username" class="form-control{% if form.username.errors %} is-invalid{% endif %}" 
-                           placeholder="Ingrese su RUT" required>
+                           placeholder="Ingrese su usuario o RUT" required>
+                    <div class="form-text">
+                        <small class="text-muted">
+                            • Si es RUT, puede escribirlo con o sin formato (ej: 12345678-9 o 12.345.678-9)<br>
+                            • Si es nombre de usuario, escríbalo tal como fue creado
+                        </small>
+                    </div>
                     {% if form.username.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.username.errors %}
@@ -180,6 +186,11 @@
         color: rgba(var(--text-rgb), 0.6) !important;
     }
     
+    .form-text {
+        color: rgba(var(--text-rgb), 0.7) !important;
+        font-size: 0.875em;
+    }
+    
     /* Ajuste para etiquetas en modo oscuro */
     [data-theme="dark"] .form-label {
         color: #f8f9fa;
@@ -206,6 +217,10 @@
     [data-theme="dark"] .form-control::placeholder {
         color: #f8f9fa;
         opacity: 0.5;
+    }
+    
+    [data-theme="dark"] .form-text {
+        color: rgba(248, 249, 250, 0.7) !important;
     }
     
     /* Mejorar legibilidad en dispositivos móviles */
@@ -253,96 +268,75 @@
     }
     
     [data-theme="dark"] #togglePassword:hover {
-        background-color: rgba(255,255,255,0.1);
+        background-color: rgba(255,255,255,0.05);
         color: #f8f9fa;
-    }
-    
-    .input-group .form-control {
-        border-right: none;
-    }
-    
-    .input-group .btn {
-        border-left: none;
     }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Loading animation
-    setTimeout(function() {
-        var loadingOverlay = document.getElementById('loading-overlay');
-        loadingOverlay.classList.add('hidden');
-        setTimeout(function() {
-            loadingOverlay.style.display = 'none';
-        }, 500); // Wait for transition to complete
-    }, 3000); // Show loading for 5 seconds
+    // Ocultar loading overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        setTimeout(() => {
+            loadingOverlay.classList.add('hidden');
+        }, 1000);
+    }
     
-    // Validación de formulario Bootstrap
-    var forms = document.getElementsByClassName('needs-validation');
-    var validation = Array.prototype.filter.call(forms, function(form) {
-        form.addEventListener('submit', function(event) {
-            if (form.checkValidity() === false) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
-    });
-
     // Toggle password visibility
-    const togglePassword = document.querySelector('#togglePassword');
-    const password = document.querySelector('#id_password');
-
-    togglePassword.addEventListener('click', function (e) {
-        // toggle the type attribute
-        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-        password.setAttribute('type', type);
-        
-        // toggle the eye icon
-        this.querySelector('i').classList.toggle('fa-eye');
-        this.querySelector('i').classList.toggle('fa-eye-slash');
-    });
-
-    // --- Formateo visual de RUT ---
-    const usernameInput = document.getElementById('id_username');
-    const usernameForm = document.querySelector('form.needs-validation');
-
-    // Formatear al perder el foco (solo visual)
-    usernameInput.addEventListener('blur', function () {
-        const rawValue = this.value.trim();
-        // Guardamos el valor sin modificar para usarlo al enviar el formulario
-        this.dataset.raw = rawValue;
-        // Si contiene letras distintas de k/K, se asume superadmin y no se formatear
-        if (/[a-jl-zA-JL-Z]/.test(rawValue)) {
-            return; // dejar tal cual
-        }
-        // Limpiar caracteres no válidos
-        let clean = rawValue.replace(/[^0-9kK]/g, '').toUpperCase();
-        if (clean.length < 2) {
-            // Demasiado corto para formatear
-            this.value = clean;
-            return;
-        }
-        const dv = clean.slice(-1);
-        const cuerpo = clean.slice(0, -1);
-        // Insertar puntos cada 3 dígitos desde la derecha
-        let cuerpoFormateado = '';
-        for (let i = cuerpo.length - 1, len = 0; i >= 0; i--, len++) {
-            cuerpoFormateado = cuerpo[i] + cuerpoFormateado;
-            if (len % 3 === 2 && i !== 0) {
-                cuerpoFormateado = '.' + cuerpoFormateado;
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('id_password');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
             }
-        }
-        this.value = `${cuerpoFormateado}-${dv}`;
-    });
-
-    // Antes de enviar el formulario, restaurar el valor original ingresado (sin formateo visual)
-    usernameForm.addEventListener('submit', function () {
-        if (usernameInput.dataset.raw) {
-            // Enviar RUT sin puntos ni guion, solo números y K/k si aplica
-            usernameInput.value = usernameInput.dataset.raw.replace(/[^0-9kK]/g, '').toUpperCase();
-        }
-    });
+        });
+    }
+    
+    // Auto-format RUT input
+    const usernameInput = document.getElementById('id_username');
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function(e) {
+            let value = e.target.value;
+            
+            // Solo formatear si parece ser un RUT (contiene números y posiblemente puntos/guiones)
+            if (/^[\d\.\-]+$/.test(value.replace(/\s/g, ''))) {
+                // Quitar todo excepto números
+                let numbers = value.replace(/[^\d]/g, '');
+                
+                // Si tiene más de 7 dígitos, formatear como RUT
+                if (numbers.length >= 7) {
+                    let formatted = '';
+                    
+                    if (numbers.length <= 8) {
+                        // RUT de 8 dígitos: XX.XXX.XXX-X
+                        formatted = numbers.slice(0, 2) + '.' + numbers.slice(2, 5) + '.' + numbers.slice(5, 8);
+                        if (numbers.length > 8) {
+                            formatted += '-' + numbers.slice(8);
+                        }
+                    } else {
+                        // RUT de 9 dígitos: XXX.XXX.XXX-X
+                        formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6, 9);
+                        if (numbers.length > 9) {
+                            formatted += '-' + numbers.slice(9);
+                        }
+                    }
+                    
+                    // Solo actualizar si el usuario no está en medio de escribir
+                    if (value.length >= formatted.length - 1) {
+                        e.target.value = formatted;
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
