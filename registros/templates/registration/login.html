@@ -32,10 +32,6 @@
                     <input type="text" name="username" id="id_username" class="form-control{% if form.username.errors %} is-invalid{% endif %}" 
                            placeholder="Ingrese su usuario o RUT" required>
                     <div class="form-text">
-                        <small class="text-muted">
-                            • Si es RUT, puede escribirlo con o sin formato (ej: 12345678-9 o 12.345.678-9)<br>
-                            • Si es nombre de usuario, escríbalo tal como fue creado
-                        </small>
                     </div>
                     {% if form.username.errors %}
                         <div class="invalid-feedback">
