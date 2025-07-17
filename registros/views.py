@@ -665,8 +665,8 @@ def eliminar_usuario(request, pk):
 
 @require_POST # Esta vista maneja la edición en línea de usuarios
 def guardar_cambios_usuarios(request):
-    pk_list = request.POST.getlist('pk')
-    pk_str = pk_list[0] if pk_list else request.POST.get('guardar_usuario')
+    # Obtener el pk del usuario a editar
+    pk_str = request.POST.get('pk')
     if not pk_str:
         messages.error(request, "No se encontró usuario a guardar.")
         return redirect('listar_usuarios')
@@ -692,25 +692,15 @@ def guardar_cambios_usuarios(request):
         return redirect('listar_usuarios')
 
     # Obtener datos del formulario
-    username_key = f'username_{pk}'
-    username = request.POST.get(username_key)
-    if username is None:
-        # El usuario pudo presionar Enter dentro del input, obtener pk del propio nombre del campo
-        for key in request.POST.keys():
-            if key.startswith('username_') and request.POST.get(key):
-                pk = int(key.split('_')[1])
-                username = request.POST.get(key)
-                # Actualizar variables de otros campos a usar después
-                break
-    if username is None:
-        messages.error(request, "Datos del usuario no encontrados en el formulario.")
-        return redirect('listar_usuarios')
-    username = username.strip()
-    # Ahora recuperar el resto de campos con el pk (posiblemente actualizado)
+    username = request.POST.get(f'username_{pk}', '').strip()
     first_name = request.POST.get(f'first_name_{pk}', '').strip()
     last_name = request.POST.get(f'last_name_{pk}', '').strip()
     email = request.POST.get(f'email_{pk}', '').strip()
     group_id = request.POST.get(f'group_{pk}')
+
+    if not username:
+        messages.error(request, "El RUT es obligatorio.")
+        return redirect('listar_usuarios')
 
     # Normalizar RUT (username) quitando puntos/guion por consistencia
     username_clean = username.replace('.', '').replace('-', '').upper()
@@ -718,7 +708,12 @@ def guardar_cambios_usuarios(request):
     try:
         # Validaciones simples
         if User.objects.exclude(pk=pk).filter(username=username_clean).exists():
-            messages.error(request, f"El RUT {username} ya está registrado en otro usuario.")
+            messages.error(request, f"El RUT {username_clean} ya está registrado en otro usuario.")
+            return redirect('listar_usuarios')
+
+        # Verificar que el username no esté vacío después de la limpieza
+        if not username_clean:
+            messages.error(request, "El RUT no puede estar vacío después de la limpieza.")
             return redirect('listar_usuarios')
 
         usuario.username = username_clean
@@ -731,10 +726,16 @@ def guardar_cambios_usuarios(request):
                 grupo = Group.objects.get(pk=group_id)
                 usuario.groups.set([grupo])
             except Group.DoesNotExist:
-                pass
+                messages.error(request, "El grupo seleccionado no existe.")
+                return redirect('listar_usuarios')
 
         usuario.save()
-        messages.success(request, f"Usuario {username} actualizado correctamente.")
+        messages.success(request, f"Usuario {username_clean} actualizado correctamente.")
+    except IntegrityError as e:
+        if 'auth_user_username_key' in str(e):
+            messages.error(request, f"El RUT {username_clean} ya está registrado en otro usuario.")
+        else:
+            messages.error(request, f"Error de integridad al actualizar usuario: {e}")
     except Exception as e:
         messages.error(request, f"Error al actualizar usuario: {e}")
 

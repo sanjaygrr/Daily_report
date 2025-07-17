@@ -80,12 +80,24 @@
                             <div class="d-flex align-items-center mb-1">
                                 <i class="fas fa-user-tie text-muted me-2"></i>
                                 <small class="text-muted">Supervisor:</small>
-                                <span class="ms-auto small">{{ trabajo.supervisor.get_full_name|default:trabajo.supervisor.username }}</span>
+                                <span class="ms-auto small">
+                                    {% if trabajo.supervisor %}
+                                        {{ trabajo.supervisor.get_full_name|default:trabajo.supervisor.username }}
+                                    {% else %}
+                                        <span class="text-muted">No asignado</span>
+                                    {% endif %}
+                                </span>
                             </div>
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-user text-muted me-2"></i>
                                 <small class="text-muted">Trabajador:</small>
-                                <span class="ms-auto small">{{ trabajo.trabajador.get_full_name|default:trabajo.trabajador.username }}</span>
+                                <span class="ms-auto small">
+                                    {% if trabajo.trabajador %}
+                                        {{ trabajo.trabajador.get_full_name|default:trabajo.trabajador.username }}
+                                    {% else %}
+                                        <span class="text-muted">No asignado</span>
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
 
@@ -249,11 +261,23 @@
                         <dl class="row">
                             {% if not request.user|user_is_in_group:'Supervisor' %}
                             <dt class="col-sm-4">Supervisor:</dt>
-                            <dd class="col-sm-8">{{ trabajo.supervisor.get_full_name|default:trabajo.supervisor.username }}</dd>
+                            <dd class="col-sm-8">
+                                {% if trabajo.supervisor %}
+                                    {{ trabajo.supervisor.get_full_name|default:trabajo.supervisor.username }}
+                                {% else %}
+                                    <span class="text-muted">No asignado</span>
+                                {% endif %}
+                            </dd>
                             {% endif %}
                             
                             <dt class="col-sm-4">Trabajador:</dt>
-                            <dd class="col-sm-8">{{ trabajo.trabajador.get_full_name|default:trabajo.trabajador.username }}</dd>
+                            <dd class="col-sm-8">
+                                {% if trabajo.trabajador %}
+                                    {{ trabajo.trabajador.get_full_name|default:trabajo.trabajador.username }}
+                                {% else %}
+                                    <span class="text-muted">No asignado</span>
+                                {% endif %}
+                            </dd>
                         </dl>
                     </div>
                 </div>

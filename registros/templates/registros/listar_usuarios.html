@@ -5,8 +5,19 @@
 {% block content %}
 <div class="card p-4">
     <h1 class="mb-4">Lista de Usuarios</h1>
-    <form method="post" action="{% url 'guardar_cambios_usuarios' %}">
-        {% csrf_token %}
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% csrf_token %}
     <table class="table table-striped">
         <thead>
             <tr>
@@ -22,7 +33,6 @@
         <tbody>
             {% for usuario in usuarios %}
             <tr id="fila-{{ usuario.pk }}">
-                <input type="hidden" name="pk" value="{{ usuario.pk }}">
                 <td>{{ usuario.id }}</td>
                 <td>
                     <span class="usuario-valor-{{ usuario.pk }}">{{ usuario.username }}</span>
@@ -55,7 +65,7 @@
                 </td>
                 <td>
                     <button type="button" class="btn btn-sm btn-warning" onclick="editarFila({{ usuario.pk }})">Editar</button>
-                    <button type="submit" name="guardar_usuario" value="{{ usuario.pk }}" class="btn btn-sm btn-primary d-none usuario-input-{{ usuario.pk }}">Guardar</button>
+                    <button type="button" class="btn btn-sm btn-primary d-none usuario-input-{{ usuario.pk }}" onclick="guardarUsuario({{ usuario.pk }})">Guardar</button>
                     
                     <button type="button" class="btn btn-sm btn-danger usuario-valor-{{ usuario.pk }}" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ usuario.pk }}">
                         Eliminar
@@ -88,7 +98,6 @@
             {% endfor %}
         </tbody>
     </table>
-    </form>
 </div>
 
 <script>
@@ -106,7 +115,45 @@
             el.classList.add('d-none');
             el.disabled = true; 
         });
-        // Opcional: Recargar o resetear valores si es necesario
+    }
+
+    function guardarUsuario(pk) {
+        // Crear un formulario temporal para enviar los datos
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "guardar_cambios_usuarios" %}';
+        
+        // Agregar CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Agregar el pk del usuario
+        const pkInput = document.createElement('input');
+        pkInput.type = 'hidden';
+        pkInput.name = 'pk';
+        pkInput.value = pk;
+        form.appendChild(pkInput);
+        
+        // Agregar los campos del usuario
+        const campos = ['username', 'first_name', 'last_name', 'email', 'group'];
+        campos.forEach(campo => {
+            const input = document.querySelector(`[name="${campo}_${pk}"]`);
+            if (input) {
+                const newInput = document.createElement('input');
+                newInput.type = 'hidden';
+                newInput.name = input.name;
+                newInput.value = input.value;
+                form.appendChild(newInput);
+            }
+        });
+        
+        // Enviar el formulario
+        document.body.appendChild(form);
+        form.submit();
     }
 </script>
 {% endblock %}
