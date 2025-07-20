@@ -205,6 +205,12 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = False  # Cambiar a True si tienes SSL configurado
 else:
     # Configuración para desarrollo
-    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        'https://dailyreport.my',
+        'https://www.dailyreport.my',
+        'https://*.dailyreport.my'
+    ]
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
