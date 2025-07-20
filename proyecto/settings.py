@@ -27,9 +27,14 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-ma(f59vg9#(79t-35go=5
 DEBUG = True
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
+# Garantizar que el dominio de producción esté presente
+if 'dailyreport.my' not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('dailyreport.my')
 
-# Configuración CSRF para Railway
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://dailyreport.my,https://*.railway.app,https://*.up.railway.app').split(',')
+# Configuración CSRF para Railway y dominio propio
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://*.railway.app,https://*.up.railway.app').split(',')
+if 'https://dailyreport.my' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('https://dailyreport.my')
 
 # Configuración de sesiones
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
