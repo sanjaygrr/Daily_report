@@ -17,7 +17,9 @@
         <!-- Logo AUDIOBRAS en la parte superior -->
         <div class="position-absolute top-0 start-0 w-100 p-4" style="z-index: 10;">
             <div class="container">
-                <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="audiobras-logo">
+                <div class="d-flex justify-content-center">
+                    <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="audiobras-logo" onerror="this.style.display='none'; console.log('Error loading logo');">
+                </div>
             </div>
         </div>
         
@@ -575,8 +577,33 @@ body {
 
 /* Logo AUDIOBRAS */
 .audiobras-logo {
-    height: 50px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    height: 60px;
+    width: auto;
+    max-width: 200px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+.audiobras-logo:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+}
+
+/* Responsive para el logo */
+@media (max-width: 768px) {
+    .audiobras-logo {
+        height: 40px;
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .audiobras-logo {
+        height: 35px;
+        max-width: 120px;
+    }
 }
 
 /* Hero Section */
