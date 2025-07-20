@@ -2,35 +2,49 @@
 {% load static %}
 
 {% block content %}
-<!-- Hero Section con Video -->
+<!-- Hero Section con Video y Efectos Modernos -->
 <div class="container-fluid p-0">
-    <div class="position-relative">
-        <!-- Video Background -->
+    <div class="position-relative hero-section">
+        <!-- Video Background con Overlay Animado -->
         <div class="video-container">
-            <video autoplay muted loop class="w-100" style="height: 700px; object-fit: cover;">
+            <div class="video-overlay"></div>
+            <video autoplay muted loop class="hero-video">
                 <source src="{% static 'videos/daily_report_intro.mp4' %}" type="video/mp4">
-                <!-- Fallback image si no se puede cargar el video -->
-                <img src="{% static 'images/login_image.jpeg' %}" class="w-100" style="height: 700px; object-fit: cover;" alt="Daily Report">
+                <img src="{% static 'images/login_image.jpeg' %}" class="w-100" style="height: 100vh; object-fit: cover;" alt="Daily Report">
             </video>
         </div>
         
-        <!-- Overlay Content -->
-        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center" style="background: linear-gradient(135deg, rgba(0,123,255,0.8) 0%, rgba(0,86,179,0.9) 100%);">
+        <!-- Logo AUDIOBRAS en la parte superior -->
+        <div class="position-absolute top-0 start-0 w-100 p-4" style="z-index: 10;">
+            <div class="container">
+                <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="audiobras-logo">
+            </div>
+        </div>
+        
+        <!-- Hero Content con Animaciones -->
+        <div class="hero-content">
             <div class="container">
                 <div class="row justify-content-center text-center">
-                    <div class="col-lg-8 text-white">
-                        <h1 class="display-1 fw-bold mb-4 animate-fadeInUp">Daily Report</h1>
-                        <p class="lead mb-4 fs-3 animate-fadeInUp" style="animation-delay: 0.3s;">
+                    <div class="col-lg-10">
+                        <div class="hero-badge mb-4 animate-scale-in">
+                            <span class="badge-text">Sistema Industrial 4.0</span>
+                        </div>
+                        <h1 class="hero-title animate-slide-up">
+                            Daily Report
+                        </h1>
+                        <p class="hero-subtitle animate-slide-up-delay-1">
                             Sistema integral de gestión para operaciones industriales
                         </p>
-                        <p class="mb-5 fs-5 animate-fadeInUp opacity-90" style="animation-delay: 0.6s;">
+                        <p class="hero-description animate-slide-up-delay-2">
                             Controla, supervisa y optimiza tus procesos con tecnología de vanguardia
                         </p>
-                        <div class="d-flex gap-3 justify-content-center animate-fadeInUp" style="animation-delay: 0.9s;">
-                            <a href="{% url 'login' %}" class="btn btn-light btn-lg px-5 py-3 shadow">
-                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        <div class="hero-buttons animate-slide-up-delay-3">
+                            <a href="{% url 'login' %}" class="btn btn-glow btn-lg">
+                                <span class="btn-text">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                                </span>
                             </a>
-                            <a href="#conoce-sistema" class="btn btn-outline-light btn-lg px-5 py-3">
+                            <a href="#conoce-sistema" class="btn btn-glass btn-lg">
                                 <i class="fas fa-play-circle me-2"></i>Conoce el Sistema
                             </a>
                         </div>
@@ -38,47 +52,71 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator">
+            <div class="mouse-icon">
+                <div class="wheel"></div>
+            </div>
+            <span class="scroll-text">Scroll para explorar</span>
+        </div>
     </div>
 </div>
 
-<!-- Quiénes Somos -->
-<section id="quienes-somos" class="py-5 bg-white">
+<!-- Quiénes Somos - Diseño Moderno -->
+<section id="quienes-somos" class="py-5 modern-section">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="pe-lg-4">
-                    <h2 class="display-5 mb-4 text-primary fw-bold">¿Quiénes Somos?</h2>
-                    <p class="lead mb-4 text-dark">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="content-wrapper">
+                    <div class="section-badge mb-4">
+                        <span>Sobre Nosotros</span>
+                    </div>
+                    <h2 class="section-title gradient-text mb-4">¿Quiénes Somos?</h2>
+                    <p class="lead mb-4">
                         Desarrollamos soluciones tecnológicas innovadoras para la gestión operacional industrial.
                     </p>
-                    <p class="mb-4 text-muted fs-5">
+                    <p class="text-muted mb-5">
                         Daily Report nace de la experiencia en el sector industrial y la necesidad de 
                         optimizar procesos mediante herramientas digitales intuitivas y poderosas.
                     </p>
                     <div class="row g-4">
                         <div class="col-6">
-                            <div class="text-center p-3 bg-primary bg-opacity-10 rounded-3">
-                                <div class="h2 text-primary fw-bold mb-1">24/7</div>
-                                <small class="text-muted">Disponibilidad</small>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-number">24/7</h3>
+                                    <p class="stat-label">Disponibilidad Total</p>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="text-center p-3 bg-success bg-opacity-10 rounded-3">
-                                <div class="h2 text-success fw-bold mb-1">100%</div>
-                                <small class="text-muted">Confiable</small>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-shield-check"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-number">100%</h3>
+                                    <p class="stat-label">Confiable y Seguro</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="position-relative">
-                    <div class="bg-gradient-primary rounded-4 p-2">
-                        <img src="{% static 'images/login_image.jpeg' %}" class="img-fluid rounded-3 shadow-lg" alt="Daily Report System">
-                    </div>
-                    <div class="position-absolute top-0 end-0 translate-middle">
-                        <div class="bg-white rounded-circle p-3 shadow">
-                            <i class="fas fa-award text-warning fa-2x"></i>
+                <div class="image-wrapper">
+                    <div class="image-container">
+                        <img src="{% static 'images/login_image.jpeg' %}" class="main-image" alt="Daily Report System">
+                        <div class="floating-card top-card">
+                            <i class="fas fa-industry"></i>
+                            <span>Gestión Industrial</span>
+                        </div>
+                        <div class="floating-card bottom-card">
+                            <i class="fas fa-cogs"></i>
+                            <span>Procesos optimizados</span>
                         </div>
                     </div>
                 </div>
@@ -87,58 +125,83 @@
     </div>
 </section>
 
-<!-- Para qué Sirve -->
-<section class="py-5 bg-light">
+<!-- Para qué Sirve - Diseño Ultra Moderno -->
+<section class="py-5 features-section">
     <div class="container">
-        <div class="row mb-5">
-            <div class="col-12 text-center">
-                <h2 class="display-5 mb-4 fw-bold">¿Para qué sirve Daily Report?</h2>
-                <p class="lead text-muted">Transforma la gestión de tus operaciones industriales</p>
+        <div class="text-center mb-5">
+            <div class="section-badge mb-4">
+                <span>Funcionalidades</span>
             </div>
+            <h2 class="section-title mb-4">¿Para qué sirve Daily Report?</h2>
+            <p class="section-subtitle">Transforma la gestión de tus operaciones industriales</p>
         </div>
         
         <div class="row g-4">
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm h-100 hover-lift">
-                    <div class="card-body p-4 text-center">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-flex mb-3">
-                            <i class="fas fa-chart-bar fa-2x text-primary"></i>
-                        </div>
-                        <h5 class="fw-bold mb-3">Control en Tiempo Real</h5>
-                        <p class="text-muted">Monitorea todas tus operaciones y equipos desde una plataforma centralizada</p>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <div class="icon-bg"></div>
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5 class="feature-title">Control en Tiempo Real</h5>
+                    <p class="feature-description">Monitorea todas tus operaciones y equipos desde una plataforma centralizada</p>
+                    <div class="feature-hover-content">
+                        <ul>
+                            <li>Dashboard interactivo</li>
+                            <li>Monitoreo continuo</li>
+                            <li>Métricas en vivo</li>
+                        </ul>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm h-100 hover-lift">
-                    <div class="card-body p-4 text-center">
-                        <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-flex mb-3">
-                            <i class="fas fa-cogs fa-2x text-success"></i>
-                        </div>
-                        <h5 class="fw-bold mb-3">Optimización</h5>
-                        <p class="text-muted">Mejora la eficiencia de tus procesos y reduce tiempos de inactividad</p>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <div class="icon-bg"></div>
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h5 class="feature-title">Optimización</h5>
+                    <p class="feature-description">Mejora la eficiencia de tus procesos y reduce tiempos de inactividad</p>
+                    <div class="feature-hover-content">
+                        <ul>
+                            <li>Análisis predictivo</li>
+                            <li>Automatización</li>
+                            <li>Mejora continua</li>
+                        </ul>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm h-100 hover-lift">
-                    <div class="card-body p-4 text-center">
-                        <div class="bg-warning bg-opacity-10 rounded-circle p-4 d-inline-flex mb-3">
-                            <i class="fas fa-shield-alt fa-2x text-warning"></i>
-                        </div>
-                        <h5 class="fw-bold mb-3">Seguridad</h5>
-                        <p class="text-muted">Mantén un registro seguro y confiable de todas tus operaciones</p>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <div class="icon-bg"></div>
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h5 class="feature-title">Seguridad</h5>
+                    <p class="feature-description">Mantén un registro seguro y confiable de todas tus operaciones</p>
+                    <div class="feature-hover-content">
+                        <ul>
+                            <li>Encriptación total</li>
+                            <li>Respaldos automáticos</li>
+                            <li>Auditoría completa</li>
+                        </ul>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm h-100 hover-lift">
-                    <div class="card-body p-4 text-center">
-                        <div class="bg-info bg-opacity-10 rounded-circle p-4 d-inline-flex mb-3">
-                            <i class="fas fa-mobile-alt fa-2x text-info"></i>
-                        </div>
-                        <h5 class="fw-bold mb-3">Acceso Universal</h5>
-                        <p class="text-muted">Disponible desde cualquier dispositivo, en cualquier momento y lugar</p>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <div class="icon-bg"></div>
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h5 class="feature-title">Acceso Universal</h5>
+                    <p class="feature-description">Disponible desde cualquier dispositivo, en cualquier momento y lugar</p>
+                    <div class="feature-hover-content">
+                        <ul>
+                            <li>Diseño responsivo</li>
+                            <li>App móvil nativa</li>
+                            <li>Sincronización cloud</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -146,170 +209,174 @@
     </div>
 </section>
 
-<!-- Características Principales -->
-<section class="py-5 bg-white">
+<!-- Características Principales - Diseño 3D Moderno -->
+<section class="py-5 main-features-section">
     <div class="container">
-        <div class="row mb-5">
-            <div class="col-12 text-center">
-                <h2 class="display-5 mb-4 fw-bold">Características Principales</h2>
-                <p class="lead text-muted">Todo lo que necesitas en una sola plataforma</p>
+        <div class="text-center mb-5">
+            <div class="section-badge mb-4">
+                <span>Características</span>
+            </div>
+            <h2 class="section-title mb-4">Todo lo que necesitas en una sola plataforma</h2>
+        </div>
+        
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <div class="feature-3d-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <h4>Gestión de Maquinaria</h4>
+                            <p>Control de tu flota de equipos</p>
+                            <div class="see-more">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h5>Características incluidas:</h5>
+                            <ul>
+                                <li><i class="fas fa-check"></i> Controla e informa horómetros y odómetros</li>
+                                <li><i class="fas fa-check"></i> Reúne información para informes detallados</li>
+                                <li><i class="fas fa-check"></i> Historial detallado</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="feature-3d-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4>Reportes Inteligentes</h4>
+                            <p>Información clara para mejores decisiones</p>
+                            <div class="see-more">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h5>Características incluidas:</h5>
+                            <ul>
+                                <li><i class="fas fa-check"></i> Dashboards interactivos</li>
+                                <li><i class="fas fa-check"></i> Exportación múltiple</li>
+                                <li><i class="fas fa-check"></i> Análisis de tendencias</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="feature-3d-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4>Gestión de Equipos</h4>
+                            <p>Coordina eficientemente tu personal</p>
+                            <div class="see-more">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h5>Características incluidas:</h5>
+                            <ul>
+                                <li><i class="fas fa-check"></i> Asignación de tareas</li>
+                                <li><i class="fas fa-check"></i> Seguimiento de consumos</li>
+                                <li><i class="fas fa-check"></i> Comunicación integrada</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- Roles del Sistema - Diseño Moderno con Glassmorphism -->
+<section class="py-5 roles-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-badge mb-4">
+                <span>Roles</span>
+            </div>
+            <h2 class="section-title text-white mb-4">Roles del Sistema</h2>
+            <p class="section-subtitle text-white-50">Diseñado para cada nivel de tu organización</p>
+        </div>
+        
         <div class="row g-4">
             <div class="col-lg-4">
-                <div class="card border-0 shadow-lg h-100 hover-lift">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-flex">
-                                <i class="fas fa-truck fa-3x text-primary"></i>
-                            </div>
-                        </div>
-                        <h4 class="text-center mb-4 fw-bold">Gestión de Maquinaria</h4>
-                        <div class="text-center mb-4">
-                            <p class="text-muted">Control completo de tu flota de equipos</p>
-                        </div>
-                        <ul class="list-unstyled">
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Horómetros automáticos</span>
-                            </li>
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Alertas de mantenimiento</span>
-                            </li>
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Historial detallado</span>
-                            </li>
-                        </ul>
+                <div class="role-card glass-card">
+                    <div class="role-icon">
+                        <i class="fas fa-user-shield"></i>
                     </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-lg h-100 hover-lift">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-flex">
-                                <i class="fas fa-chart-line fa-3x text-success"></i>
-                            </div>
+                    <h4 class="role-title">Administrador</h4>
+                    <p class="role-subtitle">Gestión y control del sistema</p>
+                    <div class="role-features">
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Reúne y permite confeccionar informes</span>
                         </div>
-                        <h4 class="text-center mb-4 fw-bold">Reportes Inteligentes</h4>
-                        <div class="text-center mb-4">
-                            <p class="text-muted">Información clara para mejores decisiones</p>
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Reportes ejecutivos</span>
                         </div>
-                        <ul class="list-unstyled">
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Dashboards interactivos</span>
-                            </li>
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Exportación múltiple</span>
-                            </li>
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Análisis de tendencias</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-lg h-100 hover-lift">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <div class="bg-warning bg-opacity-10 rounded-circle p-4 d-inline-flex">
-                                <i class="fas fa-users fa-3x text-warning"></i>
-                            </div>
-                        </div>
-                        <h4 class="text-center mb-4 fw-bold">Gestión de Equipos</h4>
-                        <div class="text-center mb-4">
-                            <p class="text-muted">Coordina eficientemente tu personal</p>
-                        </div>
-                        <ul class="list-unstyled">
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Asignación de tareas</span>
-                            </li>
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Seguimiento en vivo</span>
-                            </li>
-                            <li class="mb-3 d-flex align-items-center">
-                                <i class="fas fa-check-circle text-success me-3"></i>
-                                <span>Comunicación integrada</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Roles del Sistema -->
-<section class="py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-    <div class="container">
-        <div class="row mb-5">
-            <div class="col-12 text-center">
-                <h2 class="display-5 mb-4 fw-bold">Roles del Sistema</h2>
-                <p class="lead text-muted">Diseñado para cada nivel de tu organización</p>
-            </div>
-        </div>
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-lg h-100 hover-lift">
-                    <div class="card-body p-5 text-center">
-                        <div class="mb-4">
-                            <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-flex">
-                                <i class="fas fa-user-shield fa-4x text-primary"></i>
-                            </div>
-                        </div>
-                        <h4 class="fw-bold mb-3">Administrador</h4>
-                        <p class="text-muted mb-4">Control total y configuración del sistema</p>
-                        <div class="text-start">
-                            <div class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Gestión completa</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Control de usuarios</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Reportes ejecutivos</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Configuraciones</div>
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Configuraciones</span>
                         </div>
                     </div>
                 </div>
             </div>
+            
             <div class="col-lg-4">
-                <div class="card border-0 shadow-lg h-100 hover-lift">
-                    <div class="card-body p-5 text-center">
-                        <div class="mb-4">
-                            <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-flex">
-                                <i class="fas fa-user-tie fa-4x text-success"></i>
-                            </div>
+                <div class="role-card glass-card featured">
+                    <div class="role-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h4 class="role-title">Supervisor</h4>
+                    <p class="role-subtitle">Supervisión y seguimiento operacional</p>
+                    <div class="role-features">
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Revisa y aprueba report emitidos</span>
                         </div>
-                        <h4 class="fw-bold mb-3">Supervisor</h4>
-                        <p class="text-muted mb-4">Supervisión y gestión operacional</p>
-                        <div class="text-start">
-                            <div class="mb-2"><i class="fas fa-arrow-right text-success me-2"></i>Aprobación de trabajos</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-success me-2"></i>Gestión de faenas</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-success me-2"></i>Reportes operacionales</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-success me-2"></i>Control de calidad</div>
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Modifica report</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Control de calidad</span>
                         </div>
                     </div>
                 </div>
             </div>
+            
             <div class="col-lg-4">
-                <div class="card border-0 shadow-lg h-100 hover-lift">
-                    <div class="card-body p-5 text-center">
-                        <div class="mb-4">
-                            <div class="bg-warning bg-opacity-10 rounded-circle p-4 d-inline-flex">
-                                <i class="fas fa-hard-hat fa-4x text-warning"></i>
-                            </div>
+                <div class="role-card glass-card">
+                    <div class="role-icon">
+                        <i class="fas fa-hard-hat"></i>
+                    </div>
+                    <h4 class="role-title">Operador/Chofer</h4>
+                    <p class="role-subtitle">Registro y control de actividades</p>
+                    <div class="role-features">
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Registra actividades</span>
                         </div>
-                        <h4 class="fw-bold mb-3">Operador</h4>
-                        <p class="text-muted mb-4">Registro y control de actividades</p>
-                        <div class="text-start">
-                            <div class="mb-2"><i class="fas fa-arrow-right text-warning me-2"></i>Registro de actividades</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-warning me-2"></i>Control de horómetros</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-warning me-2"></i>Reporte de consumos</div>
-                            <div class="mb-2"><i class="fas fa-arrow-right text-warning me-2"></i>Notificaciones</div>
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Confecciona el report</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Notificaciones</span>
                         </div>
                     </div>
                 </div>
@@ -318,41 +385,69 @@
     </div>
 </section>
 
-<!-- Conoce el Sistema -->
-<section id="conoce-sistema" class="py-5 bg-primary text-white">
+<!-- Conoce el Sistema - Diseño Futurista -->
+<section id="conoce-sistema" class="py-5 cta-section">
     <div class="container">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-8">
-                <h2 class="display-4 mb-4 fw-bold">Conoce Nuestro Sistema</h2>
-                <p class="lead mb-5">Descubre cómo Daily Report puede transformar tus operaciones</p>
-                
-                <div class="row g-4 mb-5">
-                    <div class="col-md-6">
-                        <div class="bg-white bg-opacity-10 rounded-4 p-4 h-100">
-                            <i class="fas fa-play-circle fa-3x mb-3"></i>
-                            <h5 class="fw-bold mb-3">Video Tutorial</h5>
-                            <p class="mb-4">Aprende a usar todas las funcionalidades paso a paso</p>
-                            <a href="#" class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#videoModal">
-                                <i class="fas fa-play me-2"></i>Ver Tutorial
+        <div class="cta-wrapper">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <div class="cta-content">
+                        <div class="section-badge mb-4">
+                            <span>Descubre más</span>
+                        </div>
+                        <h2 class="cta-title gradient-text mb-4">Conoce Nuestro Sistema</h2>
+                        <p class="cta-description mb-5">
+                            Descubre cómo Daily Report puede transformar tus operaciones industriales 
+                            con tecnología de punta y una interfaz intuitiva.
+                        </p>
+                        
+                        <!-- Botón de Cotización -->
+                        <div class="download-section mb-4">
+                            <a href="{% static 'docs/formulario_cotizacion.xlsx' %}" 
+                               class="btn btn-download" 
+                               download>
+                                <i class="fas fa-file-excel me-2"></i>
+                                Descargar Formulario de Cotización
+                            </a>
+                        </div>
+                        
+                        <div class="cta-buttons">
+                            <a href="{% url 'login' %}" class="btn btn-cta-primary">
+                                <span>Comenzar Ahora</span>
+                                <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="bg-white bg-opacity-10 rounded-4 p-4 h-100">
-                            <i class="fas fa-download fa-3x mb-3"></i>
-                            <h5 class="fw-bold mb-3">Presentación</h5>
-                            <p class="mb-4">Visualiza nuestra presentación completa del sistema</p>
-                            <a href="https://prezi.com/view/sjB5brwX9p6XAm9nWmE2/" class="btn btn-outline-light btn-lg" target="_blank">
-                                <i class="fas fa-external-link-alt me-2"></i>Ver Presentación
-                            </a>
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="text-center">
-                    <a href="{% url 'login' %}" class="btn btn-light btn-lg px-5 py-3 shadow">
-                        <i class="fas fa-rocket me-2"></i>Comenzar Ahora
-                    </a>
+                <div class="col-lg-6">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="action-card" data-bs-toggle="modal" data-bs-target="#videoModal">
+                                <div class="action-icon">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                                <h5>Video Tutorial</h5>
+                                <p>Aprende paso a paso</p>
+                                <div class="action-arrow">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="action-card">
+                                <a href="https://prezi.com/view/sjB5brwX9p6XAm9nWmE2/" target="_blank" class="stretched-link"></a>
+                                <div class="action-icon">
+                                    <i class="fas fa-presentation"></i>
+                                </div>
+                                <h5>Presentación</h5>
+                                <p>Visualiza el sistema</p>
+                                <div class="action-arrow">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -361,9 +456,9 @@
 
 <!-- Modal de Video Tutorial -->
 <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content modern-modal">
+            <div class="modal-header">
                 <h5 class="modal-title" id="videoModalLabel">
                     <i class="fas fa-play-circle me-2"></i>Tutorial de Daily Report
                 </h5>
@@ -379,189 +474,1197 @@
                     </iframe>
                 </div>
             </div>
-            <div class="modal-footer">
-                <div class="w-100 text-center">
-                    <p class="mb-2 text-muted">¿Te gustó lo que viste?</p>
-                    <a href="{% url 'login' %}" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
-<!-- Footer -->
-<footer class="bg-dark text-white py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <h5 class="fw-bold mb-3">Daily Report</h5>
-                <p class="text-light opacity-75">Sistema integral de gestión para operaciones industriales</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <div class="d-flex justify-content-md-end gap-4">
-                    <a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100">Términos</a>
-                    <a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100">Privacidad</a>
-                    <a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100">Contacto</a>
+<!-- Footer Moderno -->
+<footer class="modern-footer">
+    <div class="footer-content">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="footer-brand">
+                        <h5 class="footer-title">Daily Report</h5>
+                        <p class="footer-description">
+                            Sistema integral de gestión para operaciones industriales
+                        </p>
+                        <div class="footer-social">
+                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h6 class="footer-subtitle">Enlaces Rápidos</h6>
+                    <div class="footer-links">
+                        <a href="#">Términos y Condiciones</a>
+                        <a href="#">Política de Privacidad</a>
+                        <a href="#">Soporte Técnico</a>
+                        <a href="{% static 'docs/formulario_cotizacion.xlsx' %}" download>
+                            Formulario de Cotización
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <h6 class="footer-subtitle">Contacto</h6>
+                    <div class="footer-contact">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <a href="mailto:audiobras@audiobrasspa.cl">audiobras@audiobrasspa.cl</a>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+56 9 XXXX XXXX</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Santiago, Chile</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <hr class="my-4 opacity-25">
-        <div class="text-center">
-            <p class="mb-0 text-light opacity-50">&copy; 2025 Daily Report. Todos los derechos reservados.</p>
+            
+            <div class="footer-bottom">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="copyright">
+                            &copy; 2025 Daily Report. Todos los derechos reservados.
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="footer-logo">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </footer>
 
 <style>
-/* Animaciones */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Variables CSS para colores modernos */
+:root {
+    --primary-color: #0066ff;
+    --secondary-color: #00d4ff;
+    --accent-color: #ff0066;
+    --dark-bg: #0a0e27;
+    --light-bg: #f8faff;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --text-primary: #1a1a2e;
+    --text-secondary: #6c757d;
+    --gradient-primary: linear-gradient(135deg, #0066ff 0%, #00d4ff 100%);
+    --gradient-accent: linear-gradient(135deg, #ff0066 0%, #ff4d7d 100%);
+    --gradient-dark: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
 }
 
-.animate-fadeInUp {
-    animation: fadeInUp 0.8s ease-out forwards;
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Hover effects */
-.hover-lift {
-    transition: all 0.3s ease;
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+    background-color: var(--light-bg);
 }
 
-.hover-lift:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+/* Logo AUDIOBRAS */
+.audiobras-logo {
+    height: 50px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
-.hover-opacity-100:hover {
-    opacity: 1 !important;
+/* Hero Section */
+.hero-section {
+    height: 100vh;
+    overflow: hidden;
 }
 
-/* Video container */
 .video-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.hero-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0,102,255,0.9) 0%, rgba(0,212,255,0.8) 50%, rgba(10,14,39,0.9) 100%);
+    z-index: 2;
+}
+
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    z-index: 3;
+}
+
+.hero-badge {
+    display: inline-block;
+    padding: 8px 24px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.hero-title {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 900;
+    color: white;
+    margin: 2rem 0;
+    line-height: 1.1;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: rgba(255,255,255,0.9);
+    font-weight: 300;
+    margin-bottom: 1rem;
+}
+
+.hero-description {
+    font-size: 1.25rem;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 3rem;
+}
+
+/* Botones modernos */
+.btn-glow {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,102,255,0.4);
     position: relative;
     overflow: hidden;
 }
 
-/* Smooth scrolling */
+.btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,102,255,0.6);
+    color: white;
+}
+
+.btn-glass {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.2);
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    margin-left: 1rem;
+}
+
+.btn-glass:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-2px);
+    color: white;
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    text-align: center;
+}
+
+.mouse-icon {
+    width: 30px;
+    height: 50px;
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 25px;
+    margin: 0 auto 10px;
+    position: relative;
+}
+
+.wheel {
+    width: 4px;
+    height: 10px;
+    background: white;
+    border-radius: 2px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: scroll 2s infinite;
+}
+
+.scroll-text {
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+/* Animaciones */
+@keyframes scroll {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes scale-in {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-up {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-scale-in {
+    animation: scale-in 0.6s ease-out;
+}
+
+.animate-slide-up {
+    animation: slide-up 0.8s ease-out;
+}
+
+.animate-slide-up-delay-1 {
+    animation: slide-up 0.8s ease-out 0.3s both;
+}
+
+.animate-slide-up-delay-2 {
+    animation: slide-up 0.8s ease-out 0.6s both;
+}
+
+.animate-slide-up-delay-3 {
+    animation: slide-up 0.8s ease-out 0.9s both;
+}
+
+/* Secciones modernas */
+.modern-section {
+    background: white;
+    position: relative;
+}
+
+.section-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    background: var(--gradient-primary);
+    border-radius: 50px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.section-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+}
+
+/* Stat Cards */
+.stat-card {
+    background: var(--gradient-primary);
+    padding: 30px;
+    border-radius: 20px;
+    color: white;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin: 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Image wrapper con floating cards */
+.image-wrapper {
+    position: relative;
+}
+
+.image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.main-image {
+    width: 100%;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.floating-card {
+    position: absolute;
+    background: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.floating-card i {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+
+.floating-card span {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.top-card {
+    top: -20px;
+    right: -20px;
+}
+
+.bottom-card {
+    bottom: 20px;
+    left: -20px;
+    animation-delay: 1.5s;
+}
+
+/* Feature Cards con hover effect */
+.features-section {
+    background: var(--light-bg);
+}
+
+.feature-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    height: 100%;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,102,255,0.15);
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.feature-card:hover .icon-bg {
+    transform: scale(20);
+}
+
+.feature-icon {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+}
+
+.feature-icon i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    z-index: 2;
+}
+
+.icon-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--gradient-primary);
+    opacity: 0.1;
+    border-radius: 50%;
+    transition: all 0.5s ease;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.feature-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.feature-hover-content {
+    position: absolute;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    background: var(--gradient-primary);
+    color: white;
+    padding: 30px;
+    transition: all 0.3s ease;
+    border-radius: 0 0 20px 20px;
+}
+
+.feature-card:hover .feature-hover-content {
+    bottom: 0;
+}
+
+.feature-hover-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-hover-content li {
+    padding: 5px 0;
+    font-size: 0.9rem;
+}
+
+/* Main Features 3D Cards */
+.main-features-section {
+    background: white;
+    overflow: hidden;
+}
+
+.feature-3d-card {
+    perspective: 1000px;
+    height: 350px;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.feature-3d-card:hover .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.card-front {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.card-back {
+    background: var(--gradient-dark);
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.icon-wrapper {
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.icon-wrapper i {
+    font-size: 3rem;
+}
+
+.card-front h4 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.card-front p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.see-more {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-back h5 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.card-back ul {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+}
+
+.card-back li {
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.card-back li i {
+    color: #00ff88;
+    font-size: 1.2rem;
+}
+
+/* Roles Section con Glassmorphism */
+.roles-section {
+    background: var(--gradient-dark);
+    padding: 100px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.roles-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 20% 50%, rgba(0,212,255,0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,0,102,0.2) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+}
+
+.glass-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 40px;
+    height: 100%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.glass-card.featured {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(0,212,255,0.5);
+    transform: scale(1.05);
+}
+
+.role-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+}
+
+.role-icon i {
+    font-size: 2.5rem;
+    color: white;
+}
+
+.role-title {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.role-subtitle {
+    color: rgba(255,255,255,0.7);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.role-features {
+    text-align: left;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    color: rgba(255,255,255,0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.feature-item:last-child {
+    border-bottom: none;
+}
+
+.feature-item i {
+    color: #00ff88;
+    font-size: 0.8rem;
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #f8faff 0%, #e8f0ff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-wrapper {
+    position: relative;
+    z-index: 2;
+}
+
+.cta-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 900;
+    margin-bottom: 1rem;
+}
+
+.cta-description {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.btn-download {
+    background: var(--gradient-accent);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255,0,102,0.3);
+    color: white;
+}
+
+.btn-cta-primary {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 18px 40px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 5px 20px rgba(0,102,255,0.3);
+}
+
+.btn-cta-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,102,255,0.5);
+    color: white;
+}
+
+.action-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    height: 100%;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.action-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,102,255,0.15);
+}
+
+.action-card:hover .action-icon {
+    transform: scale(1.1) rotate(10deg);
+    background: var(--gradient-primary);
+}
+
+.action-card:hover .action-icon i {
+    color: white;
+}
+
+.action-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--light-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.action-icon i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.action-card h5 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.action-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.action-arrow {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: var(--light-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-arrow {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+/* Modal moderno */
+.modern-modal .modal-content {
+    background: var(--dark-bg);
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.modern-modal .modal-header {
+    background: var(--gradient-dark);
+    border: none;
+    padding: 20px 30px;
+}
+
+.modern-modal .modal-title {
+    color: white;
+    font-weight: 600;
+}
+
+.modern-modal .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Footer moderno */
+.modern-footer {
+    background: var(--gradient-dark);
+    color: white;
+    padding: 80px 0 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+.footer-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.footer-description {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 2rem;
+}
+
+.footer-social {
+    display: flex;
+    gap: 15px;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.social-link:hover {
+    background: var(--gradient-primary);
+    transform: translateY(-3px);
+    color: white;
+}
+
+.footer-subtitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: rgba(255,255,255,0.9);
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.footer-links a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-left: 20px;
+}
+
+.footer-links a::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: white;
+    padding-left: 30px;
+}
+
+.footer-links a:hover::before {
+    opacity: 1;
+    left: 10px;
+}
+
+.footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: rgba(255,255,255,0.8);
+}
+
+.contact-item i {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+}
+
+.contact-item a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.contact-item a:hover {
+    color: var(--secondary-color);
+}
+
+.footer-bottom {
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.copyright {
+    color: rgba(255,255,255,0.6);
+    margin: 0;
+}
+
+.footer-logo {
+    height: 40px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.footer-logo:hover {
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .hero-title {
+        font-size: 4rem;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 3rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.5rem;
+    }
+    
+    .hero-description {
+        font-size: 1.1rem;
+    }
+    
+    .btn-glow, .btn-glass {
+        padding: 14px 30px;
+        font-size: 16px;
+    }
+    
+    .feature-3d-card {
+        height: 300px;
+    }
+    
+    .card-front, .card-back {
+        padding: 30px;
+    }
+    
+    .glass-card.featured {
+        transform: scale(1);
+    }
+    
+    .roles-section {
+        padding: 60px 0;
+    }
+    
+    .cta-title {
+        font-size: 2.5rem;
+    }
+    
+    .modern-footer {
+        padding: 60px 0 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn-glass {
+        margin-left: 0;
+    }
+    
+    .floating-card {
+        display: none;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .feature-card {
+        padding: 30px 20px;
+    }
+    
+    .action-card {
+        padding: 30px;
+    }
+}
+
+/* Smooth scroll behavior */
 html {
     scroll-behavior: smooth;
 }
 
-/* Custom buttons */
-.btn {
-    border-radius: 50px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-lg {
-    padding: 12px 30px;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-/* Cards */
-.card {
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-/* Modal improvements */
-.modal-content {
-    border-radius: 20px;
-    border: none;
-    overflow: hidden;
-}
-
-.modal-header {
-    border: none;
-}
-
-.modal-footer {
-    border: none;
-    background-color: #f8f9fa;
-}
-
-/* Background gradients */
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-}
-
-/* Responsive video */
-.ratio iframe {
-    border-radius: 0;
-}
-
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--dark-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #007bff;
+    background: var(--gradient-primary);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #0056b3;
+    background: var(--primary-color);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .display-1 {
-        font-size: 3rem;
-    }
-    
-    .display-4 {
-        font-size: 2.5rem;
-    }
-    
-    .display-5 {
-        font-size: 2rem;
-    }
-    
-    .video-container video,
-    .video-container img {
-        height: 500px !important;
-    }
-    
-    .btn-lg {
-        padding: 10px 20px;
-        font-size: 1rem;
-    }
-}
-
-/* Loading animation for video */
-.video-loading {
+/* Loading animation */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--dark-bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 400px;
-    background: #f8f9fa;
+    z-index: 9999;
 }
 
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #e9ecef;
-    border-top: 4px solid #007bff;
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top: 3px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -574,13 +1677,10 @@ html {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar el video del tutorial cuando se abre el modal
+    // Configurar el video del tutorial
     const videoModal = document.getElementById('videoModal');
     const tutorialVideo = document.getElementById('tutorialVideo');
-    
-    // URL del video tutorial - puedes cambiar esta URL por la de tu video
     const videoURL = "{% static 'videos/daily_report_tutorial.mp4' %}";
-    // O si usas YouTube: "https://www.youtube.com/embed/TU_VIDEO_ID"
     
     videoModal.addEventListener('show.bs.modal', function () {
         tutorialVideo.src = videoURL;
@@ -590,42 +1690,112 @@ document.addEventListener('DOMContentLoaded', function() {
         tutorialVideo.src = '';
     });
     
-    // Smooth scrolling para enlaces internos
+    // Smooth scrolling mejorado
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
+                const offsetTop = target.offsetTop - 100;
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
                 });
             }
         });
     });
     
-    // Animación de entrada para elementos visibles
+    // Animación de aparición en scroll
     const observerOptions = {
         threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
+        rootMargin: '0px 0px -100px 0px'
     };
     
     const observer = new IntersectionObserver(function(entries) {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.classList.add('visible');
+                
+                // Animación especial para contadores
+                if (entry.target.classList.contains('stat-number')) {
+                    animateCounter(entry.target);
+                }
             }
         });
     }, observerOptions);
     
-    // Observar todas las tarjetas para animación
-    document.querySelectorAll('.card, .hover-lift').forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        card.style.transition = 'all 0.6s ease';
-        observer.observe(card);
+    // Observar elementos
+    document.querySelectorAll('.feature-card, .glass-card, .action-card, .stat-card').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(50px)';
+        observer.observe(el);
+    });
+    
+    // Función para animar contadores
+    function animateCounter(element) {
+        const target = element.innerText;
+        const duration = 2000;
+        const start = 0;
+        const increment = target / (duration / 16);
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.innerText = target;
+                clearInterval(timer);
+            } else {
+                element.innerText = Math.floor(current);
+            }
+        }, 16);
+    }
+    
+    // Parallax effect en hero
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelector('.hero-content');
+        const video = document.querySelector('.video-overlay');
+        
+        if (parallax) {
+            parallax.style.transform = `translate(-50%, calc(-50% + ${scrolled * 0.5}px))`;
+        }
+        
+        if (video) {
+            video.style.opacity = 0.9 + (scrolled * 0.0005);
+        }
+    });
+    
+    // Hover effect para cards 3D
+    document.querySelectorAll('.feature-3d-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = (y - centerY) / 10;
+            const rotateY = (centerX - x) / 10;
+            
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+        });
     });
 });
+
+// Agregar clase visible con transición
+const style = document.createElement('style');
+style.textContent = `
+    .visible {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}
