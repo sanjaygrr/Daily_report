@@ -11,6 +11,7 @@ from django.urls import re_path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', registros_views.landing_page, name='landing_page'),
+    path('test-static/', registros_views.test_static, name='test_static'),
     path('registros/', include('registros.urls')),
     path('accounts/login/', registros_views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/',

@@ -160,6 +160,11 @@ def home(request):
 def landing_page(request):
     return render(request, 'registros/landing_page.html')
 
+@login_required
+def test_static(request):
+    """Vista de prueba para verificar archivos estáticos"""
+    return render(request, 'registros/test_static.html')
+
 # ---------------------- VISTAS DE EMPRESA ----------------------
 
 @login_required

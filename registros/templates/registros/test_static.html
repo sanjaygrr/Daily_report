@@ -1,0 +1,43 @@
+{% extends 'registros/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Prueba de Archivos Estáticos</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Logo AUDIOBRAS (PNG)</h3>
+            <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" style="border: 2px solid red; max-width: 200px;">
+            <p>Ruta: {% static 'images/audiobras_logo.png' %}</p>
+        </div>
+        
+        <div class="col-md-6">
+            <h3>Logo de Respaldo (JPEG)</h3>
+            <img src="{% static 'images/logo.jpeg' %}" alt="Logo" style="border: 2px solid blue; max-width: 200px;">
+            <p>Ruta: {% static 'images/logo.jpeg' %}</p>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h3>Imagen de Login</h3>
+            <img src="{% static 'images/login_image.jpeg' %}" alt="Login" style="border: 2px solid green; max-width: 200px;">
+            <p>Ruta: {% static 'images/login_image.jpeg' %}</p>
+        </div>
+        
+        <div class="col-md-6">
+            <h3>GIF</h3>
+            <img src="{% static 'images/gif.gif' %}" alt="GIF" style="border: 2px solid orange; max-width: 200px;">
+            <p>Ruta: {% static 'images/gif.gif' %}</p>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <h3>Información de Debug</h3>
+        <p><strong>DEBUG:</strong> {{ settings.DEBUG }}</p>
+        <p><strong>STATIC_URL:</strong> {{ settings.STATIC_URL }}</p>
+        <p><strong>STATIC_ROOT:</strong> {{ settings.STATIC_ROOT }}</p>
+    </div>
+</div>
+{% endblock %} 

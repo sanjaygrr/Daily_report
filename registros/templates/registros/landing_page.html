@@ -18,7 +18,9 @@
         <div class="position-absolute top-0 start-0 w-100 p-4" style="z-index: 10;">
             <div class="container">
                 <div class="d-flex justify-content-center">
-                    <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="audiobras-logo" onerror="this.style.display='none'; console.log('Error loading logo');">
+                    <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="audiobras-logo" style="border: 2px solid red;" onerror="this.style.display='none'; console.log('Error loading logo: ' + this.src);">
+                    <!-- Logo de respaldo -->
+                    <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="audiobras-logo" style="border: 2px solid blue; display: none;" onload="console.log('Logo de respaldo cargado');">
                 </div>
             </div>
         </div>
@@ -538,7 +540,9 @@
                         </p>
                     </div>
                     <div class="col-md-6 text-md-end">
-                        <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="footer-logo">
+                        <img src="{% static 'images/audiobras_logo.png' %}" alt="AUDIOBRAS" class="footer-logo" style="border: 1px solid green;" onerror="this.style.display='none'; console.log('Error loading footer logo: ' + this.src);">
+                        <!-- Logo de respaldo en footer -->
+                        <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="footer-logo" style="border: 1px solid orange; display: none;" onload="console.log('Footer logo de respaldo cargado');">
                     </div>
                 </div>
             </div>
@@ -604,6 +608,20 @@ body {
         height: 35px;
         max-width: 120px;
     }
+}
+
+/* Footer Logo */
+.footer-logo {
+    height: 40px;
+    width: auto;
+    max-width: 150px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    transition: all 0.3s ease;
+}
+
+.footer-logo:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
 /* Hero Section */
