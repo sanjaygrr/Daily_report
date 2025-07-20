@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 
 # Configuración CSRF para Railway
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://*.railway.app,https://*.up.railway.app').split(',')
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://dailyreport.my,https://*.railway.app,https://*.up.railway.app').split(',')
 
 # Configuración de sesiones
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
