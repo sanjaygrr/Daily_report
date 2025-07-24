@@ -3,80 +3,79 @@
 
 {% block content %}
 <!-- Hero Section con Video y Efectos Modernos -->
-<div class="container-fluid p-0">
-    <div class="position-relative hero-section">
-        <!-- Video Background con Overlay Animado -->
-        <div class="video-container">
-            <div class="video-overlay"></div>
-            <video autoplay muted loop class="hero-video">
-                <source src="{% static 'videos/daily_report_intro.mp4' %}" type="video/mp4">
-                <img src="{% static 'images/login_image.jpeg' %}" class="w-100" style="height: 100vh; object-fit: cover;" alt="Daily Report">
-            </video>
-        </div>
-        
-        <!-- Logo AUDIOBRAS en la parte superior -->
-        <div class="position-absolute top-0 start-0 w-100 p-4" style="z-index: 10;">
-            <div class="container-fluid">
-                <div class="d-flex justify-content-start">
-                    <img src="{% static 'images/audiobras_logo_small.png' %}" alt="AUDIOBRAS" class="audiobras-logo" onerror="this.style.display='none'; console.log('Error loading AUDIOBRAS logo: ' + this.src); this.nextElementSibling.style.display='block';">
+<div class="hero-section position-relative overflow-hidden">
+    <!-- Video Background con Overlay Animado -->
+    <div class="video-container position-absolute top-0 start-0 w-100 h-100">
+        <div class="video-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+        <video autoplay muted loop class="hero-video w-100 h-100">
+            <source src="{% static 'videos/daily_report_intro.mp4' %}" type="video/mp4">
+            <img src="{% static 'images/login_image.jpeg' %}" class="w-100 h-100" style="object-fit: cover;" alt="Daily Report">
+        </video>
+    </div>
+    
+    <!-- Logo AUDIOBRAS en la parte superior -->
+    <div class="position-absolute top-0 start-0 w-100 p-4" style="z-index: 10;">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <img src="{% static 'images/audiobras_logo_small.png' %}" alt="AUDIOBRAS" class="audiobras-logo" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <!-- Logo de respaldo -->
-                    <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="audiobras-logo" style="display: none;" onload="console.log('Logo de respaldo cargado');">
+                    <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="audiobras-logo" style="display: none;">
                 </div>
             </div>
         </div>
-        
-        <!-- Hero Content con Animaciones -->
-        <div class="hero-content">
-            <div class="container">
-                <div class="row justify-content-center text-center">
-                    <div class="col-lg-10">
-                        <div class="hero-badge mb-4 animate-scale-in">
-                            <span class="badge-text">Sistema Industrial 4.0</span>
-                        </div>
-                        <h1 class="hero-title animate-slide-up">
-                            Daily Report
-                        </h1>
-                        <p class="hero-subtitle animate-slide-up-delay-1">
-                            Sistema integral de gestión para operaciones industriales
-                        </p>
-                        <p class="hero-description animate-slide-up-delay-2">
-                            Controla, supervisa y optimiza tus procesos con tecnología de vanguardia
-                        </p>
-                        <div class="hero-buttons animate-slide-up-delay-3">
-                            <a href="{% url 'login' %}" class="btn btn-glow btn-lg">
-                                <span class="btn-text">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                                </span>
-                            </a>
-                            <a href="#conoce-sistema" class="btn btn-glass btn-lg">
-                                <i class="fas fa-play-circle me-2"></i>Conoce el Sistema
-                            </a>
-                        </div>
+    </div>
+    
+    <!-- Hero Content con Animaciones -->
+    <div class="hero-content position-absolute top-50 start-50 translate-middle w-100 text-center">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="hero-badge d-inline-block mb-4 animate-scale-in">
+                        <span class="badge-text">Sistema Industrial 4.0</span>
+                    </div>
+                    <h1 class="hero-title display-1 fw-bold text-white mb-4 animate-slide-up">
+                        Daily Report
+                    </h1>
+                    <p class="hero-subtitle h3 text-white fw-light mb-3 animate-slide-up-delay-1">
+                        Sistema integral de gestión para operaciones industriales
+                    </p>
+                    <p class="hero-description lead text-white-50 mb-5 animate-slide-up-delay-2">
+                        Controla, supervisa y optimiza tus procesos con tecnología de vanguardia
+                    </p>
+                    <div class="hero-buttons d-flex flex-column flex-sm-row gap-3 justify-content-center animate-slide-up-delay-3">
+                        <a href="{% url 'login' %}" class="btn btn-glow btn-lg px-5">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </a>
+                        <a href="#conoce-sistema" class="btn btn-glass btn-lg px-5">
+                            <i class="fas fa-play-circle me-2"></i>Conoce el Sistema
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Scroll Indicator -->
-        <div class="scroll-indicator">
-            <div class="mouse-icon">
-                <div class="wheel"></div>
-            </div>
-            <span class="scroll-text">Scroll para explorar</span>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator position-absolute bottom-0 start-50 translate-middle-x mb-4 text-center">
+        <div class="mouse-icon mx-auto mb-2">
+            <div class="wheel"></div>
         </div>
+        <span class="scroll-text text-white-50 small">Scroll para explorar</span>
     </div>
 </div>
 
 <!-- Quiénes Somos - Diseño Moderno -->
-<section id="quienes-somos" class="py-5 modern-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-5 mb-lg-0">
+<section id="quienes-somos" class="modern-section py-5">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="row align-items-center g-5">
+            <div class="col-12 col-lg-6">
                 <div class="content-wrapper">
-                    <div class="section-badge mb-4">
+                    <div class="section-badge d-inline-block mb-4">
                         <span>Sobre Nosotros</span>
                     </div>
-                    <h2 class="section-title gradient-text mb-4">¿Quiénes Somos?</h2>
+                    <h2 class="section-title display-4 fw-bold gradient-text mb-4">¿Quiénes Somos?</h2>
                     <p class="lead mb-4">
                         Desarrollamos soluciones tecnológicas innovadoras para la gestión operacional industrial.
                     </p>
@@ -86,40 +85,40 @@
                     </p>
                     <div class="row g-4">
                         <div class="col-6">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-clock"></i>
+                            <div class="stat-card text-center p-4 rounded-4">
+                                <div class="stat-icon mb-3">
+                                    <i class="fas fa-clock fa-2x"></i>
                                 </div>
                                 <div class="stat-content">
-                                    <h3 class="stat-number">24/7</h3>
-                                    <p class="stat-label">Disponibilidad Total</p>
+                                    <h3 class="stat-number h2 fw-bold mb-1">24/7</h3>
+                                    <p class="stat-label small mb-0">Disponibilidad Total</p>
                                 </div>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-shield-check"></i>
+                            <div class="stat-card text-center p-4 rounded-4">
+                                <div class="stat-icon mb-3">
+                                    <i class="fas fa-shield-check fa-2x"></i>
                                 </div>
                                 <div class="stat-content">
-                                    <h3 class="stat-number">100%</h3>
-                                    <p class="stat-label">Confiable y Seguro</p>
+                                    <h3 class="stat-number h2 fw-bold mb-1">100%</h3>
+                                    <p class="stat-label small mb-0">Confiable y Seguro</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="image-wrapper">
+            <div class="col-12 col-lg-6">
+                <div class="image-wrapper position-relative">
                     <div class="image-container">
-                        <img src="{% static 'images/login_image.jpeg' %}" class="main-image" alt="Daily Report System">
-                        <div class="floating-card top-card">
-                            <i class="fas fa-industry"></i>
+                        <img src="{% static 'images/login_image.jpeg' %}" class="main-image img-fluid rounded-4 shadow-lg" alt="Daily Report System">
+                        <div class="floating-card position-absolute top-0 end-0 translate-middle">
+                            <i class="fas fa-industry me-2"></i>
                             <span>Gestión Industrial</span>
                         </div>
-                        <div class="floating-card bottom-card">
-                            <i class="fas fa-cogs"></i>
+                        <div class="floating-card position-absolute bottom-0 start-0 translate-middle-y">
+                            <i class="fas fa-cogs me-2"></i>
                             <span>Procesos optimizados</span>
                         </div>
                     </div>
@@ -130,80 +129,80 @@
 </section>
 
 <!-- Para qué Sirve - Diseño Ultra Moderno -->
-<section class="py-5 features-section">
-    <div class="container">
+<section class="features-section py-5">
+    <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
-            <div class="section-badge mb-4">
+            <div class="section-badge d-inline-block mb-4">
                 <span>Funcionalidades</span>
             </div>
-            <h2 class="section-title mb-4">¿Para qué sirve Daily Report?</h2>
-            <p class="section-subtitle">Transforma la gestión de tus operaciones industriales</p>
+            <h2 class="section-title display-4 fw-bold mb-4">¿Para qué sirve Daily Report?</h2>
+            <p class="section-subtitle lead text-muted">Transforma la gestión de tus operaciones industriales</p>
         </div>
         
         <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <div class="icon-bg"></div>
-                        <i class="fas fa-chart-bar"></i>
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="feature-card h-100 p-4 rounded-4 text-center">
+                    <div class="feature-icon mb-4 position-relative">
+                        <div class="icon-bg position-absolute top-50 start-50 translate-middle"></div>
+                        <i class="fas fa-chart-bar fa-3x position-relative"></i>
                     </div>
-                    <h5 class="feature-title">Control en Tiempo Real</h5>
+                    <h5 class="feature-title h4 fw-bold mb-3">Control en Tiempo Real</h5>
                     <p class="feature-description">Monitorea todas tus operaciones y equipos desde una plataforma centralizada</p>
-                    <div class="feature-hover-content">
-                        <ul>
-                            <li>Dashboard interactivo</li>
-                            <li>Monitoreo continuo</li>
+                    <div class="feature-hover-content position-absolute bottom-0 start-0 end-0 p-4">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">Dashboard interactivo</li>
+                            <li class="mb-2">Monitoreo continuo</li>
                             <li>Métricas en vivo</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <div class="icon-bg"></div>
-                        <i class="fas fa-cogs"></i>
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="feature-card h-100 p-4 rounded-4 text-center">
+                    <div class="feature-icon mb-4 position-relative">
+                        <div class="icon-bg position-absolute top-50 start-50 translate-middle"></div>
+                        <i class="fas fa-cogs fa-3x position-relative"></i>
                     </div>
-                    <h5 class="feature-title">Optimización</h5>
+                    <h5 class="feature-title h4 fw-bold mb-3">Optimización</h5>
                     <p class="feature-description">Mejora la eficiencia de tus procesos y reduce tiempos de inactividad</p>
-                    <div class="feature-hover-content">
-                        <ul>
-                            <li>Análisis predictivo</li>
-                            <li>Automatización</li>
+                    <div class="feature-hover-content position-absolute bottom-0 start-0 end-0 p-4">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">Análisis predictivo</li>
+                            <li class="mb-2">Automatización</li>
                             <li>Mejora continua</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <div class="icon-bg"></div>
-                        <i class="fas fa-shield-alt"></i>
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="feature-card h-100 p-4 rounded-4 text-center">
+                    <div class="feature-icon mb-4 position-relative">
+                        <div class="icon-bg position-absolute top-50 start-50 translate-middle"></div>
+                        <i class="fas fa-shield-alt fa-3x position-relative"></i>
                     </div>
-                    <h5 class="feature-title">Seguridad</h5>
+                    <h5 class="feature-title h4 fw-bold mb-3">Seguridad</h5>
                     <p class="feature-description">Mantén un registro seguro y confiable de todas tus operaciones</p>
-                    <div class="feature-hover-content">
-                        <ul>
-                            <li>Encriptación total</li>
-                            <li>Respaldos automáticos</li>
+                    <div class="feature-hover-content position-absolute bottom-0 start-0 end-0 p-4">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">Encriptación total</li>
+                            <li class="mb-2">Respaldos automáticos</li>
                             <li>Auditoría completa</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <div class="icon-bg"></div>
-                        <i class="fas fa-mobile-alt"></i>
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="feature-card h-100 p-4 rounded-4 text-center">
+                    <div class="feature-icon mb-4 position-relative">
+                        <div class="icon-bg position-absolute top-50 start-50 translate-middle"></div>
+                        <i class="fas fa-mobile-alt fa-3x position-relative"></i>
                     </div>
-                    <h5 class="feature-title">Acceso Universal</h5>
+                    <h5 class="feature-title h4 fw-bold mb-3">Acceso Universal</h5>
                     <p class="feature-description">Disponible desde cualquier dispositivo, en cualquier momento y lugar</p>
-                    <div class="feature-hover-content">
-                        <ul>
-                            <li>Diseño responsivo</li>
-                            <li>App móvil nativa</li>
+                    <div class="feature-hover-content position-absolute bottom-0 start-0 end-0 p-4">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">Diseño responsivo</li>
+                            <li class="mb-2">App móvil nativa</li>
                             <li>Sincronización cloud</li>
                         </ul>
                     </div>
@@ -214,85 +213,85 @@
 </section>
 
 <!-- Características Principales - Diseño 3D Moderno -->
-<section class="py-5 main-features-section">
-    <div class="container">
+<section class="main-features-section py-5">
+    <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
-            <div class="section-badge mb-4">
+            <div class="section-badge d-inline-block mb-4">
                 <span>Características</span>
             </div>
-            <h2 class="section-title mb-4">Todo lo que necesitas en una sola plataforma</h2>
+            <h2 class="section-title display-4 fw-bold mb-4">Todo lo que necesitas en una sola plataforma</h2>
         </div>
         
         <div class="row g-5">
-            <div class="col-lg-4">
-                <div class="feature-3d-card">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="icon-wrapper">
-                                <i class="fas fa-truck"></i>
+            <div class="col-12 col-lg-4">
+                <div class="feature-3d-card h-100">
+                    <div class="card-inner h-100">
+                        <div class="card-front rounded-4 p-5 d-flex flex-column justify-content-center align-items-center text-center">
+                            <div class="icon-wrapper mb-4">
+                                <i class="fas fa-truck fa-3x"></i>
                             </div>
-                            <h4>Gestión de Maquinaria</h4>
-                            <p>Control de tu flota de equipos</p>
-                            <div class="see-more">
+                            <h4 class="h3 fw-bold mb-3">Gestión de Maquinaria</h4>
+                            <p class="mb-0">Control de tu flota de equipos</p>
+                            <div class="see-more position-absolute bottom-0 end-0 m-4">
                                 <i class="fas fa-arrow-right"></i>
                             </div>
                         </div>
-                        <div class="card-back">
-                            <h5>Características incluidas:</h5>
-                            <ul>
-                                <li><i class="fas fa-check"></i> Controla e informa horómetros y odómetros</li>
-                                <li><i class="fas fa-check"></i> Reúne información para informes detallados</li>
-                                <li><i class="fas fa-check"></i> Historial detallado</li>
+                        <div class="card-back rounded-4 p-5 d-flex flex-column justify-content-center">
+                            <h5 class="h4 fw-bold mb-4">Características incluidas:</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-3"><i class="fas fa-check me-3"></i>Controla e informa horómetros y odómetros</li>
+                                <li class="mb-3"><i class="fas fa-check me-3"></i>Reúne información para informes detallados</li>
+                                <li><i class="fas fa-check me-3"></i>Historial detallado</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-lg-4">
-                <div class="feature-3d-card">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="icon-wrapper">
-                                <i class="fas fa-chart-line"></i>
+            <div class="col-12 col-lg-4">
+                <div class="feature-3d-card h-100">
+                    <div class="card-inner h-100">
+                        <div class="card-front rounded-4 p-5 d-flex flex-column justify-content-center align-items-center text-center">
+                            <div class="icon-wrapper mb-4">
+                                <i class="fas fa-chart-line fa-3x"></i>
                             </div>
-                            <h4>Reportes Inteligentes</h4>
-                            <p>Información clara para mejores decisiones</p>
-                            <div class="see-more">
+                            <h4 class="h3 fw-bold mb-3">Reportes Inteligentes</h4>
+                            <p class="mb-0">Información clara para mejores decisiones</p>
+                            <div class="see-more position-absolute bottom-0 end-0 m-4">
                                 <i class="fas fa-arrow-right"></i>
                             </div>
                         </div>
-                        <div class="card-back">
-                            <h5>Características incluidas:</h5>
-                            <ul>
-                                <li><i class="fas fa-check"></i> Dashboards interactivos</li>
-                                <li><i class="fas fa-check"></i> Exportación múltiple</li>
-                                <li><i class="fas fa-check"></i> Análisis de tendencias</li>
+                        <div class="card-back rounded-4 p-5 d-flex flex-column justify-content-center">
+                            <h5 class="h4 fw-bold mb-4">Características incluidas:</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-3"><i class="fas fa-check me-3"></i>Dashboards interactivos</li>
+                                <li class="mb-3"><i class="fas fa-check me-3"></i>Exportación múltiple</li>
+                                <li><i class="fas fa-check me-3"></i>Análisis de tendencias</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-lg-4">
-                <div class="feature-3d-card">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="icon-wrapper">
-                                <i class="fas fa-users"></i>
+            <div class="col-12 col-lg-4">
+                <div class="feature-3d-card h-100">
+                    <div class="card-inner h-100">
+                        <div class="card-front rounded-4 p-5 d-flex flex-column justify-content-center align-items-center text-center">
+                            <div class="icon-wrapper mb-4">
+                                <i class="fas fa-users fa-3x"></i>
                             </div>
-                            <h4>Gestión de Equipos</h4>
-                            <p>Coordina eficientemente tu personal</p>
-                            <div class="see-more">
+                            <h4 class="h3 fw-bold mb-3">Gestión de Equipos</h4>
+                            <p class="mb-0">Coordina eficientemente tu personal</p>
+                            <div class="see-more position-absolute bottom-0 end-0 m-4">
                                 <i class="fas fa-arrow-right"></i>
                             </div>
                         </div>
-                        <div class="card-back">
-                            <h5>Características incluidas:</h5>
-                            <ul>
-                                <li><i class="fas fa-check"></i> Asignación de tareas</li>
-                                <li><i class="fas fa-check"></i> Seguimiento de consumos</li>
-                                <li><i class="fas fa-check"></i> Comunicación integrada</li>
+                        <div class="card-back rounded-4 p-5 d-flex flex-column justify-content-center">
+                            <h5 class="h4 fw-bold mb-4">Características incluidas:</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-3"><i class="fas fa-check me-3"></i>Asignación de tareas</li>
+                                <li class="mb-3"><i class="fas fa-check me-3"></i>Seguimiento de consumos</li>
+                                <li><i class="fas fa-check me-3"></i>Comunicación integrada</li>
                             </ul>
                         </div>
                     </div>
@@ -303,83 +302,83 @@
 </section>
 
 <!-- Roles del Sistema - Diseño Moderno con Glassmorphism -->
-<section class="py-5 roles-section">
-    <div class="container">
+<section class="roles-section py-5 position-relative overflow-hidden">
+    <div class="container-fluid px-4 px-lg-5 position-relative">
         <div class="text-center mb-5">
-            <div class="section-badge mb-4">
+            <div class="section-badge d-inline-block mb-4">
                 <span>Roles</span>
             </div>
-            <h2 class="section-title text-white mb-4">Roles del Sistema</h2>
-            <p class="section-subtitle text-white-50">Diseñado para cada nivel de tu organización</p>
+            <h2 class="section-title display-4 fw-bold text-white mb-4">Roles del Sistema</h2>
+            <p class="section-subtitle lead text-white-50">Diseñado para cada nivel de tu organización</p>
         </div>
         
         <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="role-card glass-card">
-                    <div class="role-icon">
-                        <i class="fas fa-user-shield"></i>
+            <div class="col-12 col-lg-4">
+                <div class="role-card glass-card h-100 p-5 rounded-4">
+                    <div class="role-icon mx-auto mb-4">
+                        <i class="fas fa-user-shield fa-2x"></i>
                     </div>
-                    <h4 class="role-title">Administrador</h4>
-                    <p class="role-subtitle">Gestión y control del sistema</p>
+                    <h4 class="role-title h3 fw-bold text-center mb-2">Administrador</h4>
+                    <p class="role-subtitle text-center mb-4">Gestión y control del sistema</p>
                     <div class="role-features">
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center mb-3">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Reúne y permite confeccionar informes</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center mb-3">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Reportes ejecutivos</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Configuraciones</span>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-lg-4">
-                <div class="role-card glass-card featured">
-                    <div class="role-icon">
-                        <i class="fas fa-user-tie"></i>
+            <div class="col-12 col-lg-4">
+                <div class="role-card glass-card featured h-100 p-5 rounded-4">
+                    <div class="role-icon mx-auto mb-4">
+                        <i class="fas fa-user-tie fa-2x"></i>
                     </div>
-                    <h4 class="role-title">Supervisor</h4>
-                    <p class="role-subtitle">Supervisión y seguimiento operacional</p>
+                    <h4 class="role-title h3 fw-bold text-center mb-2">Supervisor</h4>
+                    <p class="role-subtitle text-center mb-4">Supervisión y seguimiento operacional</p>
                     <div class="role-features">
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center mb-3">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Revisa y aprueba report emitidos</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center mb-3">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Modifica report</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Control de calidad</span>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-lg-4">
-                <div class="role-card glass-card">
-                    <div class="role-icon">
-                        <i class="fas fa-hard-hat"></i>
+            <div class="col-12 col-lg-4">
+                <div class="role-card glass-card h-100 p-5 rounded-4">
+                    <div class="role-icon mx-auto mb-4">
+                        <i class="fas fa-hard-hat fa-2x"></i>
                     </div>
-                    <h4 class="role-title">Operador/Chofer</h4>
-                    <p class="role-subtitle">Registro y control de actividades</p>
+                    <h4 class="role-title h3 fw-bold text-center mb-2">Operador/Chofer</h4>
+                    <p class="role-subtitle text-center mb-4">Registro y control de actividades</p>
                     <div class="role-features">
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center mb-3">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Registra actividades</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center mb-3">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Confecciona el report</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-chevron-right"></i>
+                        <div class="feature-item d-flex align-items-center">
+                            <i class="fas fa-chevron-right me-3"></i>
                             <span>Notificaciones</span>
                         </div>
                     </div>
@@ -390,17 +389,17 @@
 </section>
 
 <!-- Conoce el Sistema - Diseño Futurista -->
-<section id="conoce-sistema" class="py-5 cta-section">
-    <div class="container">
+<section id="conoce-sistema" class="cta-section py-5">
+    <div class="container-fluid px-4 px-lg-5">
         <div class="cta-wrapper">
-            <div class="row align-items-center">
-                <div class="col-lg-6 mb-5 mb-lg-0">
+            <div class="row align-items-center g-5">
+                <div class="col-12 col-lg-6">
                     <div class="cta-content">
-                        <div class="section-badge mb-4">
+                        <div class="section-badge d-inline-block mb-4">
                             <span>Descubre más</span>
                         </div>
-                        <h2 class="cta-title gradient-text mb-4">Conoce Nuestro Sistema</h2>
-                        <p class="cta-description mb-5">
+                        <h2 class="cta-title display-3 fw-bold gradient-text mb-4">Conoce Nuestro Sistema</h2>
+                        <p class="cta-description lead mb-5">
                             Descubre cómo Daily Report puede transformar tus operaciones industriales 
                             con tecnología de punta y una interfaz intuitiva.
                         </p>
@@ -424,29 +423,29 @@
                     </div>
                 </div>
                 
-                <div class="col-lg-6">
+                <div class="col-12 col-lg-6">
                     <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="action-card" data-bs-toggle="modal" data-bs-target="#videoModal">
-                                <div class="action-icon">
-                                    <i class="fas fa-play-circle"></i>
+                        <div class="col-12 col-md-6">
+                            <div class="action-card h-100 p-4 p-lg-5 rounded-4 text-center position-relative" data-bs-toggle="modal" data-bs-target="#videoModal">
+                                <div class="action-icon mx-auto mb-3">
+                                    <i class="fas fa-play-circle fa-3x"></i>
                                 </div>
-                                <h5>Video Tutorial</h5>
-                                <p>Aprende paso a paso</p>
-                                <div class="action-arrow">
+                                <h5 class="h4 fw-bold mb-2">Video Tutorial</h5>
+                                <p class="text-muted mb-0">Aprende paso a paso</p>
+                                <div class="action-arrow position-absolute bottom-0 end-0 m-3">
                                     <i class="fas fa-arrow-right"></i>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="action-card">
+                        <div class="col-12 col-md-6">
+                            <div class="action-card h-100 p-4 p-lg-5 rounded-4 text-center position-relative">
                                 <a href="https://prezi.com/view/sjB5brwX9p6XAm9nWmE2/" target="_blank" class="stretched-link"></a>
-                                <div class="action-icon">
-                                    <i class="fas fa-presentation"></i>
+                                <div class="action-icon mx-auto mb-3">
+                                    <i class="fas fa-presentation fa-3x"></i>
                                 </div>
-                                <h5>Presentación</h5>
-                                <p>Visualiza el sistema</p>
-                                <div class="action-arrow">
+                                <h5 class="h4 fw-bold mb-2">Presentación</h5>
+                                <p class="text-muted mb-0">Visualiza el sistema</p>
+                                <div class="action-arrow position-absolute bottom-0 end-0 m-3">
                                     <i class="fas fa-external-link-alt"></i>
                                 </div>
                             </div>
@@ -483,67 +482,66 @@
 </div>
 
 <!-- Footer Moderno -->
-<footer class="modern-footer">
-    <div class="footer-content">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <div class="footer-brand">
-                        <h5 class="footer-title">Daily Report</h5>
-                        <p class="footer-description">
-                            Sistema integral de gestión para operaciones industriales
-                        </p>
-                        <div class="footer-social">
-                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <h6 class="footer-subtitle">Enlaces Rápidos</h6>
-                    <div class="footer-links">
-                        <a href="#">Términos y Condiciones</a>
-                        <a href="#">Política de Privacidad</a>
-                        <a href="#">Soporte Técnico</a>
-                        <a href="{% static 'docs/formulario_cotizacion.xlsx' %}" download>
-                            Formulario de Cotización
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <h6 class="footer-subtitle">Contacto</h6>
-                    <div class="footer-contact">
-                        <div class="contact-item">
-                            <i class="fas fa-envelope"></i>
-                            <a href="mailto:audiobras@audiobrasspa.cl">audiobras@audiobrasspa.cl</a>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fas fa-phone"></i>
-                            <span>+56 9 XXXX XXXX</span>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>Santiago, Chile</span>
-                        </div>
+<footer class="modern-footer py-5">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="row g-5">
+            <div class="col-12 col-lg-4">
+                <div class="footer-brand">
+                    <h5 class="footer-title h3 fw-bold mb-3">Daily Report</h5>
+                    <p class="footer-description mb-4">
+                        Sistema integral de gestión para operaciones industriales
+                    </p>
+                    <div class="footer-social d-flex gap-3">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>
             </div>
             
-            <div class="footer-bottom">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <p class="copyright">
-                            &copy; 2025 Daily Report. Todos los derechos reservados.
-                        </p>
+            <div class="col-12 col-lg-4">
+                <h6 class="footer-subtitle h5 fw-bold mb-4">Enlaces Rápidos</h6>
+                <div class="footer-links d-flex flex-column gap-3">
+                    <a href="#">Términos y Condiciones</a>
+                    <a href="#">Política de Privacidad</a>
+                    <a href="#">Soporte Técnico</a>
+                    <a href="{% static 'docs/formulario_cotizacion.xlsx' %}" download>
+                        Formulario de Cotización
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-12 col-lg-4">
+                <h6 class="footer-subtitle h5 fw-bold mb-4">Contacto</h6>
+                <div class="footer-contact">
+                    <div class="contact-item d-flex align-items-center mb-3">
+                        <i class="fas fa-envelope me-3"></i>
+                        <a href="mailto:audiobras@audiobrasspa.cl">audiobras@audiobrasspa.cl</a>
                     </div>
-                    <div class="col-md-6 text-md-end">
-                        <img src="{% static 'images/audiobras_logo_small.png' %}" alt="AUDIOBRAS" class="footer-logo" style="border: 1px solid green;" onerror="this.style.display='none'; console.log('Error loading footer AUDIOBRAS logo: ' + this.src); this.nextElementSibling.style.display='block';">
-                        <!-- Logo de respaldo en footer -->
-                        <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="footer-logo" style="border: 1px solid orange; display: none;" onload="console.log('Footer logo de respaldo cargado');">
+                    <div class="contact-item d-flex align-items-center mb-3">
+                        <i class="fas fa-phone me-3"></i>
+                        <span>+56 9 XXXX XXXX</span>
                     </div>
+                    <div class="contact-item d-flex align-items-center">
+                        <i class="fas fa-map-marker-alt me-3"></i>
+                        <span>Santiago, Chile</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom mt-5 pt-4 border-top">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-6 text-center text-md-start">
+                    <p class="copyright mb-3 mb-md-0">
+                        &copy; 2025 Daily Report. Todos los derechos reservados.
+                    </p>
+                </div>
+                <div class="col-12 col-md-6 text-center text-md-end">
+                    <img src="{% static 'images/audiobras_logo_small.png' %}" alt="AUDIOBRAS" class="footer-logo" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <!-- Logo de respaldo en footer -->
+                    <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="footer-logo" style="display: none;">
                 </div>
             </div>
         </div>
@@ -566,28 +564,42 @@
     --gradient-dark: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
 }
 
-/* Reset y estilos base */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* Reset de márgenes para ocupar todo el ancho */
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     overflow-x: hidden;
     background-color: var(--light-bg);
 }
 
+/* Hero Section */
+.hero-section {
+    height: 100vh;
+    min-height: 600px;
+}
+
+.video-container {
+    z-index: 1;
+}
+
+.hero-video {
+    object-fit: cover;
+}
+
+.video-overlay {
+    background: linear-gradient(135deg, rgba(0,102,255,0.9) 0%, rgba(0,212,255,0.8) 50%, rgba(10,14,39,0.9) 100%);
+    z-index: 2;
+}
+
+.hero-content {
+    z-index: 3;
+}
+
 /* Logo AUDIOBRAS */
 .audiobras-logo {
-    height: 180px; /* antes 150px */
+    height: 120px;
     width: auto;
-    max-width: 350px; /* antes 300px */
+    max-width: 300px;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
     transition: all 0.3s ease;
-    display: block;
-    margin: 0;
 }
 
 .audiobras-logo:hover {
@@ -595,97 +607,21 @@ body {
     filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
 }
 
-/* Responsive para el logo */
-@media (max-width: 768px) {
-    .audiobras-logo {
-        height: 70px;
-        max-width: 200px;
-    }
-}
-
-@media (max-width: 480px) {
-    .audiobras-logo {
-        height: 60px;
-        max-width: 150px;
-    }
-}
-
-/* Footer Logo */
-.footer-logo {
-    height: 40px;
-    width: auto;
-    max-width: 150px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-    transition: all 0.3s ease;
-}
-
-.footer-logo:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-}
-
-/* Hero Section */
-.hero-section {
-    height: 100vh;
-    overflow: hidden;
-}
-
-.video-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-}
-
-.hero-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.video-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(0,102,255,0.9) 0%, rgba(0,212,255,0.8) 50%, rgba(10,14,39,0.9) 100%);
-    z-index: 2;
-}
-
-.hero-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    z-index: 3;
-}
-
+/* Hero Badge */
 .hero-badge {
-    display: inline-block;
-    padding: 8px 24px;
+    padding: 0.5rem 1.5rem;
     background: rgba(255,255,255,0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 50px;
     color: white;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
-.hero-title {
-    font-size: clamp(3rem, 8vw, 6rem);
-    font-weight: 900;
-    color: white;
-    margin: 2rem 0;
-    line-height: 1.1;
-}
-
+/* Gradient Text */
 .gradient-text {
     background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
     -webkit-background-clip: text;
@@ -693,32 +629,15 @@ body {
     background-clip: text;
 }
 
-.hero-subtitle {
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    color: rgba(255,255,255,0.9);
-    font-weight: 300;
-    margin-bottom: 1rem;
-}
-
-.hero-description {
-    font-size: 1.25rem;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 3rem;
-}
-
 /* Botones modernos */
 .btn-glow {
     background: var(--gradient-primary);
     color: white;
     border: none;
-    padding: 16px 40px;
     border-radius: 50px;
     font-weight: 600;
-    font-size: 18px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,102,255,0.4);
-    position: relative;
-    overflow: hidden;
 }
 
 .btn-glow:hover {
@@ -732,12 +651,9 @@ body {
     backdrop-filter: blur(10px);
     color: white;
     border: 2px solid rgba(255,255,255,0.2);
-    padding: 16px 40px;
     border-radius: 50px;
     font-weight: 600;
-    font-size: 18px;
     transition: all 0.3s ease;
-    margin-left: 1rem;
 }
 
 .btn-glass:hover {
@@ -749,12 +665,7 @@ body {
 
 /* Scroll Indicator */
 .scroll-indicator {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
     z-index: 3;
-    text-align: center;
 }
 
 .mouse-icon {
@@ -762,7 +673,6 @@ body {
     height: 50px;
     border: 2px solid rgba(255,255,255,0.5);
     border-radius: 25px;
-    margin: 0 auto 10px;
     position: relative;
 }
 
@@ -778,11 +688,474 @@ body {
     animation: scroll 2s infinite;
 }
 
-.scroll-text {
-    color: rgba(255,255,255,0.8);
-    font-size: 14px;
-    font-weight: 500;
+/* Secciones */
+.modern-section {
+    background: white;
+}
+
+.section-badge {
+    padding: 0.375rem 1.25rem;
+    background: var(--gradient-primary);
+    border-radius: 50px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
     letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: var(--gradient-primary);
+    color: white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+.stat-icon {
+    opacity: 0.9;
+}
+
+/* Floating Cards */
+.floating-card {
+    background: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    animation: float 3s ease-in-out infinite;
+}
+
+.floating-card i {
+    color: var(--primary-color);
+}
+
+/* Feature Cards */
+.features-section {
+    background: var(--light-bg);
+}
+
+.feature-card {
+    background: white;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,102,255,0.15);
+}
+
+.feature-card:hover .feature-icon i {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.feature-card:hover .icon-bg {
+    transform: scale(20);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.feature-icon i {
+    color: var(--primary-color);
+    z-index: 2;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.icon-bg {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    opacity: 0.1;
+    border-radius: 50%;
+    transition: all 0.5s ease;
+}
+
+.feature-hover-content {
+    background: var(--gradient-primary);
+    color: white;
+    transition: all 0.3s ease;
+    bottom: -100%;
+    border-radius: 0 0 1rem 1rem;
+}
+
+.feature-card:hover .feature-hover-content {
+    bottom: 0;
+}
+
+/* 3D Cards */
+.main-features-section {
+    background: white;
+    overflow: hidden;
+}
+
+.feature-3d-card {
+    perspective: 1000px;
+    min-height: 350px;
+}
+
+.card-inner {
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.feature-3d-card:hover .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+}
+
+.card-front {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.card-back {
+    background: var(--gradient-dark);
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.icon-wrapper {
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.see-more {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-back li i {
+    color: #00ff88;
+}
+
+/* Roles Section */
+.roles-section {
+    background: var(--gradient-dark);
+}
+
+.roles-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 20% 50%, rgba(0,212,255,0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,0,102,0.2) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+}
+
+.glass-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.glass-card.featured {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(0,212,255,0.5);
+    transform: scale(1.02);
+}
+
+.role-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.role-title {
+    color: white;
+}
+
+.role-subtitle {
+    color: rgba(255,255,255,0.7);
+}
+
+.feature-item {
+    color: rgba(255,255,255,0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 0.75rem;
+}
+
+.feature-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.feature-item i {
+    color: #00ff88;
+    font-size: 0.8rem;
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #f8faff 0%, #e8f0ff 100%);
+}
+
+.btn-download {
+    background: var(--gradient-accent);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255,0,102,0.3);
+    color: white;
+}
+
+.btn-cta-primary {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 1.125rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 5px 20px rgba(0,102,255,0.3);
+}
+
+.btn-cta-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,102,255,0.5);
+    color: white;
+}
+
+.action-card {
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.action-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,102,255,0.15);
+}
+
+.action-card:hover .action-icon {
+    transform: scale(1.1) rotate(10deg);
+    background: var(--gradient-primary);
+}
+
+.action-card:hover .action-icon i {
+    color: white;
+}
+
+.action-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--light-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.action-icon i {
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.action-arrow {
+    width: 40px;
+    height: 40px;
+    background: var(--light-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-arrow {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+/* Modal */
+.modern-modal .modal-content {
+    background: var(--dark-bg);
+    border: none;
+    overflow: hidden;
+}
+
+.modern-modal .modal-header {
+    background: var(--gradient-dark);
+    border: none;
+}
+
+.modern-modal .modal-title {
+    color: white;
+}
+
+/* Footer */
+.modern-footer {
+    background: var(--gradient-dark);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+.footer-brand h5 {
+    color: white;
+}
+
+.footer-description {
+    color: rgba(255,255,255,0.7);
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.social-link:hover {
+    background: var(--gradient-primary);
+    transform: translateY(-3px);
+    color: white;
+}
+
+.footer-subtitle {
+    color: rgba(255,255,255,0.9);
+}
+
+.footer-links a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-left: 0;
+}
+
+.footer-links a:hover {
+    color: white;
+    padding-left: 10px;
+}
+
+.contact-item {
+    color: rgba(255,255,255,0.8);
+}
+
+.contact-item i {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+}
+
+.contact-item a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.contact-item a:hover {
+    color: var(--secondary-color);
+}
+
+.footer-bottom {
+    border-color: rgba(255,255,255,0.1) !important;
+}
+
+.copyright {
+    color: rgba(255,255,255,0.6);
+    margin: 0;
+}
+
+.footer-logo {
+    height: 40px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.footer-logo:hover {
+    opacity: 1;
 }
 
 /* Animaciones */
@@ -848,827 +1221,51 @@ body {
     animation: slide-up 0.8s ease-out 0.9s both;
 }
 
-/* Secciones modernas */
-.modern-section {
-    background: white;
-    position: relative;
-}
-
-.section-badge {
-    display: inline-block;
-    padding: 6px 20px;
-    background: var(--gradient-primary);
-    border-radius: 50px;
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.section-title {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 900;
-    color: var(--text-primary);
-    line-height: 1.2;
-}
-
-.section-subtitle {
-    font-size: 1.25rem;
-    color: var(--text-secondary);
-}
-
-/* Stat Cards */
-.stat-card {
-    background: var(--gradient-primary);
-    padding: 30px;
-    border-radius: 20px;
-    color: white;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-    animation: float 6s ease-in-out infinite;
-}
-
-.stat-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    opacity: 0.9;
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: 900;
-    margin: 0;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-    margin: 0;
-}
-
-/* Image wrapper con floating cards */
-.image-wrapper {
-    position: relative;
-}
-
-.image-container {
-    position: relative;
-    display: inline-block;
-}
-
-.main-image {
-    width: 100%;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-}
-
-.floating-card {
-    position: absolute;
-    background: white;
-    padding: 15px 25px;
-    border-radius: 50px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    animation: float 3s ease-in-out infinite;
-}
-
-.floating-card i {
-    color: var(--primary-color);
-    font-size: 1.5rem;
-}
-
-.floating-card span {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.top-card {
-    top: -20px;
-    right: -20px;
-}
-
-.bottom-card {
-    bottom: 20px;
-    left: -20px;
-    animation-delay: 1.5s;
-}
-
-/* Feature Cards con hover effect */
-.features-section {
-    background: var(--light-bg);
-}
-
-.feature-card {
-    background: white;
-    padding: 40px 30px;
-    border-radius: 20px;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    height: 100%;
-    cursor: pointer;
-    overflow: hidden;
-}
-
-.feature-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0,102,255,0.15);
-}
-
-.feature-card:hover .feature-icon {
-    transform: scale(1.1) rotate(5deg);
-}
-
-.feature-card:hover .icon-bg {
-    transform: scale(20);
-}
-
-.feature-icon {
-    position: relative;
-    display: inline-block;
-    width: 80px;
-    height: 80px;
-    margin-bottom: 2rem;
-    transition: all 0.3s ease;
-}
-
-.feature-icon i {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    z-index: 2;
-}
-
-.icon-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--gradient-primary);
-    opacity: 0.1;
-    border-radius: 50%;
-    transition: all 0.5s ease;
-}
-
-.feature-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-}
-
-.feature-description {
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-.feature-hover-content {
-    position: absolute;
-    bottom: -100%;
-    left: 0;
-    right: 0;
-    background: var(--gradient-primary);
-    color: white;
-    padding: 30px;
-    transition: all 0.3s ease;
-    border-radius: 0 0 20px 20px;
-}
-
-.feature-card:hover .feature-hover-content {
-    bottom: 0;
-}
-
-.feature-hover-content ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.feature-hover-content li {
-    padding: 5px 0;
-    font-size: 0.9rem;
-}
-
-/* Main Features 3D Cards */
-.main-features-section {
-    background: white;
-    overflow: hidden;
-}
-
-.feature-3d-card {
-    perspective: 1000px;
-    height: 350px;
-}
-
-.card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-}
-
-.feature-3d-card:hover .card-inner {
-    transform: rotateY(180deg);
-}
-
-.card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 20px;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.card-front {
-    background: var(--gradient-primary);
-    color: white;
-}
-
-.card-back {
-    background: var(--gradient-dark);
-    color: white;
-    transform: rotateY(180deg);
-}
-
-.icon-wrapper {
-    width: 100px;
-    height: 100px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
-
-.icon-wrapper i {
-    font-size: 3rem;
-}
-
-.card-front h4 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
-
-.card-front p {
-    font-size: 1.1rem;
-    opacity: 0.9;
-}
-
-.see-more {
-    position: absolute;
-    bottom: 30px;
-    right: 30px;
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card-back h5 {
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.card-back ul {
-    list-style: none;
-    padding: 0;
-    text-align: left;
-    width: 100%;
-}
-
-.card-back li {
-    padding: 10px 0;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.card-back li i {
-    color: #00ff88;
-    font-size: 1.2rem;
-}
-
-/* Roles Section con Glassmorphism */
-.roles-section {
-    background: var(--gradient-dark);
-    padding: 100px 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.roles-section::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 20% 50%, rgba(0,212,255,0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255,0,102,0.2) 0%, transparent 50%);
-    animation: float 20s ease-in-out infinite;
-}
-
-.glass-card {
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 20px;
-    padding: 40px;
-    height: 100%;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.glass-card:hover {
-    transform: translateY(-10px);
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.3);
-}
-
-.glass-card.featured {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(0,212,255,0.5);
-    transform: scale(1.05);
-}
-
-.role-icon {
-    width: 80px;
-    height: 80px;
-    background: var(--gradient-primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 2rem;
-}
-
-.role-icon i {
-    font-size: 2.5rem;
-    color: white;
-}
-
-.role-title {
-    color: white;
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.role-subtitle {
-    color: rgba(255,255,255,0.7);
-    font-size: 1rem;
-    margin-bottom: 2rem;
-}
-
-.role-features {
-    text-align: left;
-}
-
-.feature-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px 0;
-    color: rgba(255,255,255,0.9);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.feature-item:last-child {
-    border-bottom: none;
-}
-
-.feature-item i {
-    color: #00ff88;
-    font-size: 0.8rem;
-}
-
-/* CTA Section */
-.cta-section {
-    background: linear-gradient(135deg, #f8faff 0%, #e8f0ff 100%);
-    position: relative;
-    overflow: hidden;
-}
-
-.cta-wrapper {
-    position: relative;
-    z-index: 2;
-}
-
-.cta-title {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    font-weight: 900;
-    margin-bottom: 1rem;
-}
-
-.cta-description {
-    font-size: 1.25rem;
-    color: var(--text-secondary);
-    line-height: 1.8;
-}
-
-.btn-download {
-    background: var(--gradient-accent);
-    color: white;
-    padding: 15px 30px;
-    border-radius: 50px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.btn-download:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(255,0,102,0.3);
-    color: white;
-}
-
-.btn-cta-primary {
-    background: var(--gradient-primary);
-    color: white;
-    padding: 18px 40px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    box-shadow: 0 5px 20px rgba(0,102,255,0.3);
-}
-
-.btn-cta-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(0,102,255,0.5);
-    color: white;
-}
-
-.action-card {
-    background: white;
-    padding: 40px;
-    border-radius: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    height: 100%;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-}
-
-.action-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0,102,255,0.15);
-}
-
-.action-card:hover .action-icon {
-    transform: scale(1.1) rotate(10deg);
-    background: var(--gradient-primary);
-}
-
-.action-card:hover .action-icon i {
-    color: white;
-}
-
-.action-icon {
-    width: 80px;
-    height: 80px;
-    background: var(--light-bg);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    transition: all 0.3s ease;
-}
-
-.action-icon i {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    transition: all 0.3s ease;
-}
-
-.action-card h5 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.action-card p {
-    color: var(--text-secondary);
-    margin-bottom: 1rem;
-}
-
-.action-arrow {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    background: var(--light-bg);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.action-card:hover .action-arrow {
-    background: var(--gradient-primary);
-    color: white;
-}
-
-/* Modal moderno */
-.modern-modal .modal-content {
-    background: var(--dark-bg);
-    border: none;
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.modern-modal .modal-header {
-    background: var(--gradient-dark);
-    border: none;
-    padding: 20px 30px;
-}
-
-.modern-modal .modal-title {
-    color: white;
-    font-weight: 600;
-}
-
-.modern-modal .btn-close {
-    filter: brightness(0) invert(1);
-}
-
-/* Footer moderno */
-.modern-footer {
-    background: var(--gradient-dark);
-    color: white;
-    padding: 80px 0 30px;
-    position: relative;
-    overflow: hidden;
-}
-
-.modern-footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-}
-
-.footer-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
-
-.footer-description {
-    color: rgba(255,255,255,0.7);
-    margin-bottom: 2rem;
-}
-
-.footer-social {
-    display: flex;
-    gap: 15px;
-}
-
-.social-link {
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.social-link:hover {
-    background: var(--gradient-primary);
-    transform: translateY(-3px);
-    color: white;
-}
-
-.footer-subtitle {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: rgba(255,255,255,0.9);
-}
-
-.footer-links {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.footer-links a {
-    color: rgba(255,255,255,0.7);
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
-    padding-left: 20px;
-}
-
-.footer-links a::before {
-    content: '→';
-    position: absolute;
-    left: 0;
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.footer-links a:hover {
-    color: white;
-    padding-left: 30px;
-}
-
-.footer-links a:hover::before {
-    opacity: 1;
-    left: 10px;
-}
-
-.footer-contact {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.contact-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    color: rgba(255,255,255,0.8);
-}
-
-.contact-item i {
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--secondary-color);
-}
-
-.contact-item a {
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.contact-item a:hover {
-    color: var(--secondary-color);
-}
-
-.footer-bottom {
-    margin-top: 60px;
-    padding-top: 30px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-.copyright {
-    color: rgba(255,255,255,0.6);
-    margin: 0;
-}
-
-.footer-logo {
-    height: 40px;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-
-.footer-logo:hover {
-    opacity: 1;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
+/* Responsive ajustes */
+@media (max-width: 768px) {
+    .audiobras-logo {
+        height: 70px;
+        max-width: 200px;
+    }
+    
     .hero-title {
-        font-size: 4rem;
+        font-size: 2.5rem !important;
     }
     
     .section-title {
-        font-size: 2.5rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero-title {
-        font-size: 3rem;
+        font-size: 2rem !important;
     }
     
-    .hero-subtitle {
-        font-size: 1.5rem;
-    }
-    
-    .hero-description {
-        font-size: 1.1rem;
-    }
-    
-    .btn-glow, .btn-glass {
-        padding: 14px 30px;
-        font-size: 16px;
-    }
-    
-    .feature-3d-card {
-        height: 300px;
-    }
-    
-    .card-front, .card-back {
-        padding: 30px;
+    .cta-title {
+        font-size: 2rem !important;
     }
     
     .glass-card.featured {
         transform: scale(1);
     }
-    
-    .roles-section {
-        padding: 60px 0;
-    }
-    
-    .cta-title {
-        font-size: 2.5rem;
-    }
-    
-    .modern-footer {
-        padding: 60px 0 20px;
-    }
 }
 
 @media (max-width: 576px) {
-    .hero-title {
-        font-size: 2.5rem;
+    .audiobras-logo {
+        height: 60px;
+        max-width: 150px;
     }
     
     .hero-buttons {
-        flex-direction: column;
-        gap: 1rem;
+        width: 100%;
     }
     
-    .btn-glass {
-        margin-left: 0;
+    .btn-glow, .btn-glass {
+        width: 100%;
+        margin-bottom: 0.5rem;
     }
     
     .floating-card {
         display: none;
     }
-    
-    .stat-card {
-        padding: 20px;
-    }
-    
-    .feature-card {
-        padding: 30px 20px;
-    }
-    
-    .action-card {
-        padding: 30px;
-    }
 }
 
-/* Smooth scroll behavior */
+/* Smooth scroll */
 html {
     scroll-behavior: smooth;
 }
@@ -1691,32 +1288,27 @@ html {
     background: var(--primary-color);
 }
 
-/* Loading animation */
-.loading {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--dark-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
+/* ======> IMPORTANTE: Asegurar ancho completo <====== */
+/* Remover padding del contenedor principal si existe */
+#main-content > .container,
+#main-content > .container-fluid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
 }
 
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid rgba(255,255,255,0.1);
-    border-top: 3px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+/* Asegurar que todas las secciones ocupen el ancho completo */
+section {
+    width: 100%;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* Si hay un wrapper general, también quitarle restricciones */
+.wrapper,
+.main-wrapper,
+#wrapper {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 </style>
 
@@ -1727,15 +1319,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const tutorialVideo = document.getElementById('tutorialVideo');
     const videoURL = "{% static 'videos/daily_report_tutorial.mp4' %}";
     
-    videoModal.addEventListener('show.bs.modal', function () {
-        tutorialVideo.src = videoURL;
-    });
+    if (videoModal) {
+        videoModal.addEventListener('show.bs.modal', function () {
+            tutorialVideo.src = videoURL;
+        });
+        
+        videoModal.addEventListener('hide.bs.modal', function () {
+            tutorialVideo.src = '';
+        });
+    }
     
-    videoModal.addEventListener('hide.bs.modal', function () {
-        tutorialVideo.src = '';
-    });
-    
-    // Smooth scrolling mejorado
+    // Smooth scrolling para enlaces ancla
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -1750,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Animación de aparición en scroll
+    // Animación de aparición en scroll con Intersection Observer
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -100px 0px'
@@ -1769,8 +1363,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, observerOptions);
     
-    // Observar elementos
-    document.querySelectorAll('.feature-card, .glass-card, .action-card, .stat-card').forEach(el => {
+    // Observar elementos para animación
+    const elementsToObserve = document.querySelectorAll('.feature-card, .glass-card, .action-card, .stat-card');
+    elementsToObserve.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(50px)';
         observer.observe(el);
@@ -1778,7 +1373,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Función para animar contadores
     function animateCounter(element) {
-        const target = element.innerText;
+        const text = element.innerText;
+        const isPercentage = text.includes('%');
+        const target = parseInt(text);
+        
+        if (isNaN(target)) return;
+        
         const duration = 2000;
         const start = 0;
         const increment = target / (duration / 16);
@@ -1787,31 +1387,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const timer = setInterval(() => {
             current += increment;
             if (current >= target) {
-                element.innerText = target;
+                element.innerText = target + (isPercentage ? '%' : '');
                 clearInterval(timer);
             } else {
-                element.innerText = Math.floor(current);
+                element.innerText = Math.floor(current) + (isPercentage ? '%' : '');
             }
         }, 16);
     }
     
-    // Parallax effect en hero
+    // Efecto parallax en hero
     window.addEventListener('scroll', () => {
         const scrolled = window.pageYOffset;
         const parallax = document.querySelector('.hero-content');
         const video = document.querySelector('.video-overlay');
         
-        if (parallax) {
+        if (parallax && scrolled < window.innerHeight) {
             parallax.style.transform = `translate(-50%, calc(-50% + ${scrolled * 0.5}px))`;
         }
         
-        if (video) {
+        if (video && scrolled < window.innerHeight) {
             video.style.opacity = 0.9 + (scrolled * 0.0005);
         }
     });
     
     // Hover effect para cards 3D
-    document.querySelectorAll('.feature-3d-card').forEach(card => {
+    const cards3D = document.querySelectorAll('.feature-3d-card');
+    cards3D.forEach(card => {
         card.addEventListener('mousemove', (e) => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -1823,24 +1424,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const rotateX = (y - centerY) / 10;
             const rotateY = (centerX - x) / 10;
             
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
         });
         
         card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
         });
     });
+    
+    // Animación de entrada para elementos
+    const style = document.createElement('style');
+    style.textContent = `
+        .visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    `;
+    document.head.appendChild(style);
 });
-
-// Agregar clase visible con transición
-const style = document.createElement('style');
-style.textContent = `
-    .visible {
-        opacity: 1 !important;
-        transform: translateY(0) !important;
-        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-`;
-document.head.appendChild(style);
 </script>
 {% endblock %}
