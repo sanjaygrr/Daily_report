@@ -28,9 +28,9 @@
             <form method="post" class="needs-validation" novalidate>
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="id_username" class="form-label">Usuario o RUT</label>
+                    <label for="id_username" class="form-label">RUT</label>
                     <input type="text" name="username" id="id_username" class="form-control{% if form.username.errors %} is-invalid{% endif %}" 
-                           placeholder="Ingrese su usuario o RUT" required>
+                           placeholder="Ej: 12345678K" pattern="[0-9]{6,9}[0-9Kk]" title="Solo números y la letra K" required>
                     <div class="form-text">
                     </div>
                     {% if form.username.errors %}
@@ -299,39 +299,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-format RUT input
     const usernameInput = document.getElementById('id_username');
     if (usernameInput) {
-        usernameInput.addEventListener('input', function(e) {
-            let value = e.target.value;
-            
-            // Solo formatear si parece ser un RUT (contiene números y posiblemente puntos/guiones)
-            if (/^[\d\.\-]+$/.test(value.replace(/\s/g, ''))) {
-                // Quitar todo excepto números
-                let numbers = value.replace(/[^\d]/g, '');
-                
-                // Si tiene más de 7 dígitos, formatear como RUT
-                if (numbers.length >= 7) {
-                    let formatted = '';
-                    
-                    if (numbers.length <= 8) {
-                        // RUT de 8 dígitos: XX.XXX.XXX-X
-                        formatted = numbers.slice(0, 2) + '.' + numbers.slice(2, 5) + '.' + numbers.slice(5, 8);
-                        if (numbers.length > 8) {
-                            formatted += '-' + numbers.slice(8);
-                        }
-                    } else {
-                        // RUT de 9 dígitos: XXX.XXX.XXX-X
-                        formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6, 9);
-                        if (numbers.length > 9) {
-                            formatted += '-' + numbers.slice(9);
-                        }
-                    }
-                    
-                    // Solo actualizar si el usuario no está en medio de escribir
-                    if (value.length >= formatted.length - 1) {
-                        e.target.value = formatted;
-                    }
-                }
+        // Bloquear letras que no sean K/k
+        usernameInput.addEventListener('keydown', function(e){
+            const allowedControl = ['Backspace','Tab','ArrowLeft','ArrowRight','Delete','Home','End','Enter'];
+            if (allowedControl.includes(e.key)) return;
+            if (/^[0-9]$/.test(e.key)) return;
+            if (e.key.toLowerCase() === 'k') return;
+            e.preventDefault();
+        });
+        // Formateo en vivo mientras se escribe
+        usernameInput.addEventListener('input', function (e) {
+            const raw = this.value.replace(/[^0-9kK]/g, '').toUpperCase();
+            this.dataset.raw = raw; // Guardar versión limpia para el submit
+
+            if (raw.length < 2) return; // Aún no hay suficiente para formatear
+
+            const dv = raw.slice(-1);
+            const cuerpo = raw.slice(0, -1);
+
+            let cuerpoFmt = '';
+            for (let i = cuerpo.length - 1, len = 0; i >= 0; i--, len++) {
+                cuerpoFmt = cuerpo[i] + cuerpoFmt;
+                if (len % 3 === 2 && i !== 0) cuerpoFmt = '.' + cuerpoFmt;
+            }
+
+            const formatted = `${cuerpoFmt}-${dv}`;
+
+            // Evitar loop innecesario
+            if (formatted !== this.value) {
+                const posEnd = formatted.length;
+                this.value = formatted;
+                // Mover caret al final para mejor UX
+                this.setSelectionRange(posEnd, posEnd);
             }
         });
+
+        // Antes de enviar el formulario: escribir valor limpio
+        const form = document.querySelector('form.needs-validation');
+        if (form) {
+            form.addEventListener('submit', function () {
+                if (usernameInput.dataset.raw) {
+                    usernameInput.value = usernameInput.dataset.raw;
+                }
+            });
+        }
     }
 });
 </script>

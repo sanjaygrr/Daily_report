@@ -41,6 +41,27 @@ from .filters import TrabajoFilter # Asegúrate que este filtro exista
 class CustomLoginView(View):
     template_name = 'registration/login.html'
     
+    # NUEVO: función auxiliar para validar que el RUT contenga solo números y la letra K
+    def _rut_valido(self, rut: str) -> bool:
+        """Valida que el RUT esté compuesto únicamente por dígitos y, opcionalmente, la letra 'K'.
+        Se permiten puntos o guiones porque serán eliminados antes de la validación.
+        """
+        if not rut:
+            return False
+        # Eliminar separadores y pasar a mayúsculas
+        rut_limpio = rut.replace('.', '').replace('-', '').upper()
+        # Debe tener al menos 2 caracteres (cuerpo + dígito verificador)
+        if len(rut_limpio) < 2:
+            return False
+        cuerpo, dv = rut_limpio[:-1], rut_limpio[-1]
+        # El cuerpo debe ser numérico
+        if not cuerpo.isdigit():
+            return False
+        # El dígito verificador puede ser numérico o la letra K
+        if not (dv.isdigit() or dv == 'K'):
+            return False
+        return True
+
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('home')
@@ -52,16 +73,21 @@ class CustomLoginView(View):
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
+
+            # Validar formato RUT antes de intentar autenticar
+            if not self._rut_valido(username):
+                messages.error(request, "El RUT debe contener solo números y la letra 'K' al final si corresponde.")
+                return render(request, self.template_name, {'form': form})
             
             # Normalizar el username si parece ser un RUT
             normalized_username = self.normalize_username(username)
             
-            # Intentar autenticar con el username original primero (para superusuarios)
-            user = authenticate(username=username, password=password)
+            # Intentar autenticar con el username normalizado (primero)
+            user = authenticate(username=normalized_username, password=password)
             
-            # Si falla y el username fue normalizado, intentar con el normalizado
+            # Como medida de respaldo, intentar con el username original si difiere
             if user is None and normalized_username != username:
-                user = authenticate(username=normalized_username, password=password)
+                user = authenticate(username=username, password=password)
             
             if user is not None:
                 login(request, user)
@@ -160,9 +186,10 @@ def home(request):
 def landing_page(request):
     return render(request, 'registros/landing_page.html')
 
-@login_required
+# ---------------------- TEST STATIC ----------------------
+
 def test_static(request):
-    """Vista de prueba para verificar archivos estáticos"""
+    """Vista simple para verificar la carga de archivos estáticos."""
     return render(request, 'registros/test_static.html')
 
 # ---------------------- VISTAS DE EMPRESA ----------------------

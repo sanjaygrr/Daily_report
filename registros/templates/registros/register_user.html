@@ -17,30 +17,44 @@
 (function(){
     const form = document.querySelector('form.needs-validation');
     const usernameInput = document.getElementById('id_username');
-    if(!usernameInput) return; // Por si cambia el nombre del campo
+    if(!usernameInput) return;
 
-    // Al perder foco: aplicar formato visual (puntos y guion)
-    usernameInput.addEventListener('blur', function(){
-        const raw = this.value.trim();
-        this.dataset.raw = raw; // Guardar original
-        if(/[a-jl-zA-JL-Z]/.test(raw)) return; // No formatear si contiene letras distintas de K/k
-        let clean = raw.replace(/[^0-9kK]/g,'').toUpperCase();
-        if(clean.length < 2){ this.value = clean; return; }
-        const dv = clean.slice(-1);
-        const cuerpo = clean.slice(0,-1);
+    // Formateo en vivo conforme se escribe
+    usernameInput.addEventListener('input', function(){
+        const raw = this.value.replace(/[^0-9kK]/g,'').toUpperCase();
+        this.dataset.raw = raw; // Guardar limpio
+
+        if(raw.length < 2) return;
+
+        const dv = raw.slice(-1);
+        const cuerpo = raw.slice(0,-1);
         let cuerpoFmt='';
         for(let i=cuerpo.length-1, len=0; i>=0; i--, len++){
             cuerpoFmt = cuerpo[i] + cuerpoFmt;
             if(len%3===2 && i!==0) cuerpoFmt='.'+cuerpoFmt;
         }
-        this.value = `${cuerpoFmt}-${dv}`;
+        const formatted = `${cuerpoFmt}-${dv}`;
+        if(formatted !== this.value){
+            const posEnd = formatted.length;
+            this.value = formatted;
+            this.setSelectionRange(posEnd,posEnd);
+        }
     });
 
-    // Antes de enviar: quitar puntos y guion
+    // Antes de enviar: asignar versión sin formato
     form.addEventListener('submit',function(){
         if(usernameInput.dataset.raw){
-            usernameInput.value = usernameInput.dataset.raw.replace(/[^0-9kK]/g,'').toUpperCase();
+            usernameInput.value = usernameInput.dataset.raw;
         }
+    });
+
+    // Formateo en vivo conforme se escribe
+    usernameInput.addEventListener('keydown',function(e){
+        const allowedControl=['Backspace','Tab','ArrowLeft','ArrowRight','Delete','Home','End','Enter'];
+        if(allowedControl.includes(e.key)) return;
+        if(/^[0-9]$/.test(e.key)) return;
+        if(e.key.toLowerCase()==='k') return;
+        e.preventDefault();
     });
 })();
 </script>
