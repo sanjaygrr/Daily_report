@@ -16,11 +16,11 @@
         
         <!-- Logo AUDIOBRAS en la parte superior -->
         <div class="position-absolute top-0 start-0 w-100 p-4" style="z-index: 10;">
-            <div class="container">
-                <div class="d-flex justify-content-center">
-                    <img src="{% static 'images/audiobras_logo_small.png' %}" alt="AUDIOBRAS" class="audiobras-logo" style="border: 2px solid red;" onerror="this.style.display='none'; console.log('Error loading AUDIOBRAS logo: ' + this.src); this.nextElementSibling.style.display='block';">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-start">
+                    <img src="{% static 'images/audiobras_logo_small.png' %}" alt="AUDIOBRAS" class="audiobras-logo" onerror="this.style.display='none'; console.log('Error loading AUDIOBRAS logo: ' + this.src); this.nextElementSibling.style.display='block';">
                     <!-- Logo de respaldo -->
-                    <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="audiobras-logo" style="border: 2px solid blue; display: none;" onload="console.log('Logo de respaldo cargado');">
+                    <img src="{% static 'images/logo.jpeg' %}" alt="AUDIOBRAS" class="audiobras-logo" style="display: none;" onload="console.log('Logo de respaldo cargado');">
                 </div>
             </div>
         </div>
@@ -581,13 +581,13 @@ body {
 
 /* Logo AUDIOBRAS */
 .audiobras-logo {
-    height: 60px;
+    height: 100px;
     width: auto;
-    max-width: 200px;
+    max-width: 300px;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
     transition: all 0.3s ease;
     display: block;
-    margin: 0 auto;
+    margin: 0;
 }
 
 .audiobras-logo:hover {
@@ -598,15 +598,15 @@ body {
 /* Responsive para el logo */
 @media (max-width: 768px) {
     .audiobras-logo {
-        height: 40px;
-        max-width: 150px;
+        height: 70px;
+        max-width: 200px;
     }
 }
 
 @media (max-width: 480px) {
     .audiobras-logo {
-        height: 35px;
-        max-width: 120px;
+        height: 60px;
+        max-width: 150px;
     }
 }
 
